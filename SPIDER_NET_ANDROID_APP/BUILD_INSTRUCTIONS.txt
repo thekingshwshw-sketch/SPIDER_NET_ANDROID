@@ -1,0 +1,1 @@
+Android APK build is handled by the repository workflow at .github/workflows/build-apk.yml. The generated debug APK is uploaded as a GitHub Actions artifact after a successful build.
