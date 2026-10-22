@@ -1,0 +1,32 @@
+name: Extract Android project ZIP
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SPIDER_NET_ANDROID_APP_SOURCE.zip'
+permissions:
+  contents: write
+jobs:
+  extract-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract project files
+        run: |
+          test -f SPIDER_NET_ANDROID_APP_SOURCE.zip
+          mkdir -p /tmp/spider-source
+          unzip -q SPIDER_NET_ANDROID_APP_SOURCE.zip -d /tmp/spider-source
+          if [ -d /tmp/spider-source/SPIDER_NET_ANDROID ]; then
+            cp -a /tmp/spider-source/SPIDER_NET_ANDROID/. .
+          else
+            cp -a /tmp/spider-source/. .
+          fi
+          rm -f SPIDER_NET_ANDROID_APP_SOURCE.zip
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --quiet || git commit -m "Add Spider Net Android app source"
+          git push
