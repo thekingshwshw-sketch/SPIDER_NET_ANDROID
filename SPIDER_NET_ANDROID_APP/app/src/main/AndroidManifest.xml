@@ -4,7 +4,7 @@
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher"
-        android:label="SPIDER NET | Smart Accounting"
+        android:label="SPIDER NET | Smart Accounting 2.0.3"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false"
         android:supportsRtl="true">
