@@ -30,7 +30,9 @@ jobs:
           gradle-version: '8.9'
 
       - name: Apply Android backup and restore fix
-        run: python tools/apply_backup_patch.py
+        run: |
+          python tools/apply_backup_patch.py
+          python tools/fix_backup_notify.py
         working-directory: SPIDER_NET_ANDROID_APP
 
       - name: Build debug APK
