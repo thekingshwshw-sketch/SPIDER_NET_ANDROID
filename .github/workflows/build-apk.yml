@@ -1,0 +1,41 @@
+name: Build Spider Net Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SPIDER_NET_ANDROID_APP/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        run: gradle assembleDebug --no-daemon
+        working-directory: SPIDER_NET_ANDROID_APP
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spider-net-accounting-debug-apk
+          path: SPIDER_NET_ANDROID_APP/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
