@@ -57,7 +57,7 @@ jobs:
       - name: Install Playwright browser for UI regression tests
         run: |
           npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
         working-directory: SPIDER_NET_ANDROID_APP
 
       - name: Run UI regression tests
