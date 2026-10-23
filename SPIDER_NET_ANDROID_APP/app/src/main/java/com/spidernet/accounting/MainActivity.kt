@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         val json = pendingBackupJson
         pendingBackupJson = null
         if (uri == null || json == null) {
-            notifyJs("onNativeBackupResult", false, "تم إلغاء حفظ النسخة الاحتياطية")
+            notifyJs("onNativeBackupResult", false, "تم إلغاء حفظ الملف")
             return@registerForActivityResult
         }
         try {
@@ -37,9 +37,9 @@ class MainActivity : ComponentActivity() {
                 it.write(json)
                 it.flush()
             } ?: throw IllegalStateException("تعذر فتح ملف الحفظ")
-            notifyJs("onNativeBackupResult", true, "تم حفظ النسخة الاحتياطية بنجاح في المكان الذي اخترته")
+            notifyJs("onNativeBackupResult", true, "تم حفظ الملف بنجاح في المكان الذي اخترته")
         } catch (e: Exception) {
-            notifyJs("onNativeBackupResult", false, "تعذر حفظ النسخة الاحتياطية: " + (e.message ?: "خطأ في الملف"))
+            notifyJs("onNativeBackupResult", false, "تعذر حفظ الملف: " + (e.message ?: "خطأ في الملف"))
         }
     }
 
