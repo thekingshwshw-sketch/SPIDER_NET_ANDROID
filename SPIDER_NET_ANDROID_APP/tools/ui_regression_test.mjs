@@ -46,6 +46,7 @@ try{
  await page.locator('#view [data-action="edit-delivery:'+deliveryId+'"]').first().click();await fill({qty:'1000'});check(!(await submit()),'رفض تسليم أكبر من المخزون');check((await db()).deliveries.find(x=>x.id===deliveryId).qty===9,'حماية البيع الأصلي من تعديل مرفوض');await cancel();
  await tab('cards');
  await action('edit-card:'+cardId);await fill({cost:'95'});check(!(await submit()),'منع تغيير التكلفة بعد وجود حركات');check((await db()).cards[0].cost===90,'حماية التكلفة التاريخية');await cancel();
+ await tab('pos');
  await action('open-pos:'+posId);
  await page.locator('#posFrom').fill('2026-10-30');await page.locator('#posTo').fill('2026-10-20');await page.locator('#applyPosFilter').click();check((await dialogs()).some(x=>x.type==='alert'&&x.message.includes('قبل تاريخ النهاية')),'رفض نطاق تاريخ معكوس');await page.locator('#clearPosFilter').click();
  await action('print-pos');check(await page.evaluate(()=>window.__printCount===1),'زر الطباعة');const imgDlP=page.waitForEvent('download',{timeout:10000});await action('image-pos');const imgDl=await imgDlP;check(imgDl.suggestedFilename().endsWith('.png'),'تصدير كشف الحساب كصورة');
