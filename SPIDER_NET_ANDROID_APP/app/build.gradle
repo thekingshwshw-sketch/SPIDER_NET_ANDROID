@@ -8,11 +8,11 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.spidernet.accounting.dateedit2026'
+        applicationId 'com.spidernet.accounting.design2026'
         minSdk 23
         targetSdk 35
         versionCode 1
-        versionName '2.0.3-datefix'
+        versionName '2.1.0'
     }
 
     compileOptions {

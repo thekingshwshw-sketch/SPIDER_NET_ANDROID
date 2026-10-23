@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f3f7fc">
 <title>SPIDER NET | Smart Accounting System</title>
@@ -101,6 +101,94 @@ body{background:var(--bg);color:var(--text);line-height:1.5;letter-spacing:0;fon
 
 /* اللمسات النهائية على رأس الهاتف */
 @media(max-width:900px){.top-user #lockBtn{display:none}.topbar{direction:ltr!important}.topbar-brand{direction:rtl!important;grid-column:2!important;grid-row:1!important}.top-user{direction:ltr!important;grid-column:1!important;grid-row:1!important;justify-self:start!important}.global-search{direction:rtl!important;grid-column:1/-1!important;grid-row:2!important}.desktop-action{display:none!important}}
+
+
+/* SPIDER NET 2.1 — visual system inspired by React Bits motion discipline and IT Tools clarity.
+   Vanilla CSS only: no React runtime, remote assets, or heavy animation dependency. */
+html[data-theme="dark"]{
+  --bg:#071321;--panel:#0d1e30;--panel2:#11283e;--line:#23415a;
+  --text:#eef7ff;--muted:#9db2c7;--accent:#9af542;--accent2:#22d3db;
+  --danger:#ff788f;--warn:#ffd166;--shadow:0 12px 30px rgba(0,0,0,.22);
+  --soft-blue:#142f49;--soft-green:#12382e;--soft-red:#412333;--soft-purple:#292643;color-scheme:dark
+}
+html[data-theme="light"]{
+  --bg:#eef4f8;--panel:#ffffff;--panel2:#f4f8fb;--line:#d7e3eb;
+  --text:#173149;--muted:#60798c;--accent:#16865f;--accent2:#078da5;
+  --danger:#c9435d;--warn:#986b16;--shadow:0 9px 24px rgba(17,48,71,.075);
+  --soft-blue:#e3f3f7;--soft-green:#e1f6eb;--soft-red:#ffedf0;--soft-purple:#efeaff;color-scheme:light
+}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(ellipse at 88% 0%,rgba(34,211,219,.075),transparent 34%),radial-gradient(ellipse at 10% 30%,rgba(154,245,66,.045),transparent 28%);
+  color:var(--text)
+}
+.topbar{
+  background:linear-gradient(115deg,var(--panel),color-mix(in srgb,var(--panel) 91%,var(--accent2)));
+  border-bottom:1px solid color-mix(in srgb,var(--accent2) 22%,var(--line));
+  box-shadow:0 8px 24px rgba(0,0,0,.07)
+}
+.brand-emblem{background:linear-gradient(135deg,#092038,#123c55);border:1px solid #1c5b70;box-shadow:inset 0 0 15px #22d3db12,0 0 16px #22d3db0c}
+.brand-emblem svg{stroke:var(--accent2)}
+.sidebar{background:linear-gradient(180deg,#081a2b 0%,#0a2137 58%,#091827 100%);border-color:#193c53}
+.sidebar .nav.active{background:linear-gradient(100deg,#103b49,#134153);border-color:#297a7e;box-shadow:inset -3px 0 var(--accent),0 4px 14px #0002}
+.dashboard-head{position:relative}
+.dashboard-head h2{letter-spacing:-.35px}
+.dashboard-welcome{color:var(--text)}
+.dashboard-quick .primary,button.primary{
+  background:linear-gradient(115deg,var(--accent),color-mix(in srgb,var(--accent) 64%,var(--accent2)));
+  border:1px solid color-mix(in srgb,var(--accent) 70%,white);
+  color:#071720;font-weight:800;box-shadow:0 5px 16px color-mix(in srgb,var(--accent) 18%,transparent)
+}
+.dash-metric,.metric,.panel,.pos-card,.profile-hero,.lower-card,.detail-stat{
+  border:1px solid var(--line);
+  background:linear-gradient(145deg,var(--panel),color-mix(in srgb,var(--panel) 93%,var(--accent2)));
+  box-shadow:var(--shadow)
+}
+.dash-metric{overflow:hidden;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.dash-metric:before{display:block;content:"";position:absolute;right:0;top:15px;bottom:15px;width:3px;border-radius:4px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.dash-metric .label,.dash-metric .hint{color:var(--muted)}
+.dash-metric .value{color:var(--text)}
+.metric-icon{background:color-mix(in srgb,var(--accent2) 12%,var(--panel2));color:var(--accent2);border:1px solid color-mix(in srgb,var(--accent2) 25%,var(--line))}
+.tone-green .metric-icon{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel2))}
+.tone-red .metric-icon{color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,var(--panel2))}
+.tone-blue .metric-icon{color:var(--accent2);background:color-mix(in srgb,var(--accent2) 10%,var(--panel2))}
+.tone-purple .metric-icon{color:#b6a0ff;background:color-mix(in srgb,#8b6cf0 12%,var(--panel2))}
+.dashboard-section,.lower-card{border-radius:16px}
+.dashboard-section-head h3,.panel h3{letter-spacing:-.1px}
+.dashboard-table th,th{background:var(--panel2)!important;color:var(--muted)!important;border-color:var(--line)!important}
+.dashboard-table td,td{border-color:var(--line)}
+.dashboard-table tbody tr:hover,tbody tr:hover{background:color-mix(in srgb,var(--accent2) 5%,var(--panel))}
+.table-primary{color:var(--accent2)}
+.amount.in{color:var(--accent)}.amount.out{color:var(--danger)}
+.status-pill{background:var(--soft-green);color:var(--accent)}
+.status-pill.is-unknown,.status-pill.is-warning{background:color-mix(in srgb,var(--warn) 13%,var(--panel));color:var(--warn)}
+.type-pill{background:var(--soft-blue);color:var(--accent2)}
+.open-button{background:var(--soft-blue);border-color:var(--line);color:var(--accent2)}
+.accounting-note{background:color-mix(in srgb,var(--warn) 10%,var(--panel));border-color:color-mix(in srgb,var(--warn) 27%,var(--line));color:var(--text)}
+.soft-tool{background:var(--panel2);border-color:var(--line)}
+.text-link{color:var(--accent2)!important}
+.global-search:focus-within{border-color:var(--accent2);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent2) 12%,transparent)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent2) 13%,transparent)}
+.modal{border-color:color-mix(in srgb,var(--accent2) 24%,var(--line));background:var(--panel)}
+.badge.ok{color:var(--accent);background:var(--soft-green)}
+.badge.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--panel))}
+.badge.bad{color:var(--danger);background:var(--soft-red)}
+.mobile-nav{background:color-mix(in srgb,var(--panel) 93%,var(--accent2));border-top-color:color-mix(in srgb,var(--accent2) 22%,var(--line));backdrop-filter:blur(14px)}
+.mobile-nav-item.active{color:var(--accent)}
+.footer{color:var(--muted)}
+@media(hover:hover){
+  .panel,.pos-card,.lower-card,.profile-hero{transition:border-color .18s ease,box-shadow .18s ease}
+  .panel:hover,.pos-card:hover,.lower-card:hover,.profile-hero:hover{border-color:color-mix(in srgb,var(--accent2) 36%,var(--line));box-shadow:0 13px 30px rgba(0,0,0,.10)}
+  .dash-metric:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 42%,var(--line));box-shadow:0 13px 28px rgba(0,0,0,.14)}
+}
+@media(max-width:900px){
+  .topbar{background:linear-gradient(125deg,var(--panel),color-mix(in srgb,var(--panel) 90%,var(--accent2)));border-bottom-color:color-mix(in srgb,var(--accent2) 20%,var(--line))}
+  .dash-metric{min-height:96px}
+  .dashboard-quick .primary{box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 16%,transparent)}
+}
+@media(prefers-reduced-motion:reduce){
+  .dash-metric,.panel,.pos-card,.lower-card,.profile-hero,.mobile-nav{transition:none!important;transform:none!important;backdrop-filter:none!important}
+}
 
 </style></head>
 <body>
@@ -211,7 +299,7 @@ function printPosStatement(){if(tab!=='pos-detail'||!pos(selectedPosId))return;d
 function exportPosImage(){let p=pos(selectedPosId);if(!p)return;let rows=posTransactions(selectedPosId).filter(x=>(!posFrom||x.date>=posFrom)&&(!posTo||x.date<=posTo));let width=1400,rowH=54,height=260+rows.length*rowH+90;let c=document.createElement('canvas');c.width=width;c.height=Math.min(height,16000);let ctx=c.getContext('2d');ctx.fillStyle=document.documentElement.dataset.theme==='light'?'#f5f8fc':'#09111f';ctx.fillRect(0,0,c.width,c.height);ctx.direction='rtl';ctx.textAlign='right';ctx.fillStyle=document.documentElement.dataset.theme==='light'?'#16253a':'#edf5ff';ctx.font='bold 34px Tahoma, Arial';ctx.fillText('SPIDER NET — كشف حساب نقطة بيع',width-48,58);ctx.font='bold 27px Tahoma, Arial';ctx.fillText(p.name,width-48,105);ctx.font='20px Tahoma, Arial';ctx.fillText('المالك: '+(p.owner||'—')+'   الهاتف: '+(p.phone||'—'),width-48,145);ctx.fillText('المنطقة: '+(p.area||'—')+'   العنوان: '+(p.address||'—'),width-48,180);ctx.fillText('الفترة: '+(posFrom||'أول تعامل')+' إلى '+(posTo||'اليوم'),width-48,215);let headers=['التاريخ','العملية','البيان','الكمية','السعر','مدين','دائن','ملاحظات'];let cols=[1340,1190,970,730,620,490,350,180];ctx.fillStyle=document.documentElement.dataset.theme==='light'?'#dce8f3':'#17273b';ctx.fillRect(35,240,width-70,48);ctx.font='bold 17px Tahoma, Arial';headers.forEach((h,i)=>ctx.fillText(h,cols[i],271));let y=288;ctx.font='16px Tahoma, Arial';rows.forEach((r,i)=>{if(y+rowH>c.height-50)return;if(i%2===0){ctx.fillStyle=document.documentElement.dataset.theme==='light'?'#ffffff':'#101c2d';ctx.fillRect(35,y-31,width-70,rowH)}let vals=[r.date,r.type,r.desc,String(r.qty),money(r.price),money(r.debit),money(r.credit),r.note||''];vals.forEach((v,j)=>ctx.fillText(String(v).slice(0,35),cols[j],y));y+=rowH});ctx.fillStyle=document.documentElement.dataset.theme==='light'?'#5e7087':'#9aafc7';ctx.font='15px Tahoma, Arial';ctx.fillText('الرصيد الحالي: '+money(posDebt(selectedPosId))+'   •   كشف خاص بهذه النقطة فقط',width-48,Math.min(y+20,c.height-15));c.toBlob(blob=>{if(!blob)return alert('تعذر إنشاء الصورة على هذا الجهاز. استخدم الطباعة ثم احفظ PDF.');let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spider-net-statement-'+(p.name.replace(/[^\u0600-\u06FF\w-]+/g,'_'))+'-'+dateNow()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)},'image/png')}
 function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
 function bindActions(root){root.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();runAction(b.dataset.action)}));if(root.id==='view'){wirePosDetail()}}
-setTheme(localStorage.getItem('spidernet_theme')==='dark'?'dark':'light');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>window.print();$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{tab='home';render();document.querySelector('#alerts')?.scrollIntoView({behavior:'smooth',block:'center'})};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{let x=JSON.parse(await f.text());let requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. أنشئ نسخة من البيانات الحالية أولًا. متابعة؟'))return;db=x;addAudit('استعادة نسخة احتياطية',f.name);persist();render();alert('تمت الاستعادة. راجع الأرصدة واختبر سلامة البيانات.')}catch(err){alert('تعذرت استعادة الملف أو أنه ناقص. لم تُستبدل بيانات هذا الجهاز. تأكد أنه نسخة JSON مكتملة صادرة من النظام.')}finally{e.target.value=''}};
+setTheme(localStorage.getItem('spidernet_theme')==='light'?'light':'dark');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>window.print();$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{tab='home';render();document.querySelector('#alerts')?.scrollIntoView({behavior:'smooth',block:'center'})};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{let x=JSON.parse(await f.text());let requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. أنشئ نسخة من البيانات الحالية أولًا. متابعة؟'))return;db=x;addAudit('استعادة نسخة احتياطية',f.name);persist();render();alert('تمت الاستعادة. راجع الأرصدة واختبر سلامة البيانات.')}catch(err){alert('تعذرت استعادة الملف أو أنه ناقص. لم تُستبدل بيانات هذا الجهاز. تأكد أنه نسخة JSON مكتملة صادرة من النظام.')}finally{e.target.value=''}};
 $('#lockBtn').onclick=()=>{if(!db.settings.pin)return alert('عيّن رقمًا سريًا من الإعدادات أولًا.');$('#lockScreen').classList.add('show')};$('#unlockBtn').onclick=()=>{if($('#unlockPin').value===db.settings.pin){$('#lockScreen').classList.remove('show');$('#unlockPin').value='';$('#unlockMsg').textContent=''}else $('#unlockMsg').textContent='الرقم السري غير صحيح.'};
 // Dispatch modal/global actions and protect nested quick-action buttons.
 document.addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let act=b.dataset.action;if($('#modalBack').classList.contains('show')&&b.closest('#modalBody'))return;runAction(act)});
