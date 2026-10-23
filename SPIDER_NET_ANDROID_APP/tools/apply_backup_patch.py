@@ -292,19 +292,27 @@ window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم حفظ
 window.onNativePrintError=function(message){alert(message||'تعذر فتح نافذة الطباعة على هذا الجهاز')};'''
 
 html = HTML.read_text(encoding="utf-8")
-pattern = re.compile(r"function backup\(\)\{.*?\}\s*function restore\(\)\{.*?\}", re.S)
-html, count = pattern.subn(lambda _: HTML_BACKUP_FUNCTIONS, html, count=1)
-if count != 1 and "window.onNativeBackupLoaded=function" not in html:
-    raise SystemExit("Could not locate backup()/restore() functions in index.html")
+# Newer builds keep this implementation in the checked-in source. Avoid rewriting
+# the HTML during CI; test exactly the same source that is packaged into the APK.
+already_integrated = (
+    "function applyBackupText(text,fileName)" in html
+    and "window.onNativeBackupLoaded=function" in html
+    and "window.AndroidBackup.printDocument" in html
+)
+if not already_integrated:
+    pattern = re.compile(r"function backup\(\)\{.*?\}\s*function restore\(\)\{.*?\}", re.S)
+    html, count = pattern.subn(lambda _: HTML_BACKUP_FUNCTIONS, html, count=1)
+    if count != 1 and "window.onNativeBackupLoaded=function" not in html:
+        raise SystemExit("Could not locate backup()/restore() functions in index.html")
 
-start = html.find("$('#restoreFile').onchange=async e=>{")
-if start >= 0:
-    end = html.find("$('#lockBtn').onclick=", start)
-    if end < 0:
-        raise SystemExit("Could not locate end of restore file handler")
-    html = html[:start] + "$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};\n" + html[end:]
-elif "applyBackupText(await f.text(),f.name)" not in html:
-    raise SystemExit("Could not locate restore input handler in index.html")
+    start = html.find("$('#restoreFile').onchange=async e=>{")
+    if start >= 0:
+        end = html.find("$('#lockBtn').onclick=", start)
+        if end < 0:
+            raise SystemExit("Could not locate end of restore file handler")
+        html = html[:start] + "$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};\n" + html[end:]
+    elif "applyBackupText(await f.text(),f.name)" not in html:
+        raise SystemExit("Could not locate restore input handler in index.html")
 
 JAVA.write_text(KOTLIN, encoding="utf-8")
 HTML.write_text(html, encoding="utf-8")
