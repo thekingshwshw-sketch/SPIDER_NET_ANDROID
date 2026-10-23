@@ -165,7 +165,7 @@ class MainActivity : ComponentActivity() {
         if (!::webView.isInitialized) return
         val quotedMessage = JSONObject.quote(message)
         webView.post {
-            val script = if (callback == "onNativeBackupResult") {
+            val script = if (callback == "onNativeBackupResult" || callback == "onNativeExportResult") {
                 "window." + callback + " && window." + callback + "(" + success + ", " + quotedMessage + ")"
             } else {
                 "window." + callback + " && window." + callback + "(" + quotedMessage + ")"
