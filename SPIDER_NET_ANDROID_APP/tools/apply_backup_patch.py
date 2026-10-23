@@ -8,7 +8,11 @@ HTML = ROOT / "app/src/main/assets/index.html"
 
 KOTLIN = r'''package com.spidernet.accounting
 
+import android.content.Context
 import android.net.Uri
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.util.Base64
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
@@ -24,6 +28,7 @@ import org.json.JSONObject
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var pendingBackupJson: String? = null
+    private var pendingImageBytes: ByteArray? = null
 
     private val createBackupDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -80,6 +85,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val createImageDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("image/png")
+    ) { uri: Uri? ->
+        val bytes = pendingImageBytes
+        pendingImageBytes = null
+        if (uri == null || bytes == null) {
+            notifyJs("onNativeExportResult", false, "تم إلغاء حفظ الصورة")
+            return@registerForActivityResult
+        }
+        try {
+            contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes); it.flush() }
+                ?: throw IllegalStateException("تعذر فتح ملف الصورة")
+            notifyJs("onNativeExportResult", true, "تم حفظ صورة كشف الحساب بنجاح")
+        } catch (e: Exception) {
+            notifyJs("onNativeExportResult", false, "تعذر حفظ الصورة: " + (e.message ?: "خطأ في الملف"))
+        }
+    }
+
     inner class BackupBridge {
         @JavascriptInterface
         fun saveBackup(json: String, fileName: String) {
@@ -94,10 +117,55 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun saveImage(base64: String, fileName: String) {
+            runOnUiThread {
+                try {
+                    if (base64.length.toLong() > (MAX_BACKUP_BYTES.toLong() * 4L / 3L + 16L)) {
+                        throw IllegalArgumentException("حجم الصورة أكبر من 20 ميجابايت")
+                    }
+                    val bytes = Base64.decode(base64, Base64.DEFAULT)
+                    if (bytes.size > MAX_BACKUP_BYTES) throw IllegalArgumentException("حجم الصورة أكبر من 20 ميجابايت")
+                    pendingImageBytes = bytes
+                    createImageDocument.launch(fileName.ifBlank { "spider-net-statement.png" })
+                } catch (e: Exception) {
+                    notifyJs("onNativeExportResult", false, "تعذر تجهيز الصورة: " + (e.message ?: "ملف غير صالح"))
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun printDocument(title: String) {
+            runOnUiThread {
+                try {
+                    val jobName = title.take(80).ifBlank { "SPIDER NET" }
+                    val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    printManager.print(
+                        jobName,
+                        webView.createPrintDocumentAdapter(jobName),
+                        PrintAttributes.Builder().build()
+                    )
+                } catch (e: Exception) {
+                    notifyJs("onNativePrintError", "تعذر فتح نافذة الطباعة: " + (e.message ?: "خطأ غير معروف"))
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun chooseBackup() {
             runOnUiThread {
                 openBackupDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
             }
+        }
+    }
+
+    private fun notifyJs(callback: String, message: String) {
+        if (!::webView.isInitialized) return
+        val quotedMessage = JSONObject.quote(message)
+        webView.post {
+            webView.evaluateJavascript(
+                "window." + callback + " && window." + callback + "(" + quotedMessage + ")",
+                null
+            )
         }
     }
 
@@ -193,12 +261,35 @@ function applyBackupText(text,fileName){
   const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
   if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
   if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
+  const objectRecord=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+  const nonempty=v=>v!==undefined&&v!==null&&String(v).trim().length>0;
+  const finite=v=>v!==undefined&&v!==null&&String(v).trim()!==''&&Number.isFinite(Number(v));
+  const validRecords=(rows)=>rows.every(objectRecord);
+  const uniqueIds=(rows)=>{const seen=new Set();return rows.every(v=>nonempty(v.id)&&!seen.has(String(v.id))&&(seen.add(String(v.id)),true))};
+  const cardIds=new Set(x.cards.map(c=>String(c.id))),posIds=new Set(x.pos.map(p=>String(p.id))),walletIds=new Set(x.wallets.map(w=>String(w.id))),partnerIds=new Set(x.partners.map(p=>String(p.id)));
+  if(!validDateValue(x.settings.startDate))throw Error('settings');
+  if(!validRecords(x.cards)||!uniqueIds(x.cards)||!x.cards.every(c=>nonempty(c.name)&&finite(c.face)&&Number(c.face)>0&&finite(c.pricePos)&&Number(c.pricePos)>=0&&finite(c.cost)&&Number(c.cost)>=0&&finite(c.opening)&&Number.isInteger(Number(c.opening))&&Number(c.opening)>=0&&(c.alertAt===undefined||(finite(c.alertAt)&&Number.isInteger(Number(c.alertAt))&&Number(c.alertAt)>=0))))throw Error('cards');
+  if(!validRecords(x.pos)||!uniqueIds(x.pos)||!x.pos.every(p=>nonempty(p.name)))throw Error('pos');
+  if(!validRecords(x.wallets)||!uniqueIds(x.wallets)||!x.wallets.every(w=>nonempty(w.name)))throw Error('wallets');
+  if(!validRecords(x.deliveries)||!uniqueIds(x.deliveries)||!x.deliveries.every(d=>validDateValue(d.date)&&posIds.has(String(d.posId))&&cardIds.has(String(d.cardId))&&finite(d.qty)&&Number.isInteger(Number(d.qty))&&Number(d.qty)>0&&['cash','credit','consignment'].includes(d.mode)&&finite(d.unitPrice)&&Number(d.unitPrice)>=0&&finite(d.amount)&&Math.abs(Number(d.amount)-Number(d.qty)*Number(d.unitPrice))<=0.02&&(d.returnAmount===undefined||(finite(d.returnAmount)&&Number(d.returnAmount)>=0))))throw Error('deliveries');
+  if(!validRecords(x.consignmentSettlements)||!uniqueIds(x.consignmentSettlements)||!x.consignmentSettlements.every(s=>validDateValue(s.date)&&posIds.has(String(s.posId))&&cardIds.has(String(s.cardId))&&finite(s.soldQty)&&Number.isInteger(Number(s.soldQty))&&Number(s.soldQty)>=0&&finite(s.returnQty)&&Number.isInteger(Number(s.returnQty))&&Number(s.returnQty)>=0&&Number(s.soldQty)+Number(s.returnQty)>0&&finite(s.unitPrice)&&Number(s.unitPrice)>=0&&(Number(s.soldQty)===0||Number(s.unitPrice)>0)))throw Error('consignmentSettlements');
+  if(!validRecords(x.payments)||!uniqueIds(x.payments)||!x.payments.every(p=>validDateValue(p.date)&&posIds.has(String(p.posId))&&finite(p.amount)&&Number(p.amount)>0&&['cash','transfer'].includes(p.method)&&(p.allocations===undefined||Array.isArray(p.allocations)&&p.allocations.every(a=>objectRecord(a)&&['delivery','consignment'].includes(a.sourceType)&&nonempty(a.sourceId)&&finite(a.amount)&&Number(a.amount)>0)&&Math.abs(p.allocations.reduce((s,a)=>s+Number(a.amount),0)-Number(p.amount))<=0.02)))throw Error('payments');
+  if(!validRecords(x.walletLoads)||!uniqueIds(x.walletLoads)||!x.walletLoads.every(v=>validDateValue(v.date)&&walletIds.has(String(v.walletId))&&cardIds.has(String(v.cardId))&&finite(v.qty)&&Number.isInteger(Number(v.qty))&&Number(v.qty)>0))throw Error('walletLoads');
+  if(!validRecords(x.walletSales)||!uniqueIds(x.walletSales)||!x.walletSales.every(v=>validDateValue(v.date)&&walletIds.has(String(v.walletId))&&cardIds.has(String(v.cardId))&&finite(v.qty)&&Number.isInteger(Number(v.qty))&&Number(v.qty)>0&&finite(v.unitPrice)&&Number(v.unitPrice)>0&&finite(v.amount)&&Math.abs(Number(v.amount)-Number(v.qty)*Number(v.unitPrice))<=0.02&&['received','pending'].includes(v.settlement)))throw Error('walletSales');
+  if(!validRecords(x.expenses)||!uniqueIds(x.expenses)||!x.expenses.every(v=>validDateValue(v.date)&&nonempty(v.name)&&finite(v.amount)&&Number(v.amount)>0))throw Error('expenses');
+  if(!validRecords(x.bills)||!uniqueIds(x.bills)||!x.bills.every(v=>nonempty(v.name)&&validDateValue(v.due)&&finite(v.amount)&&Number(v.amount)>0&&typeof v.paid==='boolean'))throw Error('bills');
+  if(!validRecords(x.partners)||!uniqueIds(x.partners)||!x.partners.every(v=>nonempty(v.name)&&finite(v.share)&&Number(v.share)>=0))throw Error('partners');
+  if(!validRecords(x.partnerMoves)||!uniqueIds(x.partnerMoves)||!x.partnerMoves.every(v=>validDateValue(v.date)&&partnerIds.has(String(v.partnerId))&&['withdrawal','paid_for_network','settlement'].includes(v.kind)&&finite(v.amount)&&Number(v.amount)>0))throw Error('partnerMoves');
+  if(!validRecords(x.stockAdjustments)||!uniqueIds(x.stockAdjustments)||!x.stockAdjustments.every(v=>validDateValue(v.date)&&cardIds.has(String(v.cardId))&&finite(v.delta)&&Number.isInteger(Number(v.delta))&&Number(v.delta)!==0&&nonempty(v.note)))throw Error('stockAdjustments');
+  if(!validRecords(x.audit)||!validRecords(x.closures))throw Error('audit/closures');
   if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
   db=x;addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');persist();render();alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');return true;
  }catch(err){alert('تعذرت استعادة النسخة أو أن ملفها ناقص. لم تُستبدل البيانات. اختر ملف JSON كاملًا صادرًا من النظام.');return false}
 }
 window.onNativeBackupLoaded=function(text,fileName){applyBackupText(text,fileName||'ملف مستعاد')};
-window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};'''
+window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};
+window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم حفظ الصورة بنجاح':'تعذر حفظ الصورة'))};
+window.onNativePrintError=function(message){alert(message||'تعذر فتح نافذة الطباعة على هذا الجهاز')};'''
 
 html = HTML.read_text(encoding="utf-8")
 pattern = re.compile(r"function backup\(\)\{.*?\}\s*function restore\(\)\{.*?\}", re.S)
