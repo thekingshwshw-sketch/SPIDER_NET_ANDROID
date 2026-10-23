@@ -223,6 +223,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent2);box-shadow:0
 <div class="lock" id="lockScreen"><div class="lockbox"><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
 <script>
 (()=>{'use strict';
+const browserPrint=typeof window.print==='function'?window.print.bind(window):()=>{};
+window.print=function(){if(window.AndroidBackup&&typeof window.AndroidBackup.printDocument==='function'){window.AndroidBackup.printDocument(document.title||'SPIDER NET');return}browserPrint()};
 const KEY='spidernet_accounting_v1';
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const num=v=>Number(v)||0;const money=v=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:2}).format(num(v))+' ر.ي';const dateNow=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};function validDateValue(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')))return false;let [y,m,d]=String(v).split('-').map(Number);let x=new Date(Date.UTC(y,m-1,d));return x.getUTCFullYear()===y&&x.getUTCMonth()===m-1&&x.getUTCDate()===d}function dateFieldValue(v,fallback=dateNow()){let s=String(v??'').trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m){let d=m[1]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[3])).padStart(2,'0');if(validDateValue(d))return d}m=s.match(/^(\d{1,2})[\/. -](\d{1,2})[\/. -](\d{4})$/);if(m){let d=m[3]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[1])).padStart(2,'0');if(validDateValue(d))return d}return validDateValue(fallback)?fallback:dateNow()}const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const empty=()=>({version:1,settings:{startDate:'2026-10-11',pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],audit:[],closures:[]});
@@ -499,8 +501,70 @@ function integrity(){
 function closePeriod(){let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='الفترة: '+period+'\nالصندوق المحسوب: '+money(cashBalance())+'\nديون نقاط البيع: '+money(posReceivables())+'\nالالتزامات غير المسددة: '+money(obligations())+'\nتقدير الربح: '+money(profitEstimate())+'\n\nهذا ملخص مراجعة أولي وليس قيد إقفال محاسبيًا. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,approved:true});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist()}
 function quick(){showModal('تسجيل عملية',`<div class="actions">${btn('تسليم كروت','add-delivery','primary')}${btn('تحصيل دين','add-payment')}${btn('مصروف','add-expense')}${btn('تحميل محفظة','add-load')}${btn('بيع محفظة','add-wallet-sale')}${btn('حركة شريك','add-partner-move')}</div><p class="small muted">اختر نوع العملية. ستُفتح نافذة منفصلة لإدخال التفاصيل.</p>`);$('#modalBody').querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{closeModal();runAction(b.dataset.action)})}
 function persist(){localStorage.setItem(KEY,JSON.stringify(db))}
-function backup(){db.settings.lastBackup=new Date().toISOString();persist();const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`spider-net-backup-${dateNow()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);addAudit('تصدير نسخة احتياطية',dateNow())}
-function restore(){ $('#restoreFile').click() }
+function backup(){
+ try{
+  const now=new Date().toISOString();
+  const snapshot=JSON.parse(JSON.stringify(db));
+  snapshot.settings.lastBackup=now;
+  snapshot.audit.unshift({id:uid(),date:dateNow(),time:new Date().toLocaleTimeString('ar-YE'),action:'تصدير نسخة احتياطية',detail:'نسخة JSON'});
+  snapshot.audit=snapshot.audit.slice(0,1000);
+  const json=JSON.stringify(snapshot,null,2);
+  const fileName='spider-net-backup-'+dateNow()+'.json';
+  if(window.AndroidBackup&&typeof window.AndroidBackup.saveBackup==='function'){
+   window.AndroidBackup.saveBackup(json,fileName); return;
+  }
+  const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000);
+  db.settings.lastBackup=now;persist();addAudit('طلب تنزيل نسخة احتياطية',dateNow());
+ }catch(e){alert('تعذر تجهيز النسخة الاحتياطية: '+(e&&e.message?e.message:'خطأ غير معروف'))}
+}
+window.onNativeBackupResult=function(ok,message){
+ if(ok){db.settings.lastBackup=new Date().toISOString();addAudit('حفظ نسخة احتياطية',dateNow());persist();}
+ alert(message||(ok?'تم حفظ النسخة الاحتياطية':'فشل حفظ النسخة الاحتياطية'));
+};
+function restore(){
+ if(window.AndroidBackup&&typeof window.AndroidBackup.chooseBackup==='function'){
+  window.AndroidBackup.chooseBackup();return;
+ }
+ $('#restoreFile').click();
+}
+function applyBackupText(text,fileName){
+ try{
+  const x=JSON.parse(text);
+  const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
+  if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
+  if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
+  const objectRecord=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+  const nonempty=v=>v!==undefined&&v!==null&&String(v).trim().length>0;
+  const finite=v=>v!==undefined&&v!==null&&String(v).trim()!==''&&Number.isFinite(Number(v));
+  const validRecords=(rows)=>rows.every(objectRecord);
+  const uniqueIds=(rows)=>{const seen=new Set();return rows.every(v=>nonempty(v.id)&&!seen.has(String(v.id))&&(seen.add(String(v.id)),true))};
+  const cardIds=new Set(x.cards.map(c=>String(c.id))),posIds=new Set(x.pos.map(p=>String(p.id))),walletIds=new Set(x.wallets.map(w=>String(w.id))),partnerIds=new Set(x.partners.map(p=>String(p.id)));
+  if(!validDateValue(x.settings.startDate))throw Error('settings');
+  if(!validRecords(x.cards)||!uniqueIds(x.cards)||!x.cards.every(c=>nonempty(c.name)&&finite(c.face)&&Number(c.face)>0&&finite(c.pricePos)&&Number(c.pricePos)>=0&&finite(c.cost)&&Number(c.cost)>=0&&finite(c.opening)&&Number.isInteger(Number(c.opening))&&Number(c.opening)>=0&&(c.alertAt===undefined||(finite(c.alertAt)&&Number.isInteger(Number(c.alertAt))&&Number(c.alertAt)>=0))))throw Error('cards');
+  if(!validRecords(x.pos)||!uniqueIds(x.pos)||!x.pos.every(p=>nonempty(p.name)))throw Error('pos');
+  if(!validRecords(x.wallets)||!uniqueIds(x.wallets)||!x.wallets.every(w=>nonempty(w.name)))throw Error('wallets');
+  if(!validRecords(x.deliveries)||!uniqueIds(x.deliveries)||!x.deliveries.every(d=>validDateValue(d.date)&&posIds.has(String(d.posId))&&cardIds.has(String(d.cardId))&&finite(d.qty)&&Number.isInteger(Number(d.qty))&&Number(d.qty)>0&&['cash','credit','consignment'].includes(d.mode)&&finite(d.unitPrice)&&Number(d.unitPrice)>=0&&finite(d.amount)&&Math.abs(Number(d.amount)-Number(d.qty)*Number(d.unitPrice))<=0.02&&(d.returnAmount===undefined||(finite(d.returnAmount)&&Number(d.returnAmount)>=0))))throw Error('deliveries');
+  if(!validRecords(x.consignmentSettlements)||!uniqueIds(x.consignmentSettlements)||!x.consignmentSettlements.every(s=>validDateValue(s.date)&&posIds.has(String(s.posId))&&cardIds.has(String(s.cardId))&&finite(s.soldQty)&&Number.isInteger(Number(s.soldQty))&&Number(s.soldQty)>=0&&finite(s.returnQty)&&Number.isInteger(Number(s.returnQty))&&Number(s.returnQty)>=0&&Number(s.soldQty)+Number(s.returnQty)>0&&finite(s.unitPrice)&&Number(s.unitPrice)>=0&&(Number(s.soldQty)===0||Number(s.unitPrice)>0)))throw Error('consignmentSettlements');
+  if(!validRecords(x.payments)||!uniqueIds(x.payments)||!x.payments.every(p=>validDateValue(p.date)&&posIds.has(String(p.posId))&&finite(p.amount)&&Number(p.amount)>0&&['cash','transfer'].includes(p.method)&&(p.allocations===undefined||Array.isArray(p.allocations)&&p.allocations.every(a=>objectRecord(a)&&['delivery','consignment'].includes(a.sourceType)&&nonempty(a.sourceId)&&finite(a.amount)&&Number(a.amount)>0)&&Math.abs(p.allocations.reduce((s,a)=>s+Number(a.amount),0)-Number(p.amount))<=0.02)))throw Error('payments');
+  if(!validRecords(x.walletLoads)||!uniqueIds(x.walletLoads)||!x.walletLoads.every(v=>validDateValue(v.date)&&walletIds.has(String(v.walletId))&&cardIds.has(String(v.cardId))&&finite(v.qty)&&Number.isInteger(Number(v.qty))&&Number(v.qty)>0))throw Error('walletLoads');
+  if(!validRecords(x.walletSales)||!uniqueIds(x.walletSales)||!x.walletSales.every(v=>validDateValue(v.date)&&walletIds.has(String(v.walletId))&&cardIds.has(String(v.cardId))&&finite(v.qty)&&Number.isInteger(Number(v.qty))&&Number(v.qty)>0&&finite(v.unitPrice)&&Number(v.unitPrice)>0&&finite(v.amount)&&Math.abs(Number(v.amount)-Number(v.qty)*Number(v.unitPrice))<=0.02&&['received','pending'].includes(v.settlement)))throw Error('walletSales');
+  if(!validRecords(x.expenses)||!uniqueIds(x.expenses)||!x.expenses.every(v=>validDateValue(v.date)&&nonempty(v.name)&&finite(v.amount)&&Number(v.amount)>0))throw Error('expenses');
+  if(!validRecords(x.bills)||!uniqueIds(x.bills)||!x.bills.every(v=>nonempty(v.name)&&validDateValue(v.due)&&finite(v.amount)&&Number(v.amount)>0&&typeof v.paid==='boolean'))throw Error('bills');
+  if(!validRecords(x.partners)||!uniqueIds(x.partners)||!x.partners.every(v=>nonempty(v.name)&&finite(v.share)&&Number(v.share)>=0))throw Error('partners');
+  if(!validRecords(x.partnerMoves)||!uniqueIds(x.partnerMoves)||!x.partnerMoves.every(v=>validDateValue(v.date)&&partnerIds.has(String(v.partnerId))&&['withdrawal','paid_for_network','settlement'].includes(v.kind)&&finite(v.amount)&&Number(v.amount)>0))throw Error('partnerMoves');
+  if(!validRecords(x.stockAdjustments)||!uniqueIds(x.stockAdjustments)||!x.stockAdjustments.every(v=>validDateValue(v.date)&&cardIds.has(String(v.cardId))&&finite(v.delta)&&Number.isInteger(Number(v.delta))&&Number(v.delta)!==0&&nonempty(v.note)))throw Error('stockAdjustments');
+  if(!validRecords(x.audit)||!validRecords(x.closures))throw Error('audit/closures');
+  if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
+  db=x;addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');persist();render();alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');return true;
+ }catch(err){alert('تعذرت استعادة النسخة أو أن ملفها ناقص. لم تُستبدل البيانات. اختر ملف JSON كاملًا صادرًا من النظام.');return false}
+}
+window.onNativeBackupLoaded=function(text,fileName){applyBackupText(text,fileName||'ملف مستعاد')};
+window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};
+window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم حفظ الصورة بنجاح':'تعذر حفظ الصورة'))};
+window.onNativePrintError=function(message){alert(message||'تعذر فتح نافذة الطباعة على هذا الجهاز')};
 function saveSettings(){
  const s=$('#startDate').value,p=$('#newPin').value;
  if(!validDateValue(s))return alert('اختر تاريخ بدء صحيحًا.');
@@ -539,11 +603,21 @@ function exportPosImage(){
  lines.forEach((it,i)=>{ctx.fillStyle=i%2===0?'#f2f7fa':'#ffffff';ctx.fillRect(25,y-24,width-50,32);ctx.fillStyle='#213b55';ctx.fillText(it[0],width-45,y);ctx.textAlign='left';ctx.fillText(it[1],80,y);ctx.textAlign='right';y+=36});
  if(due.length){y+=12;ctx.fillStyle='#173a5e';ctx.font='bold 19px Tahoma, Arial';ctx.fillText('الديون المتبقية',width-45,y);y+=32;due.slice(0,70).forEach((d,i)=>{if(y>c.height-25)return;ctx.fillStyle=i%2===0?'#fff7e7':'#ffffff';ctx.fillRect(25,y-24,width-50,32);ctx.fillStyle='#573f17';ctx.fillText(d.date+' — '+d.card+' — المتبقي '+money(d.remaining),width-45,y);y+=36})}
  ctx.fillStyle='#71839a';ctx.font='13px Tahoma, Arial';ctx.fillText('هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط.',width-45,Math.min(c.height-12,y+22));
- c.toBlob(blob=>{if(!blob)return alert('تعذر إنشاء الصورة. استخدم الطباعة ثم احفظ PDF.');const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spider-net-statement-'+p.name.replace(/[^\u0600-\u06FF\w-]+/g,'_')+'-'+dateNow()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)},'image/png');
+ c.toBlob(blob=>{
+  if(!blob)return alert('تعذر إنشاء الصورة. استخدم الطباعة ثم احفظ PDF.');
+  const fileName='spider-net-statement-'+p.name.replace(/[^\\u0600-\\u06FF\\w-]+/g,'_')+'-'+dateNow()+'.png';
+  if(window.AndroidBackup&&typeof window.AndroidBackup.saveImage==='function'){
+   const reader=new FileReader();
+   reader.onload=()=>{try{const data=String(reader.result||'');const comma=data.indexOf(',');if(comma<0)throw Error('تعذر قراءة بيانات الصورة');window.AndroidBackup.saveImage(data.slice(comma+1),fileName)}catch(e){alert('تعذر تجهيز صورة الكشف: '+(e&&e.message?e.message:'خطأ غير معروف'))}};
+   reader.onerror=()=>alert('تعذر قراءة صورة كشف الحساب');
+   reader.readAsDataURL(blob);return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)
+},'image/png');
 }
 function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
 function bindActions(root){root.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();runAction(b.dataset.action)}));if(root.id==='view'){wirePosDetail()}}
-setTheme(localStorage.getItem('spidernet_theme')==='light'?'light':'dark');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>window.print();$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{tab='home';render();document.querySelector('#alerts')?.scrollIntoView({behavior:'smooth',block:'center'})};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{let x=JSON.parse(await f.text());let requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. أنشئ نسخة من البيانات الحالية أولًا. متابعة؟'))return;db=x;addAudit('استعادة نسخة احتياطية',f.name);persist();render();alert('تمت الاستعادة. راجع الأرصدة واختبر سلامة البيانات.')}catch(err){alert('تعذرت استعادة الملف أو أنه ناقص. لم تُستبدل بيانات هذا الجهاز. تأكد أنه نسخة JSON مكتملة صادرة من النظام.')}finally{e.target.value=''}};
+setTheme(localStorage.getItem('spidernet_theme')==='light'?'light':'dark');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>window.print();$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{tab='home';render();document.querySelector('#alerts')?.scrollIntoView({behavior:'smooth',block:'center'})};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};
 $('#lockBtn').onclick=()=>{if(!db.settings.pin)return alert('عيّن رقمًا سريًا من الإعدادات أولًا.');$('#lockScreen').classList.add('show')};$('#unlockBtn').onclick=()=>{if($('#unlockPin').value===db.settings.pin){$('#lockScreen').classList.remove('show');$('#unlockPin').value='';$('#unlockMsg').textContent=''}else $('#unlockMsg').textContent='الرقم السري غير صحيح.'};
 // Dispatch modal/global actions and protect nested quick-action buttons.
 document.addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let act=b.dataset.action;if($('#modalBack').classList.contains('show')&&b.closest('#modalBody'))return;runAction(act)});
