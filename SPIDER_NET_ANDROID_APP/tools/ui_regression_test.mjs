@@ -47,6 +47,12 @@ try{
   const actions=await page.locator('#view [data-action]').evaluateAll(bs=>bs.map(b=>b.getAttribute('data-action')||''));
   check(actions.every(a=>a.trim()&&routedActions.has(a.split(':')[0])),'كل أزرار الإجراءات في '+id+' مرتبطة بمعالج معروف');
  }
+ await tab('home');await action('quick');check(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show'))&&await page.locator('#modalTitle').innerText()==='تسجيل عملية','اختصار تسجيل عملية يفتح قائمة الإجراءات');
+ await page.evaluate(()=>{window.__quickModalMutations=0;const target=document.querySelector('#modalBody');window.__quickModalObserver=new MutationObserver(records=>{window.__quickModalMutations+=records.filter(r=>r.type==='childList').length});window.__quickModalObserver.observe(target,{childList:true})});
+ await page.locator('#modalBody [data-action="add-expense"]').click();await page.waitForTimeout(50);
+ check(await page.evaluate(()=>window.__quickModalMutations===1),'الاختصار السريع ينفّذ الإجراء مرة واحدة ولا يعيد فتح النموذج');
+ await page.evaluate(()=>window.__quickModalObserver.disconnect());check(await page.locator('#dataForm').count()===1&&await page.locator('#modalBack').evaluate(e=>e.classList.contains('show')),'اختصار المصروف يعرض نموذج إدخال صالحًا');
+ await cancel();check(!(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show'))),'إلغاء نموذج الاختصار يغلق النافذة');
  await tab('settings');await page.locator('#newPin').fill('4455');await action('save-settings');check((await db()).settings.pin==='4455','حفظ الرقم السري يحدّث إعدادات الحماية');
  await page.locator('#lockBtn').click();check(await page.locator('#lockScreen').evaluate(e=>e.classList.contains('show')),'زر القفل يعرض شاشة القفل');
  await page.locator('#unlockPin').fill('0000');await page.locator('#unlockBtn').click();check(await page.locator('#lockScreen').evaluate(e=>e.classList.contains('show'))&&(await page.locator('#unlockMsg').innerText()).includes('غير صحيح'),'رفض الرقم السري الخاطئ');
