@@ -28,7 +28,28 @@ try{
  check(activity.includes('import android.webkit.WebChromeClient')&&activity.includes('webView.webChromeClient = WebChromeClient()'),'معالجة نوافذ التنبيه والتأكيد والإدخال داخل Android');
  check(activity.includes('webView.addJavascriptInterface(BackupBridge(), "AndroidBackup")')&&activity.includes('ActivityResultContracts.CreateDocument')&&activity.includes('ActivityResultContracts.OpenDocument'),'ربط النسخ الاحتياطي والاستعادة الأصلي مع Android');
  await page.locator('#notificationBtn').click();check(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show'))&&await page.locator('#modalTitle').innerText()==='مركز التنبيهات','فتح مركز التنبيهات من الزر');await page.locator('#modalClose').click();
- for(const id of ['home','cards','pos','wallets','expenses','partners','reports','settings','audit']){await tab(id);check(await page.locator('#view').count()===1,'التنقل إلى '+id)}
+ await page.locator('#profileBtn').click();check(await page.locator('#startDate').count()===1,'زر الملف الشخصي يفتح الإعدادات');
+ await page.locator('#settingsBtn').click();check(await page.locator('#startDate').count()===1,'زر الإعدادات يفتح شاشة الإعدادات');
+ await page.locator('#printBtn').click();check(await page.evaluate(()=>window.__printCount===1),'زر الطباعة العام يستدعي الطباعة مرة واحدة');
+ await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='light','مفتاح المظهر الجانبي يعمل');await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='dark','إعادة المظهر الجانبي إلى الوضع الداكن');
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('#menuToggle').click();check(await page.locator('body').evaluate(e=>e.classList.contains('nav-open')),'زر فتح القائمة يعمل على الهاتف');
+ await page.locator('#closeMenu').click();check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'زر إغلاق القائمة يعمل على الهاتف');
+ await page.locator('#menuToggle').click();await page.locator('#navScrim').click();check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'النقر خارج القائمة يغلقها على الهاتف');
+ await page.locator('#mobileNav [data-mobile-tab="pos"]').click();check((await page.locator('#view').innerText()).includes('نقاط البيع'),'التنقل السفلي للهاتف يفتح نقاط البيع');
+ await page.locator('#mobileNav [data-mobile-tab="settings"]').click();check(await page.locator('#startDate').count()===1,'زر المزيد في التنقل السفلي يفتح الإعدادات');
+ await page.setViewportSize({width:1440,height:1000});
+ const routedActions=new Set([...html.matchAll(/case'([^']+)':/g)].map(m=>m[1]));
+ for(const id of ['home','cards','pos','wallets','expenses','partners','reports','settings','audit']){
+  await tab(id);
+  check(await page.locator('#view').count()===1,'التنقل إلى '+id);
+  const actions=await page.locator('#view [data-action]').evaluateAll(bs=>bs.map(b=>b.getAttribute('data-action')||''));
+  check(actions.every(a=>a.trim()&&routedActions.has(a.split(':')[0])),'كل أزرار الإجراءات في '+id+' مرتبطة بمعالج معروف');
+ }
+ await tab('settings');await page.locator('#newPin').fill('4455');await action('save-settings');check((await db()).settings.pin==='4455','حفظ الرقم السري يحدّث إعدادات الحماية');
+ await page.locator('#lockBtn').click();check(await page.locator('#lockScreen').evaluate(e=>e.classList.contains('show')),'زر القفل يعرض شاشة القفل');
+ await page.locator('#unlockPin').fill('0000');await page.locator('#unlockBtn').click();check(await page.locator('#lockScreen').evaluate(e=>e.classList.contains('show'))&&(await page.locator('#unlockMsg').innerText()).includes('غير صحيح'),'رفض الرقم السري الخاطئ');
+ await page.locator('#unlockPin').fill('4455');await page.locator('#unlockBtn').click();check(!(await page.locator('#lockScreen').evaluate(e=>e.classList.contains('show'))),'فتح النظام بالرقم السري الصحيح');
  await tab('cards');await action('add-card');await fill({name:'كرت اختبار 100',face:'100',pricePos:'120',cost:'90',opening:'100',alertAt:'5',note:'اختبار آلي'});check(await submit(),'إضافة فئة كروت');
  let data=await db(),cardId=data.cards[0].id;
  await action('edit-card:'+cardId);await fill({opening:'101'});check(await submit(),'تعديل المخزون الافتتاحي');check((await db()).cards[0].opening===101,'حفظ المخزون الافتتاحي المعدل');
