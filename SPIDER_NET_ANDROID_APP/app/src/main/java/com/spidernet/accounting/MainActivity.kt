@@ -1,40 +1,150 @@
 package com.spidernet.accounting
 
+import android.net.Uri
 import android.os.Bundle
-import android.webkit.WebChromeClient
+import android.webkit.JavascriptInterface
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.webkit.WebViewAssetLoader
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
+    private var pendingBackupJson: String? = null
+
+    private val createBackupDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        val json = pendingBackupJson
+        pendingBackupJson = null
+        if (uri == null || json == null) {
+            notifyJs("onNativeBackupResult", false, "تم إلغاء حفظ النسخة الاحتياطية")
+            return@registerForActivityResult
+        }
+        try {
+            contentResolver.openOutputStream(uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use {
+                it.write(json)
+                it.flush()
+            } ?: throw IllegalStateException("تعذر فتح ملف الحفظ")
+            notifyJs("onNativeBackupResult", true, "تم حفظ النسخة الاحتياطية بنجاح في المكان الذي اخترته")
+        } catch (e: Exception) {
+            notifyJs("onNativeBackupResult", false, "تعذر حفظ النسخة الاحتياطية: " + (e.message ?: "خطأ في الملف"))
+        }
+    }
+
+    private val openBackupDocument = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri == null) {
+            notifyJs("onNativeBackupLoadError", "تم إلغاء اختيار ملف الاستعادة")
+            return@registerForActivityResult
+        }
+        try {
+            val bytes = contentResolver.openInputStream(uri)?.use { input ->
+                val out = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(8192)
+                var total = 0
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    total += count
+                    if (total > MAX_BACKUP_BYTES) throw IllegalArgumentException("حجم ملف النسخة أكبر من 20 ميجابايت")
+                    out.write(buffer, 0, count)
+                }
+                out.toByteArray()
+            } ?: throw IllegalStateException("تعذر قراءة الملف المختار")
+            val json = bytes.toString(Charsets.UTF_8)
+            val quotedJson = JSONObject.quote(json)
+            val quotedName = JSONObject.quote(uri.lastPathSegment ?: "backup.json")
+            webView.post {
+                webView.evaluateJavascript(
+                    "window.onNativeBackupLoaded && window.onNativeBackupLoaded(" + quotedJson + ", " + quotedName + ")",
+                    null
+                )
+            }
+        } catch (e: Exception) {
+            notifyJs("onNativeBackupLoadError", "تعذرت قراءة النسخة الاحتياطية: " + (e.message ?: "ملف غير صالح"))
+        }
+    }
+
+    inner class BackupBridge {
+        @JavascriptInterface
+        fun saveBackup(json: String, fileName: String) {
+            runOnUiThread {
+                if (json.toByteArray(Charsets.UTF_8).size > MAX_BACKUP_BYTES) {
+                    notifyJs("onNativeBackupResult", false, "حجم النسخة أكبر من 20 ميجابايت")
+                    return@runOnUiThread
+                }
+                pendingBackupJson = json
+                createBackupDocument.launch(fileName.ifBlank { "spider-net-backup.json" })
+            }
+        }
+
+        @JavascriptInterface
+        fun chooseBackup() {
+            runOnUiThread {
+                openBackupDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
+            }
+        }
+    }
+
+    private fun notifyJs(callback: String, message: String) {
+        if (!::webView.isInitialized) return
+        val quotedMessage = JSONObject.quote(message)
+        webView.post {
+            webView.evaluateJavascript(
+                "window." + callback + " && window." + callback + "(" + quotedMessage + ")",
+                null
+            )
+        }
+    }
+
+    private fun notifyJs(callback: String, success: Boolean, message: String) {
+        if (!::webView.isInitialized) return
+        val quotedMessage = JSONObject.quote(message)
+        webView.post {
+            val script = if (callback == "onNativeBackupResult") {
+                "window." + callback + " && window." + callback + "(" + success + ", " + quotedMessage + ")"
+            } else {
+                "window." + callback + " && window." + callback + "(" + quotedMessage + ")"
+            }
+            webView.evaluateJavascript(script, null)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         webView = WebView(this)
         setContentView(webView)
-
         WebView.setWebContentsDebuggingEnabled(false)
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.settings.allowFileAccess = false
         webView.settings.allowContentAccess = false
         webView.settings.databaseEnabled = true
-        webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
+        webView.addJavascriptInterface(BackupBridge(), "AndroidBackup")
 
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView, request: android.webkit.WebResourceRequest): android.webkit.WebResourceResponse? {
-                return assetLoader.shouldInterceptRequest(request.url)
+            override fun shouldInterceptRequest(
+                view: WebView,
+                request: WebResourceRequest
+            ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                return request.url.host != "appassets.androidplatform.net"
             }
         }
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
-
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (webView.canGoBack()) webView.goBack() else finish()
@@ -43,7 +153,11 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        webView.destroy()
+        if (::webView.isInitialized) webView.destroy()
         super.onDestroy()
+    }
+
+    companion object {
+        private const val MAX_BACKUP_BYTES = 20 * 1024 * 1024
     }
 }
