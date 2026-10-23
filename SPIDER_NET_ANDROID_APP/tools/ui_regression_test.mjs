@@ -35,7 +35,7 @@ try{
  await page.setViewportSize({width:390,height:844});
  await page.locator('#menuToggle').click();check(await page.locator('body').evaluate(e=>e.classList.contains('nav-open')),'زر فتح القائمة يعمل على الهاتف');
  await page.locator('#closeMenu').click();check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'زر إغلاق القائمة يعمل على الهاتف');
- await page.locator('#menuToggle').click();await page.locator('#navScrim').click();check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'النقر خارج القائمة يغلقها على الهاتف');
+ await page.locator('#menuToggle').click();await page.locator('#navScrim').click({position:{x:15,y:420}});check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'النقر خارج القائمة يغلقها على الهاتف');
  await page.locator('#mobileNav [data-mobile-tab="pos"]').click();check((await page.locator('#view').innerText()).includes('نقاط البيع'),'التنقل السفلي للهاتف يفتح نقاط البيع');
  await page.locator('#mobileNav [data-mobile-tab="settings"]').click();check(await page.locator('#startDate').count()===1,'زر المزيد في التنقل السفلي يفتح الإعدادات');
  await page.setViewportSize({width:1440,height:1000});
