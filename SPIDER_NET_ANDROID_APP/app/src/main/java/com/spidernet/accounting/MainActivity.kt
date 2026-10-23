@@ -1,12 +1,15 @@
 package com.spidernet.accounting
 
+import android.content.Context
 import android.net.Uri
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.util.Base64
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -17,6 +20,7 @@ import org.json.JSONObject
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var pendingBackupJson: String? = null
+    private var pendingImageBytes: ByteArray? = null
 
     private val createBackupDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -73,6 +77,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val createImageDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("image/png")
+    ) { uri: Uri? ->
+        val bytes = pendingImageBytes
+        pendingImageBytes = null
+        if (uri == null || bytes == null) {
+            notifyJs("onNativeExportResult", false, "تم إلغاء حفظ الصورة")
+            return@registerForActivityResult
+        }
+        try {
+            contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes); it.flush() }
+                ?: throw IllegalStateException("تعذر فتح ملف الصورة")
+            notifyJs("onNativeExportResult", true, "تم حفظ صورة كشف الحساب بنجاح")
+        } catch (e: Exception) {
+            notifyJs("onNativeExportResult", false, "تعذر حفظ الصورة: " + (e.message ?: "خطأ في الملف"))
+        }
+    }
+
     inner class BackupBridge {
         @JavascriptInterface
         fun saveBackup(json: String, fileName: String) {
@@ -83,6 +105,40 @@ class MainActivity : ComponentActivity() {
                 }
                 pendingBackupJson = json
                 createBackupDocument.launch(fileName.ifBlank { "spider-net-backup.json" })
+            }
+        }
+
+        @JavascriptInterface
+        fun saveImage(base64: String, fileName: String) {
+            runOnUiThread {
+                try {
+                    if (base64.length.toLong() > (MAX_BACKUP_BYTES.toLong() * 4L / 3L + 16L)) {
+                        throw IllegalArgumentException("حجم الصورة أكبر من 20 ميجابايت")
+                    }
+                    val bytes = Base64.decode(base64, Base64.DEFAULT)
+                    if (bytes.size > MAX_BACKUP_BYTES) throw IllegalArgumentException("حجم الصورة أكبر من 20 ميجابايت")
+                    pendingImageBytes = bytes
+                    createImageDocument.launch(fileName.ifBlank { "spider-net-statement.png" })
+                } catch (e: Exception) {
+                    notifyJs("onNativeExportResult", false, "تعذر تجهيز الصورة: " + (e.message ?: "ملف غير صالح"))
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun printDocument(title: String) {
+            runOnUiThread {
+                try {
+                    val jobName = title.take(80).ifBlank { "SPIDER NET" }
+                    val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    printManager.print(
+                        jobName,
+                        webView.createPrintDocumentAdapter(jobName),
+                        PrintAttributes.Builder().build()
+                    )
+                } catch (e: Exception) {
+                    notifyJs("onNativePrintError", "تعذر فتح نافذة الطباعة: " + (e.message ?: "خطأ غير معروف"))
+                }
             }
         }
 
@@ -109,7 +165,7 @@ class MainActivity : ComponentActivity() {
         if (!::webView.isInitialized) return
         val quotedMessage = JSONObject.quote(message)
         webView.post {
-            val script = if (callback == "onNativeBackupResult") {
+            val script = if (callback == "onNativeBackupResult" || callback == "onNativeExportResult") {
                 "window." + callback + " && window." + callback + "(" + success + ", " + quotedMessage + ")"
             } else {
                 "window." + callback + " && window." + callback + "(" + quotedMessage + ")"
@@ -128,7 +184,6 @@ class MainActivity : ComponentActivity() {
         webView.settings.allowFileAccess = false
         webView.settings.allowContentAccess = false
         webView.settings.databaseEnabled = true
-        webView.webChromeClient = WebChromeClient()
         webView.addJavascriptInterface(BackupBridge(), "AndroidBackup")
 
         val assetLoader = WebViewAssetLoader.Builder()
