@@ -2,7 +2,7 @@ name: Build Spider Net Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, repair/core-accounting-functions-2026-10]
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
@@ -33,12 +33,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Apply Android backup and restore fix
-        run: |
-          python tools/apply_backup_patch.py
-          python tools/fix_backup_notify.py
-        working-directory: SPIDER_NET_ANDROID_APP
 
       - name: Check embedded JavaScript syntax
         run: |
