@@ -272,7 +272,7 @@ function posView(){
   const moves=[].concat(db.deliveries.filter(x=>x.posId===p.id),db.payments.filter(x=>x.posId===p.id),db.consignmentSettlements.filter(x=>x.posId===p.id)).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   const last=moves[0]?.date||'لا توجد حركات';
   return '<tr><td class="row-number">'+(i+1)+'</td><td><strong>'+esc(p.name)+'</strong><small>'+esc(p.owner||'المالك غير محدد')+'</small></td><td dir="ltr">'+esc(p.phone||'—')+'</td><td>'+esc(p.area||'—')+'</td><td class="pos-number">'+(has?money(Math.max(0,debt)):'غير محدد')+'</td><td>'+qty+'</td><td>'+esc(last)+'</td><td><span class="badge '+(!has?'warn':debt>0?'warn':'ok')+'">'+(!has?'لا توجد حركات':debt>0?'عليه مبلغ':'مسدد حسب السجل')+'</span></td><td class="pos-table-actions">'+btn('فتح الحساب','open-pos:'+p.id,'primary')+' '+btn('تسليم','deliver-to:'+p.id)+' '+btn('تحصيل','payment-to:'+p.id)+'</td></tr>';
- }).join('');
+ });
  const cards=filtered.map(p=>{
   const d=posDebt(p.id),has=posHasMovements(p.id),qty=sum(db.deliveries.filter(x=>x.posId===p.id),x=>x.qty);
   const last=[].concat(db.deliveries.filter(x=>x.posId===p.id),db.payments.filter(x=>x.posId===p.id),db.consignmentSettlements.filter(x=>x.posId===p.id)).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0]?.date||'لا توجد عمليات';
