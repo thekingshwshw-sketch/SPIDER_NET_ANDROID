@@ -6,6 +6,11 @@ on:
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'SPIDER_NET_ANDROID_APP/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
