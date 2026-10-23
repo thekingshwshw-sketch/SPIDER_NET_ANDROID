@@ -23,10 +23,9 @@ try{
  await page.addInitScript(()=>{if(!sessionStorage.getItem('__spider_test_init')){localStorage.removeItem('spidernet_accounting_v1');localStorage.removeItem('spidernet_theme');sessionStorage.setItem('__spider_test_init','1')}window.__testDialogs=[];window.__promptQueue=[];window.__printCount=0;window.alert=m=>window.__testDialogs.push({type:'alert',message:String(m)});window.confirm=m=>{window.__testDialogs.push({type:'confirm',message:String(m)});return true};window.prompt=(m,f)=>{window.__testDialogs.push({type:'prompt',message:String(m)});return window.__promptQueue.length?window.__promptQueue.shift():(f||'')};window.print=()=>window.__printCount++});
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html',{waitUntil:'load'});
  check((await page.title()).includes('SPIDER NET')|| (await page.locator('#view').innerText()).includes('SPIDER NET'),'فتح التطبيق');
- check((await db()).settings.startDate==='2026-10-11','تاريخ بدء النظام الافتراضي مطابق للتاريخ المعتمد');
  check(await page.locator('#nav [data-tab="home"]').count()===1,'واجهة التنقل الأساسية جاهزة');
  for(const id of ['home','cards','pos','wallets','expenses','partners','reports','settings','audit']){await tab(id);check(await page.locator('#view').count()===1,'التنقل إلى '+id)}
- await tab('cards');await action('add-card');await fill({name:'كرت اختبار 100',face:'100',pricePos:'120',cost:'90',opening:'100',alertAt:'5',note:'اختبار آلي'});check(await submit(),'إضافة فئة كروت');
+ await tab('cards');await action('add-card');await fill({name:'كرت اختبار 100',face:'100',pricePos:'120',cost:'90',opening:'100',alertAt:'5',note:'اختبار آلي'});check(await submit(),'إضافة فئة كروت');check((await db()).settings.startDate==='2026-10-11','تاريخ بدء النظام الافتراضي مطابق للتاريخ المعتمد');
  let data=await db(),cardId=data.cards[0].id;
  await action('edit-card:'+cardId);await fill({opening:'101'});check(await submit(),'تعديل المخزون الافتتاحي');check((await db()).cards[0].opening===101,'حفظ المخزون الافتتاحي المعدل');
  await action('edit-card:'+cardId);await fill({opening:'101.5'});check(!(await submit()),'رفض المخزون الكسري');check((await db()).cards[0].opening===101,'عدم تغيير البيانات عند رفض كمية');await cancel();
