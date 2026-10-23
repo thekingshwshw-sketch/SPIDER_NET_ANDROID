@@ -2,7 +2,7 @@ name: Build Spider Net Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, repair/accounting-core-2-1-4-r2]
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
