@@ -6,6 +6,10 @@ on:
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
+  pull_request:
+    paths:
+      - 'SPIDER_NET_ANDROID_APP/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -34,10 +38,25 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Apply Android backup and restore fix
+      - name: Verify checked-in Android integration
         run: |
-          python tools/apply_backup_patch.py
-          python tools/fix_backup_notify.py
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('app/src/main/assets/index.html').read_text(encoding='utf-8')
+          kotlin = Path('app/src/main/java/com/spidernet/accounting/MainActivity.kt').read_text(encoding='utf-8')
+          checks = {
+              'Native JavaScript dialog support': 'webView.webChromeClient = WebChromeClient()' in kotlin,
+              'Android backup bridge': 'webView.addJavascriptInterface(BackupBridge(), "AndroidBackup")' in kotlin,
+              'Native backup document creation': 'ActivityResultContracts.CreateDocument' in kotlin,
+              'Native restore document picker': 'ActivityResultContracts.OpenDocument' in kotlin,
+              'Checked-in backup implementation': 'window.onNativeBackupLoaded=function' in html and 'function applyBackupText(' in html,
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          for name, ok in checks.items():
+              print(('PASS: ' if ok else 'FAIL: ') + name)
+          if failed:
+              raise SystemExit('Android integration verification failed')
+          PY
         working-directory: SPIDER_NET_ANDROID_APP
 
       - name: Check embedded JavaScript syntax
