@@ -418,6 +418,17 @@ function editDelivery(id){
   if(!Number.isFinite(price)||price<0)return alert('سعر الكرت غير صحيح.'),false;
   const available=stockMain(d.cardId)+(d.cardId===old.cardId?num(old.qty):0);
   if(qty>available)return alert('الكمية المطلوبة أكبر من المخزون المتاح. المتاح للتعديل: '+available+' كرت.'),false;
+  // Consignment settlements are stored by POS and card, not by delivery-row ID.
+  // Protect settled batches from edits that would reclassify or detach prior sales.
+  if(old.mode==='consignment'){
+   const linkedSettlements=db.consignmentSettlements.filter(x=>x.posId===old.posId&&x.cardId===old.cardId);
+   if(linkedSettlements.length){
+    if(d.mode!=='consignment'||d.cardId!==old.cardId)return alert('لا يمكن تغيير نوع التسليم أو فئة الكرت بعد وجود تسويات أمانة مرتبطة بها. سجّل التصحيح كعملية مستقلة حتى لا تختلط المبيعات أو الديون.'),false;
+    const totalConsignedAfter=sum(db.deliveries.filter(x=>x.id!==old.id&&x.posId===old.posId&&x.cardId===old.cardId&&x.mode==='consignment'),x=>x.qty)+qty;
+    const totalSettled=sum(linkedSettlements,x=>num(x.soldQty)+num(x.returnQty));
+    if(totalConsignedAfter<totalSettled)return alert('لا يمكن خفض كمية الأمانة الإجمالية إلى أقل من الكمية المباعة أو المرتجعة المسجلة.'),false;
+   }
+  }
   const newAmount=qty*price;
   if(num(old.returnAmount)>newAmount&&d.mode==='credit')return alert('لا يمكن جعل قيمة التسليم أقل من قيمة مرتجع مسجل مرتبط به.'),false;
   const allocated=sum(db.payments.filter(pay=>pay.posId===old.posId&&Array.isArray(pay.allocations)),pay=>sum(pay.allocations.filter(a=>a.sourceType==='delivery'&&String(a.sourceId)===String(old.id)),a=>a.amount));
