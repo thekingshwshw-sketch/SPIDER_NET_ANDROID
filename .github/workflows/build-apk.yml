@@ -50,6 +50,10 @@ jobs:
               'Android backup bridge': 'webView.addJavascriptInterface(BackupBridge(), "AndroidBackup")' in kotlin,
               'Native backup document creation': 'ActivityResultContracts.CreateDocument' in kotlin,
               'Native restore document picker': 'ActivityResultContracts.OpenDocument' in kotlin,
+              'Native PNG save picker': 'ActivityResultContracts.CreateDocument("image/png")' in kotlin,
+              'Native image bridge': 'fun saveImage(' in kotlin and 'AndroidBackup.saveImage' in html,
+              'Native print bridge': 'fun printPage(' in kotlin and 'AndroidBackup.printPage' in html,
+              'Native print/image results': 'window.onNativePrintResult=function' in html and 'window.onNativeImageResult=function' in html,
               'Checked-in backup implementation': 'window.onNativeBackupLoaded=function' in html and 'function applyBackupText(' in html,
           }
           failed = [name for name, ok in checks.items() if not ok]
