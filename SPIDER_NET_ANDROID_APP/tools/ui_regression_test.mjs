@@ -151,6 +151,13 @@ await action('edit-delivery:'+consignmentDeliveryId);await fill({mode:'credit'})
  await recoveryPage.locator('#menuToggle').click();await recoveryPage.locator('#nav [data-tab="expenses"]').click();await recoveryPage.locator('#view [data-action="add-expense"]').click();
  await recoveryPage.locator('#dataForm [name="date"]').fill('2026-10-24');await recoveryPage.locator('#dataForm [name="category"]').selectOption('أخرى');await recoveryPage.locator('#dataForm [name="name"]').fill('لا يُحفظ قبل النسخ');await recoveryPage.locator('#dataForm [name="amount"]').fill('10');await recoveryPage.locator('#dataForm [name="note"]').fill('فشل حماية الاسترداد');
  await recoveryPage.locator('#dataForm button[type="submit"]').click();check(await recoveryPage.locator('#modalBack').evaluate(e=>e.classList.contains('show')),'منع الحفظ وإبقاء النموذج مفتوحًا عندما يتعذر عزل البيانات الخام');check(await recoveryPage.evaluate(()=>localStorage.getItem('spidernet_accounting_v1'))==='{broken stored data','عدم الكتابة فوق بيانات محلية تالفة عند فشل النسخ الوقائي');check(recoveryDialogs.some(x=>x.message.includes('إيقاف الحفظ')),'رسالة واضحة عند حظر الحفظ لحماية البيانات');
+ // A user-selected, structurally valid backup is the explicit route out of recovery mode.
+ await recoveryPage.locator('#restoreFile').setInputFiles(backupPath);await recoveryPage.waitForTimeout(150);
+ data=await recoveryPage.evaluate(()=>JSON.parse(localStorage.getItem('spidernet_accounting_v1')));
+ check(data.pos.length===beforeRestoreWriteFailure.pos.length&&data.cards.length===beforeRestoreWriteFailure.cards.length,'استعادة نسخة سليمة تتيح التعافي من قاعدة محلية تالفة');
+ await recoveryPage.locator('#nav [data-tab="expenses"]').click({force:true});await recoveryPage.locator('#view [data-action="add-expense"]').click();
+ await recoveryPage.locator('#dataForm [name="date"]').fill('2026-10-24');await recoveryPage.locator('#dataForm [name="category"]').selectOption('أخرى');await recoveryPage.locator('#dataForm [name="name"]').fill('اختبار بعد استعادة نسخة سليمة');await recoveryPage.locator('#dataForm [name="amount"]').fill('3');await recoveryPage.locator('#dataForm [name="note"]').fill('بعد الخروج من وضع الحماية');
+ check(await recoveryPage.locator('#dataForm button[type="submit"]').evaluate(b=>!b.disabled),'النموذج متاح بعد استعادة نسخة سليمة');
  check(recoveryErrors.length===0,'لا توجد استثناءات JavaScript في سيناريو البيانات التالفة');await recoveryContext.close();
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
