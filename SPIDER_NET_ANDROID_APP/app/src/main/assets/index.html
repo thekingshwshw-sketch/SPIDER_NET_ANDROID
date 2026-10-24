@@ -332,7 +332,7 @@ function home(){
  db.expenses.forEach(x=>recent.push({date:x.date,type:'مصروف',kind:'مصروف',place:'الإدارة',desc:x.name||x.category,amount:num(x.amount),direction:'out'}));
  db.bills.forEach(x=>recent.push({date:x.paidDate||x.due||'',type:x.paid?'سداد التزام':'تسجيل التزام',kind:x.paid?'سداد':'التزام',place:'الإدارة',desc:x.name,amount:num(x.amount),direction:x.paid?'out':'neutral'}));
  db.walletSales.forEach(x=>recent.push({date:x.date,type:'بيع محفظة',kind:'بيع',place:wallet(x.walletId)?.name||'محفظة',desc:`${cardLabel(x.cardId)} · ${x.qty}`,amount:num(x.amount),direction:x.settlement==='received'?'in':'neutral'}));
- db.partnerMoves.forEach(x=>recent.push({date:x.date,type:x.kind==='withdrawal'?'سحب شريك':'حركة شريك',kind:x.kind==='withdrawal'?'سحب':'شريك',place:db.partners.find(y=>y.id===x.partnerId)?.name||'شريك',desc:x.note||'حركة مسجلة',amount:num(x.amount),direction:x.kind==='withdrawal'?'out':'neutral'}));
+ db.partnerMoves.forEach(x=>recent.push({date:x.date,type:x.kind==='withdrawal'?'سحب شريك':x.kind==='partner_repayment'?'سداد مستحق شريك':'حركة شريك',kind:x.kind==='withdrawal'?'سحب':x.kind==='partner_repayment'?'سداد':'شريك',place:db.partners.find(y=>y.id===x.partnerId)?.name||'شريك',desc:x.note||'حركة مسجلة',amount:num(x.amount),direction:x.kind==='withdrawal'||x.kind==='partner_repayment'?'out':'neutral'}));
  recent.sort((a,b)=>String(b.date).localeCompare(String(a.date)));recent=recent.slice(0,5);
  const recentRows=recent.map(x=>`<tr><td dir="ltr" class="date-cell">${esc(x.date||'—')}</td><td><span class="type-pill">${esc(x.kind)}</span></td><td>${esc(x.desc||x.type)}</td><td>${esc(x.place)}</td><td class="amount ${x.direction}">${x.direction==='out'?'− ':x.direction==='in'?'+ ':''}${money(x.amount)}</td><td><span class="badge">محلي</span></td></tr>`).join('');
  const recentMobile=recent.map(x=>`<article class="recent-mobile-card"><div class="recent-mobile-head"><span class="type-pill">${esc(x.kind)}</span><time dir="ltr">${esc(x.date||'—')}</time></div><b>${esc(x.desc||x.type)}</b><small>${esc(x.place)}</small><strong class="amount ${x.direction}">${x.direction==='out'?'− ':x.direction==='in'?'+ ':''}${money(x.amount)}</strong></article>`).join('');
@@ -676,7 +676,7 @@ function addPartnerMove(partnerId=null){
    ['settlement','تسوية قديمة / سجل غير مرحّل — لا يغير الأرصدة']
   ],true),
   field('المبلغ','amount','number',0,null,true),
-  field('طريقة الدفع عند سداد مستحق الشريك','paymentMethod','text','cash',[['cash','نقدًا من الصندوق'],['transfer','محفظة / تحويل']],true),
+  field('طريقة الدفع (تُستخدم فقط عند سداد مستحق الشريك)','paymentMethod','text','cash',[['cash','نقدًا من الصندوق'],['transfer','محفظة / تحويل']],true),
   textArea('ملاحظات / مرجع','note','')
  ],d=>{
   const amount=Number(d.amount);
