@@ -202,7 +202,13 @@ class MainActivity : ComponentActivity() {
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) webView.goBack() else finish()
+                webView.evaluateJavascript(
+                    "window.onAndroidBackPressed ? window.onAndroidBackPressed() : false"
+                ) { handled ->
+                    if (handled != "true") {
+                        if (webView.canGoBack()) webView.goBack() else finish()
+                    }
+                }
             }
         })
     }
