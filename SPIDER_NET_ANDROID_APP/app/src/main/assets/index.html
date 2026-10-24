@@ -717,8 +717,46 @@ function integrity(){
 }
 function closePeriod(){let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='فترة المراجعة: '+period+'\nتاريخ لقطة الأرصدة: '+dateNow()+'\nصافي الحركات النقدية المسجلة حتى اللقطة: '+money(cashBalance())+'\nديون نقاط البيع الحالية: '+money(posReceivables())+'\nالالتزامات غير المسددة الحالية: '+money(obligations())+'\nتقدير الربح التراكمي: '+money(profitEstimate())+'\n\nتنبيه: الأرقام لقطة حالية/تراكمية وليست حساب حركة الشهر وحده أو قيد إقفال مزدوج. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,status:'review_snapshot',approved:false});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist();render()}
 function quick(){showModal('تسجيل عملية',`<div class="actions">${btn('تسليم كروت','add-delivery','primary')}${btn('تحصيل دين','add-payment')}${btn('مصروف','add-expense')}${btn('تحميل محفظة','add-load')}${btn('بيع محفظة','add-wallet-sale')}${btn('حركة شريك','add-partner-move')}</div><p class="small muted">اختر نوع العملية. ستُفتح نافذة منفصلة لإدخال التفاصيل.</p>`);$('#modalBody').querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.stopPropagation();closeModal();runAction(b.dataset.action)})}
+function restoreCommittedState(){
+ let snapshot;
+ try{snapshot=JSON.parse(lastCommittedState||'null')||empty()}catch(e){db=empty();return}
+ if(!db||typeof db!=='object'||Array.isArray(db)){db=snapshot;return}
+ const current=db;
+ const keep=new Set(Object.keys(snapshot));
+ Object.keys(current).forEach(key=>{if(!keep.has(key))delete current[key]});
+ for(const [key,saved] of Object.entries(snapshot)){
+  if(Array.isArray(saved)){
+   const rows=Array.isArray(current[key])?current[key]:[];
+   const byId=new Map();
+   rows.forEach(row=>{if(row&&typeof row==='object'&&!Array.isArray(row)&&row.id!==undefined&&row.id!==null)byId.set(String(row.id),row)});
+   const restored=saved.map(savedRow=>{
+    if(savedRow&&typeof savedRow==='object'&&!Array.isArray(savedRow)&&savedRow.id!==undefined&&savedRow.id!==null){
+     const existing=byId.get(String(savedRow.id));
+     if(existing){
+      Object.keys(existing).forEach(field=>{if(!Object.prototype.hasOwnProperty.call(savedRow,field))delete existing[field]});
+      Object.assign(existing,savedRow);
+      return existing;
+     }
+    }
+    return savedRow;
+   });
+   rows.splice(0,rows.length,...restored);
+   current[key]=rows;
+  }else if(saved&&typeof saved==='object'&&!Array.isArray(saved)){
+   let target=current[key];
+   if(!target||typeof target!=='object'||Array.isArray(target))target={};
+   Object.keys(target).forEach(field=>{if(!Object.prototype.hasOwnProperty.call(saved,field))delete target[field]});
+   Object.assign(target,saved);
+   current[key]=target;
+  }else current[key]=saved;
+ }
+}
 function persist(){
- if(recoveryInfo.blocked){try{db=JSON.parse(lastCommittedState||'null')||empty()}catch(ignore){db=empty()}alert('تم إيقاف الحفظ لحماية البيانات المعزولة. احتفظ بالنسخة الخام خارج التطبيق ثم استعد نسخة JSON سليمة من زر الاستعادة؛ تنزيل النسخة الخام وحده لا يعيد تفعيل التسجيل.');return false;}
+ if(recoveryInfo.blocked){
+  restoreCommittedState();
+  alert('تم إيقاف الحفظ لحماية البيانات المعزولة. احتفظ بالنسخة الخام خارج التطبيق ثم استعد نسخة JSON سليمة من زر الاستعادة؛ تنزيل النسخة الخام وحده لا يعيد تفعيل التسجيل.');
+  return false;
+ }
  let serialized;
  try{
   serialized=JSON.stringify(db);
@@ -726,7 +764,7 @@ function persist(){
   lastCommittedState=serialized;
   return true;
  }catch(e){
-  try{db=JSON.parse(lastCommittedState||'null')||empty()}catch(ignore){db=empty()}
+  restoreCommittedState();
   alert('تعذر حفظ التغييرات على هذا الجهاز. أُعيدت البيانات داخل التطبيق إلى آخر نسخة محفوظة. تحقق من مساحة التخزين ثم أعد المحاولة.');
   return false;
  }
