@@ -1,6 +1,10 @@
 package com.spidernet.accounting
 
+import android.content.Context
 import android.net.Uri
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.util.Base64
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
@@ -17,6 +21,7 @@ import org.json.JSONObject
 class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var pendingBackupJson: String? = null
+    private var pendingImageBase64: String? = null
 
     private val createBackupDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -35,6 +40,30 @@ class MainActivity : ComponentActivity() {
             notifyJs("onNativeBackupResult", true, "تم حفظ النسخة الاحتياطية بنجاح في المكان الذي اخترته")
         } catch (e: Exception) {
             notifyJs("onNativeBackupResult", false, "تعذر حفظ النسخة الاحتياطية: " + (e.message ?: "خطأ في الملف"))
+        }
+    }
+
+    private val createImageDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("image/png")
+    ) { uri: Uri? ->
+        val base64 = pendingImageBase64
+        pendingImageBase64 = null
+        if (uri == null || base64 == null) {
+            notifyJs("onNativeImageResult", false, "تم إلغاء حفظ صورة الكشف")
+            return@registerForActivityResult
+        }
+        try {
+            val bytes = Base64.decode(base64, Base64.DEFAULT)
+            if (bytes.isEmpty() || bytes.size > MAX_IMAGE_BYTES) {
+                throw IllegalArgumentException("حجم الصورة أكبر من الحد المسموح")
+            }
+            contentResolver.openOutputStream(uri, "wt")?.use { output ->
+                output.write(bytes)
+                output.flush()
+            } ?: throw IllegalStateException("تعذر فتح ملف الصورة")
+            notifyJs("onNativeImageResult", true, "تم حفظ صورة الكشف في المكان الذي اخترته")
+        } catch (e: Exception) {
+            notifyJs("onNativeImageResult", false, "تعذر حفظ صورة الكشف: " + (e.message ?: "خطأ في الملف"))
         }
     }
 
@@ -87,6 +116,32 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun saveImage(base64Png: String, fileName: String) {
+            runOnUiThread {
+                if (base64Png.isBlank() || base64Png.length > MAX_IMAGE_BASE64_CHARS) {
+                    notifyJs("onNativeImageResult", false, "الصورة فارغة أو أكبر من الحد المسموح")
+                    return@runOnUiThread
+                }
+                pendingImageBase64 = base64Png
+                createImageDocument.launch(fileName.ifBlank { "spider-net-statement.png" })
+            }
+        }
+
+        @JavascriptInterface
+        fun printPage(jobName: String) {
+            runOnUiThread {
+                try {
+                    val label = jobName.trim().ifBlank { "SPIDER NET" }
+                    val manager = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                    manager.print(label, webView.createPrintDocumentAdapter(label), PrintAttributes.Builder().build())
+                    notifyJs("onNativePrintResult", true, "تم فتح واجهة طباعة Android. أكمل أو ألغِ من نافذة النظام.")
+                } catch (e: Exception) {
+                    notifyJs("onNativePrintResult", false, "تعذر فتح واجهة الطباعة: " + (e.message ?: "خطأ غير معروف"))
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun chooseBackup() {
             runOnUiThread {
                 openBackupDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
@@ -109,7 +164,7 @@ class MainActivity : ComponentActivity() {
         if (!::webView.isInitialized) return
         val quotedMessage = JSONObject.quote(message)
         webView.post {
-            val script = if (callback == "onNativeBackupResult") {
+            val script = if (callback == "onNativeBackupResult" || callback == "onNativeImageResult" || callback == "onNativePrintResult") {
                 "window." + callback + " && window." + callback + "(" + success + ", " + quotedMessage + ")"
             } else {
                 "window." + callback + " && window." + callback + "(" + quotedMessage + ")"
@@ -159,5 +214,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val MAX_BACKUP_BYTES = 20 * 1024 * 1024
+        private const val MAX_IMAGE_BYTES = 20 * 1024 * 1024
+        private const val MAX_IMAGE_BASE64_CHARS = ((MAX_IMAGE_BYTES + 2) / 3) * 4 + 16
     }
 }
