@@ -155,7 +155,7 @@ await action('edit-delivery:'+consignmentDeliveryId);await fill({mode:'credit'})
  await recoveryPage.locator('#restoreFile').setInputFiles(backupPath);await recoveryPage.waitForTimeout(150);
  data=await recoveryPage.evaluate(()=>JSON.parse(localStorage.getItem('spidernet_accounting_v1')));
  check(data.pos.length===beforeRestoreWriteFailure.pos.length&&data.cards.length===beforeRestoreWriteFailure.cards.length,'استعادة نسخة سليمة تتيح التعافي من قاعدة محلية تالفة');
- await recoveryPage.locator('#nav [data-tab="expenses"]').click({force:true});await recoveryPage.locator('#view [data-action="add-expense"]').click();
+ await recoveryPage.locator('#menuToggle').click();await recoveryPage.locator('#nav [data-tab="expenses"]').click();await recoveryPage.locator('#view [data-action="add-expense"]').click();
  await recoveryPage.locator('#dataForm [name="date"]').fill('2026-10-24');await recoveryPage.locator('#dataForm [name="category"]').selectOption('أخرى');await recoveryPage.locator('#dataForm [name="name"]').fill('اختبار بعد استعادة نسخة سليمة');await recoveryPage.locator('#dataForm [name="amount"]').fill('3');await recoveryPage.locator('#dataForm [name="note"]').fill('بعد الخروج من وضع الحماية');
  check(await recoveryPage.locator('#dataForm button[type="submit"]').evaluate(b=>!b.disabled),'النموذج متاح بعد استعادة نسخة سليمة');
  check(recoveryErrors.length===0,'لا توجد استثناءات JavaScript في سيناريو البيانات التالفة');await recoveryContext.close();
