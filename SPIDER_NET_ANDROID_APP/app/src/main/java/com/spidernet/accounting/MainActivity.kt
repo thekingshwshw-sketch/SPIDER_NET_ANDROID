@@ -22,14 +22,18 @@ class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var pendingBackupJson: String? = null
     private var pendingImageBase64: String? = null
+    private var pendingJsonExport: Boolean = false
 
     private val createBackupDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         val json = pendingBackupJson
+        val isExport = pendingJsonExport
         pendingBackupJson = null
+        pendingJsonExport = false
+        val callback = if (isExport) "onNativeExportResult" else "onNativeBackupResult"
         if (uri == null || json == null) {
-            notifyJs("onNativeBackupResult", false, "تم إلغاء حفظ النسخة الاحتياطية")
+            notifyJs(callback, false, if (isExport) "تم إلغاء تصدير سجل التدقيق" else "تم إلغاء حفظ النسخة الاحتياطية")
             return@registerForActivityResult
         }
         try {
@@ -37,9 +41,9 @@ class MainActivity : ComponentActivity() {
                 it.write(json)
                 it.flush()
             } ?: throw IllegalStateException("تعذر فتح ملف الحفظ")
-            notifyJs("onNativeBackupResult", true, "تم حفظ النسخة الاحتياطية بنجاح في المكان الذي اخترته")
+            notifyJs(callback, true, if (isExport) "تم تصدير سجل التدقيق في المكان الذي اخترته" else "تم حفظ النسخة الاحتياطية بنجاح في المكان الذي اخترته")
         } catch (e: Exception) {
-            notifyJs("onNativeBackupResult", false, "تعذر حفظ النسخة الاحتياطية: " + (e.message ?: "خطأ في الملف"))
+            notifyJs(callback, false, (if (isExport) "تعذر تصدير سجل التدقيق: " else "تعذر حفظ النسخة الاحتياطية: ") + (e.message ?: "خطأ في الملف"))
         }
     }
 
@@ -106,12 +110,26 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun saveBackup(json: String, fileName: String) {
             runOnUiThread {
+                pendingJsonExport = false
                 if (json.toByteArray(Charsets.UTF_8).size > MAX_BACKUP_BYTES) {
                     notifyJs("onNativeBackupResult", false, "حجم النسخة أكبر من 20 ميجابايت")
                     return@runOnUiThread
                 }
                 pendingBackupJson = json
                 createBackupDocument.launch(fileName.ifBlank { "spider-net-backup.json" })
+            }
+        }
+
+        @JavascriptInterface
+        fun saveJsonExport(json: String, fileName: String) {
+            runOnUiThread {
+                if (json.toByteArray(Charsets.UTF_8).size > MAX_BACKUP_BYTES) {
+                    notifyJs("onNativeExportResult", false, "حجم ملف التصدير أكبر من 20 ميجابايت")
+                    return@runOnUiThread
+                }
+                pendingBackupJson = json
+                pendingJsonExport = true
+                createBackupDocument.launch(fileName.ifBlank { "spider-net-audit.json" })
             }
         }
 
@@ -176,7 +194,7 @@ class MainActivity : ComponentActivity() {
         if (!::webView.isInitialized) return
         val quotedMessage = JSONObject.quote(message)
         webView.post {
-            val script = if (callback == "onNativeBackupResult" || callback == "onNativeImageResult" || callback == "onNativePrintResult") {
+            val script = if (callback == "onNativeBackupResult" || callback == "onNativeImageResult" || callback == "onNativePrintResult" || callback == "onNativeExportResult") {
                 "window." + callback + " && window." + callback + "(" + success + ", " + quotedMessage + ")"
             } else {
                 "window." + callback + " && window." + callback + "(" + quotedMessage + ")"
