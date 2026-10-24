@@ -47,7 +47,7 @@ try{
   const actions=await page.locator('#view [data-action]').evaluateAll(bs=>bs.map(b=>b.getAttribute('data-action')||''));
   check(actions.every(a=>a.trim()&&routedActions.has(a.split(':')[0])),'كل أزرار الإجراءات في '+id+' مرتبطة بمعالج معروف');
  }
- await tab('home');await action('quick');check(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show'))&&await page.locator('#modalTitle').innerText()==='تسجيل عملية','اختصار تسجيل عملية يفتح قائمة الإجراءات');
+ await tab('home');const dashboardPrintBefore=await page.evaluate(()=>window.__printCount);await action('print-report');check(await page.evaluate(n=>window.__printCount===n+1,dashboardPrintBefore),'زر وضع الطباعة في لوحة التحكم يستخدم معالج الطباعة الموحد');await action('quick');check(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show'))&&await page.locator('#modalTitle').innerText()==='تسجيل عملية','اختصار تسجيل عملية يفتح قائمة الإجراءات');
  await page.evaluate(()=>{window.__quickModalMutations=0;const target=document.querySelector('#modalBody');window.__quickModalObserver=new MutationObserver(records=>{window.__quickModalMutations+=records.filter(r=>r.type==='childList').length});window.__quickModalObserver.observe(target,{childList:true})});
  await page.locator('#modalBody [data-action="add-expense"]').click();await page.waitForTimeout(50);
  check(await page.evaluate(()=>window.__quickModalMutations===1),'الاختصار السريع ينفّذ الإجراء مرة واحدة ولا يعيد فتح النموذج');
