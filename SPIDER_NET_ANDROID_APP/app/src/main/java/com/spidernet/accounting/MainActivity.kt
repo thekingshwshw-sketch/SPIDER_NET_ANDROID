@@ -133,7 +133,19 @@ class MainActivity : ComponentActivity() {
                 try {
                     val label = jobName.trim().ifBlank { "SPIDER NET" }
                     val manager = getSystemService(Context.PRINT_SERVICE) as PrintManager
-                    manager.print(label, webView.createPrintDocumentAdapter(label), PrintAttributes.Builder().build())
+                    val job = manager.print(label, webView.createPrintDocumentAdapter(label), PrintAttributes.Builder().build())
+                    val cleanup = object : Runnable {
+                        var attempts = 0
+                        override fun run() {
+                            attempts += 1
+                            if (job.isCompleted || job.isCancelled || job.isFailed || attempts >= 240) {
+                                webView.evaluateJavascript("document.body.classList.remove('printing-pos')", null)
+                            } else {
+                                webView.postDelayed(this, 500)
+                            }
+                        }
+                    }
+                    webView.postDelayed(cleanup, 500)
                     notifyJs("onNativePrintResult", true, "تم فتح واجهة طباعة Android. أكمل أو ألغِ من نافذة النظام.")
                 } catch (e: Exception) {
                     notifyJs("onNativePrintResult", false, "تعذر فتح واجهة الطباعة: " + (e.message ?: "خطأ غير معروف"))
