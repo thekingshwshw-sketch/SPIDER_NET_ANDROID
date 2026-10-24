@@ -648,7 +648,7 @@ function backup(){
  }catch(e){alert('تعذر تجهيز النسخة الاحتياطية: '+(e&&e.message?e.message:'خطأ غير معروف'))}
 }
 window.onNativeBackupResult=function(ok,message){
- if(ok){db.settings.lastBackup=new Date().toISOString();addAudit('حفظ نسخة احتياطية',dateNow());persist();}
+ if(ok){db.settings.lastBackup=new Date().toISOString();addAudit('حفظ نسخة احتياطية',dateNow());if(!persist()){alert('حُفظ الملف، لكن تعذر حفظ سجل النسخ داخل التطبيق.');return;}}
  alert(message||(ok?'تم حفظ النسخة الاحتياطية':'فشل حفظ النسخة الاحتياطية'));
 };
 function restore(){
@@ -658,14 +658,32 @@ function restore(){
  $('#restoreFile').click();
 }
 function applyBackupText(text,fileName){
+ let previous=db;
  try{
   const x=JSON.parse(text);
   const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
-  if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
+  if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
   if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
   if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
-  db=x;addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');persist();render();alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');return true;
- }catch(err){alert('تعذرت استعادة النسخة أو أن ملفها ناقص. لم تُستبدل البيانات. اختر ملف JSON كاملًا صادرًا من النظام.');return false}
+  db=x;
+  addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');
+  if(!persist()){
+   db=previous;
+   return false;
+  }
+ }catch(err){
+  db=previous;
+  alert('تعذرت استعادة النسخة أو حفظها. لم تُعتمد بيانات النسخة المختارة. تحقق من سلامة الملف ومساحة التخزين.');
+  return false;
+ }
+ try{
+  render();
+ }catch(renderError){
+  alert('حُفظت النسخة الاحتياطية، لكن تعذر تحديث الواجهة. أعد فتح التطبيق للتحقق من البيانات.');
+  return true;
+ }
+ alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');
+ return true;
 }
 window.onNativeBackupLoaded=function(text,fileName){applyBackupText(text,fileName||'ملف مستعاد')};
 window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};
@@ -674,9 +692,9 @@ function saveSettings(){
  if(!validDateValue(s))return alert('اختر تاريخ بدء صحيحًا.');
  if(p&&p.length<4)return alert('اجعل الرقم السري 4 أرقام/رموز على الأقل.');
  db.settings.startDate=s;if(p)db.settings.pin=p;
- addAudit('تعديل الإعدادات','تاريخ البدء أو الرقم السري');persist();alert('تم حفظ الإعدادات على هذا الجهاز.');render();
+ addAudit('تعديل الإعدادات','تاريخ البدء أو الرقم السري');if(!persist()){render();return;}alert('تم حفظ الإعدادات على هذا الجهاز.');render();
 }
-function changePin(){let old=prompt('أدخل الرقم السري الحالي (اتركه فارغًا إذا لم يتم تعيينه):');if((db.settings.pin||'')!==old)return alert('الرقم السري الحالي غير صحيح.');let p=prompt('أدخل الرقم السري الجديد (4 أحرف/أرقام على الأقل):');if(!p||p.length<4)return alert('لم يتم تغيير الرقم السري.');db.settings.pin=p;addAudit('تغيير الرقم السري','');persist();render();alert('تم تغيير الرقم السري.')}
+function changePin(){let old=prompt('أدخل الرقم السري الحالي (اتركه فارغًا إذا لم يتم تعيينه):');if((db.settings.pin||'')!==old)return alert('الرقم السري الحالي غير صحيح.');let p=prompt('أدخل الرقم السري الجديد (4 أحرف/أرقام على الأقل):');if(!p||p.length<4)return alert('لم يتم تغيير الرقم السري.');db.settings.pin=p;addAudit('تغيير الرقم السري','');if(!persist()){render();return;}render();alert('تم تغيير الرقم السري.')}
 function runAction(a){if(typeof a!=='string'||!a.trim())return alert('تعذر تنفيذ الزر: لم يتم تحديد الإجراء.');let [act,id]=a.split(':');switch(act){case'edit-delivery':return editDelivery(id);case'edit-payment':return editPayment(id);case'pay-debt-delivery':return paySpecificDebt('delivery',id);case'pay-debt-consignment':return paySpecificDebt('consignment',id);case'quick':return quick();case'open-pos':selectedPosId=id;posFrom='';posTo='';tab='pos-detail';return render();case'back-pos':tab='pos';return render();case'print-pos':return printPosStatement();case'image-pos':return exportPosImage();case'add-card':return addCard();case'edit-card':return addCard(id);case'add-pos':return addPos();case'edit-pos':return addPos(id);case'add-wallet':return addWallet();case'add-delivery':return addDelivery();case'deliver-to':return addDelivery(id);case'add-payment':return addPayment();case'payment-to':return addPayment(id);case'consign-to':return addConsignmentSettlement(id);case'add-load':return addLoad();case'load-to':return addLoad(id);case'add-wallet-sale':return addWalletSale();case'sale-from':return addWalletSale(id);case'add-expense':return addExpense();case'add-bill':return addBill();case'edit-bill':return editBill(id);case'pay-bill':return payBill(id);case'add-partner-move':return addPartnerMove();case'partner-move':return addPartnerMove(id);case'statement':return statement(id);case'wallet-stock':return walletStock(id);case'backup':return backup();case'restore':return restore();case'save-settings':return saveSettings();case'change-pin':return changePin();case'integrity':return integrity();case'close-period':return closePeriod();case'print-report':return window.print();case'adjust-stock':return adjustStock(id);case'edit-partner':return editPartner(id);default:return alert('هذا الزر مرتبط بإجراء غير معروف: '+act+'، لم تُنفذ أي تغييرات. راجع ربط الأزرار.');}}
 function adjustStock(id){let c=card(id);if(!c)return alert('فئة الكروت غير موجودة.');let delta=prompt('تسوية كمية المخزون لفئة '+c.name+'. أدخل عددًا صحيحًا: موجب للإضافة وسالب للنقص.');if(delta===null||delta.trim()===''||!Number.isFinite(Number(delta)))return;let n=Number(delta);if(!Number.isInteger(n)||n===0)return alert('يجب أن يكون التغيير عددًا صحيحًا من الكروت، وليس صفرًا.');if(stockMain(id)+n<0)return alert('لا يمكن أن يصبح المخزون سالبًا.');let note=prompt('سبب التسوية (مطلوب):');if(!note?.trim())return alert('يجب توثيق السبب.');db.stockAdjustments.push({id:uid(),date:dateNow(),cardId:id,delta:n,note:note.trim()});addAudit('تسوية مخزون',c.name+' / '+n+' / '+note.trim());persist();render()}
 function editPartner(id){let p=db.partners.find(x=>x.id===id);if(!p)return alert('لم يتم العثور على الشريك.');let n=prompt('اسم الشريك:',p.name);if(!n?.trim())return;p.name=n.trim();addAudit('تعديل اسم شريك',p.name);persist();render()}
