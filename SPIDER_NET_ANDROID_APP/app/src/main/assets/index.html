@@ -762,7 +762,7 @@ function exportPosImage(){
  lines.forEach((it,i)=>{ctx.fillStyle=i%2===0?'#f2f7fa':'#ffffff';ctx.fillRect(25,y-24,width-50,32);ctx.fillStyle='#213b55';ctx.fillText(it[0],width-45,y);ctx.textAlign='left';ctx.fillText(it[1],80,y);ctx.textAlign='right';y+=36});
  if(due.length){y+=12;ctx.fillStyle='#173a5e';ctx.font='bold 19px Tahoma, Arial';ctx.fillText('الديون المتبقية',width-45,y);y+=32;due.slice(0,70).forEach((d,i)=>{if(y>c.height-25)return;ctx.fillStyle=i%2===0?'#fff7e7':'#ffffff';ctx.fillRect(25,y-24,width-50,32);ctx.fillStyle='#573f17';ctx.fillText(d.date+' — '+d.card+' — المتبقي '+money(d.remaining),width-45,y);y+=36})}
  ctx.fillStyle='#71839a';ctx.font='13px Tahoma, Arial';ctx.fillText('هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط.',width-45,Math.min(c.height-12,y+22));
- const fileName='spider-net-statement-'+p.name.replace(/[^\\u0600-\\u06FF\\w-]+/g,'_')+'-'+dateNow()+'.png';
+ const fileName='spider-net-statement-'+p.name.replace(/[^\u0600-\u06FF\w-]+/g,'_')+'-'+dateNow()+'.png';
  c.toBlob(blob=>{
   if(!blob)return alert('تعذر إنشاء الصورة. استخدم الطباعة ثم احفظ PDF.');
   if(window.AndroidBackup&&typeof window.AndroidBackup.saveImage==='function'){
