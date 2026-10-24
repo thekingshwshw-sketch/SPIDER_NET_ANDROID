@@ -825,6 +825,14 @@ $('#lockBtn').onclick=()=>{if(!db.settings.pin)return alert('عيّن رقمًا
 // Dispatch modal/global actions and protect nested quick-action buttons.
 document.addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let act=b.dataset.action;if($('#modalBack').classList.contains('show')&&b.closest('#modalBody'))return;runAction(act)});
 // Form navigation buttons are handled by delegated listener above.
+window.onAndroidBackPressed=function(){
+ if($('#modalBack').classList.contains('show')){closeModal();return true}
+ if($('#lockScreen').classList.contains('show'))return true;
+ if(document.body.classList.contains('nav-open')){closeMobileNav();return true}
+ if(tab==='pos-detail'){tab='pos';selectedPosId=null;posFrom='';posTo='';render();return true}
+ if(tab!=='home'){tab='home';render();return true}
+ return false;
+};
 if(db.settings.pin){/* app starts unlocked; lock is explicit */}
 render();
 })();
