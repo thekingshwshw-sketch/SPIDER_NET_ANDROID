@@ -571,7 +571,33 @@ function editPayment(id){
  });
 }
 
-function addDelivery(posId=null){if(!db.cards.length||!db.pos.length)return alert('أضف فئة كروت ونقطة بيع أولًا.');formModal('تسجيل تسليم كروت',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('فئة الكرت','cardId','text',db.cards[0].id,optsCards(),true),field('عدد الكروت','qty','number',50,null,true),field('نوع التسليم','mode','text','credit',[['cash','بيع نقدي'],['credit','بيع آجل'],['consignment','أمانة']],true),field('سعر البيع للكرت','unitPrice','number',card(db.cards[0].id)?.pricePos||0,null,true),textArea('ملاحظات','note','')],d=>{let qty=num(d.qty),c=card(d.cardId),amount=qty*num(d.unitPrice);if(!Number.isFinite(qty)||qty<=0||Math.floor(qty)!==qty||qty>stockMain(d.cardId))return alert('أدخل عدد كروت صحيحًا لا يتجاوز المخزون الرئيسي المتاح.'),false;if(!Number.isFinite(Number(d.unitPrice))||num(d.unitPrice)<0)return alert('سعر الكرت غير صحيح.'),false;if(!Number.isFinite(amount))return alert('إجمالي التسليم يتجاوز النطاق المالي المدعوم. راجع الكمية والسعر.'),false;db.deliveries.push({id:uid(),date:d.date,posId:d.posId,cardId:d.cardId,qty,mode:d.mode,unitPrice:num(d.unitPrice),amount,note:d.note,returnAmount:0});addAudit('تسليم كروت',`${pos(d.posId)?.name} / ${c?.name} / ${qty} / ${modeName(d.mode)}`);return persist()})}
+function addDelivery(posId=null){
+ if(!db.cards.length||!db.pos.length)return alert('أضف فئة كروت ونقطة بيع أولًا.');
+ const optionalCardField=(label,name)=>'<div class="field"><label>'+label+'</label><select name="'+name+'"><option value="">— بدون فئة —</option>'+optsCards().map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></div>';
+ const optionalLine=(n)=>[optionalCardField('الفئة الإضافية '+n,'cardId'+n),field('الكمية — الفئة '+n,'qty'+n,'number','',null,false),field('سعر الكرت — الفئة '+n,'unitPrice'+n,'number','',null,false)];
+ formModal('تسجيل تسليم متعدد الفئات',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('الفئة الأولى','cardId','text',db.cards[0].id,optsCards(),true),field('كمية الفئة الأولى','qty','number',50,null,true),field('سعر الكرت — الفئة الأولى','unitPrice','number',card(db.cards[0].id)?.pricePos||0,null,true),...optionalLine(2),...optionalLine(3),field('نوع التسليم','mode','text','credit',[['cash','بيع نقدي'],['credit','بيع آجل'],['consignment','أمانة']],true),textArea('ملاحظات / رقم مرجعي مشترك','note','')],d=>{
+  if(!pos(d.posId))return alert('اختر نقطة بيع موجودة.'),false;
+  const lines=[];
+  for(const [cardKey,qtyKey,priceKey,label] of [['cardId','qty','unitPrice','الأولى'],['cardId2','qty2','unitPrice2','الثانية'],['cardId3','qty3','unitPrice3','الثالثة']]){
+   const cardId=String(d[cardKey]||'').trim();
+   if(!cardId){if(cardKey==='cardId')return alert('اختر الفئة الأولى.'),false;continue}
+   const c=card(cardId),rawQty=String(d[qtyKey]??'').trim(),rawPrice=String(d[priceKey]??'').trim();
+   if(!c)return alert('فئة الكروت '+label+' غير موجودة.'),false;
+   const qty=Number(rawQty),unitPrice=Number(rawPrice);
+   if(rawQty===''||!Number.isFinite(qty)||qty<=0||Math.floor(qty)!==qty)return alert('أدخل كمية صحيحة موجبة للفئة '+label+'.'),false;
+   if(rawPrice===''||!Number.isFinite(unitPrice)||unitPrice<0)return alert('أدخل سعرًا صحيحًا للفئة '+label+'.'),false;
+   const amount=qty*unitPrice;if(!Number.isFinite(amount))return alert('إجمالي الفئة '+label+' يتجاوز النطاق المالي المدعوم.'),false;
+   lines.push({cardId,qty,unitPrice,amount,cardName:c.name});
+  }
+  const requiredByCard={};lines.forEach(x=>requiredByCard[x.cardId]=(requiredByCard[x.cardId]||0)+x.qty);
+  for(const [cardId,qty] of Object.entries(requiredByCard))if(qty>stockMain(cardId))return alert('الكمية المطلوبة من '+card(cardId).name+' ('+qty+') تتجاوز المخزون الرئيسي المتاح ('+stockMain(cardId)+').'),false;
+  const batchId=uid(),date=d.date;
+  lines.forEach(line=>db.deliveries.push({id:uid(),batchId,date,posId:d.posId,cardId:line.cardId,qty:line.qty,mode:d.mode,unitPrice:line.unitPrice,amount:line.amount,note:d.note||'',returnAmount:0}));
+  const total=lines.reduce((sum,line)=>sum+line.amount,0);
+  addAudit('تسليم متعدد الفئات',pos(d.posId)?.name+' / '+lines.map(x=>x.cardName+' × '+x.qty).join('، ')+' / '+modeName(d.mode)+' / الإجمالي '+money(total)+' / المرجع '+batchId);
+  return persist()
+ })
+}
 function addConsignmentSettlement(posId=null){
  if(!db.cards.length||!db.pos.length)return alert('أضف فئة كروت ونقطة بيع أولًا.');
  let consigned=db.deliveries.filter(x=>x.posId===(posId||db.pos[0].id)&&x.mode==='consignment');if(!consigned.length)return alert('لا توجد تسليمات أمانة مسجلة لنقطة البيع هذه.');
