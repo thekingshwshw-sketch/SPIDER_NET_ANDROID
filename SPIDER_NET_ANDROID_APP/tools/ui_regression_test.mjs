@@ -200,8 +200,9 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  check((await page.locator('#view').innerText()).includes('ميزان المراجعة')&&(await page.locator('#view').innerText()).includes('دفتر الأستاذ العام'),'عرض ميزان المراجعة ودفتر الأستاذ من قسم المحاسبة');
  const ledBefore=await db();const journalBefore=(ledBefore.journalEntries||[]).length;
  await action('add-journal-entry');
- await fill({date:'2026-10-25',description:'قيد اختبار محاسبي',debitAccount:'1000',creditAccount:'3100',amount:'123',note:'اختبار آلي'});
- check(await submit(),'حفظ قيد اليومية المزدوج من النموذج');
+ await fill({date:'2026-10-25',description:'قيد اختبار محاسبي',debitAccount1:'1000',debitAmount1:'100',debitAccount2:'1200',debitAmount2:'23',creditAccount1:'3100',creditAmount1:'122',note:'اختبار آلي'});
+ check(!(await submit())&&(await db()).journalEntries.length===journalBefore,'رفض القيد اليدوي غير المتوازن دون حفظه');
+ await fill({creditAmount1:'123'});check(await submit(),'حفظ قيد اليومية المزدوج متعدد الأسطر بعد موازنته');
  data=await db();const je=data.journalEntries[(data.journalEntries||[]).length-1];
  check((data.journalEntries||[]).length===journalBefore+1&&je.lines.length===2&&je.lines.reduce((n,l)=>n+Number(l.debit||0),0)===je.lines.reduce((n,l)=>n+Number(l.credit||0),0),'حفظ القيد كسطرين متساويين مدينًا ودائنًا');
  const ledgerAudit=await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('spidernet_accounting_v1')||'null'),es=d?.journalEntries||[],e=es.find(x=>x.description==='قيد اختبار محاسبي');return {count:es.length,hasManual:!!e,manualBalanced:!!e&&Math.abs(e.lines.reduce((n,l)=>n+Number(l.debit||0),0)-e.lines.reduce((n,l)=>n+Number(l.credit||0),0))<0.011,hasTrial:document.querySelector('#view').innerText.includes('ميزان المراجعة'),hasLedger:document.querySelector('#view').innerText.includes('دفتر الأستاذ العام')}});
