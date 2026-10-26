@@ -695,7 +695,7 @@ function accountingRecords(){
  // The difference is posted only once as a derived opening-equity adjustment; it is not a new cash receipt.
  if(db.settings&&db.settings.cashOpeningConfirmed&&validDateValue(db.settings.cashOpeningDate)){
   const openDate=db.settings.cashOpeningDate,actual=Math.max(0,num(db.settings.cashOpeningBalance));
-  const prior=records.filter(e=>e.date<openDate).reduce((total,e)=>total+e.lines.filter(l=>l.accountId==='1000').reduce((n,l)=>n+l.debit-l.credit,0),0);
+  const prior=records.filter(e=>e.date<=openDate).reduce((total,e)=>total+e.lines.filter(l=>l.accountId==='1000').reduce((n,l)=>n+l.debit-l.credit,0),0);
   const delta=Math.round((actual-prior)*100)/100;
   if(Math.abs(delta)>0.01)one('auto:cash-opening-reconciliation',openDate,'OPEN-CASH','تسوية رصيد الصندوق بعد الجرد الفعلي',delta>0?'1000':'3000',delta>0?'3000':'1000',Math.abs(delta),'derived','موازنة افتتاحية بين رصيد الصندوق الفعلي المعتمد وصافي القيود النقدية السابقة لتاريخ الجرد. راجع المستندات؛ الطرف المقابل يذهب إلى حقوق الملكية الافتتاحية مؤقتًا.');
  }
