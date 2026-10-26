@@ -1075,7 +1075,7 @@ function requestPrint(jobName){
  }
  try{window.print();return true}catch(e){alert('تعذر فتح واجهة الطباعة: '+(e&&e.message?e.message:'خطأ غير معروف'));return false}
 }
-window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos');alert(message||'تعذر فتح واجهة الطباعة.')}};
+window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove();alert(message||'تعذر فتح واجهة الطباعة.')}};
 window.onNativeImageResult=function(ok,message){alert(message||(ok?'تم حفظ صورة الكشف.':'تعذر حفظ صورة الكشف.'))};
 window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم تصدير سجل التدقيق.':'تعذر تصدير سجل التدقيق.'))};
 
