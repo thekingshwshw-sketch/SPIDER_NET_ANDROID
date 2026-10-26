@@ -21,7 +21,7 @@ const submit=async()=>{await page.locator('#dataForm button[type="submit"]').cli
 const cancel=async()=>{const b=page.locator('#modalBack.show [data-cancel]').first();if(await b.count())await b.click()};
 const prompts=async v=>page.evaluate(x=>{window.__promptQueue=x.slice()},v);
 try{
- await page.addInitScript(()=>{if(!sessionStorage.getItem('__spider_test_init')){localStorage.removeItem('spidernet_accounting_v1');localStorage.removeItem('spidernet_theme');sessionStorage.setItem('__spider_test_init','1')}window.__testDialogs=[];window.__promptQueue=[];window.__printCount=0;window.alert=m=>window.__testDialogs.push({type:'alert',message:String(m)});window.__confirmAnswer=true;window.confirm=m=>{window.__testDialogs.push({type:'confirm',message:String(m)});return window.__confirmAnswer};window.prompt=(m,f)=>{window.__testDialogs.push({type:'prompt',message:String(m)});return window.__promptQueue.length?window.__promptQueue.shift():(f||'')};window.print=()=>window.__printCount++});
+ await page.addInitScript(()=>{if(!sessionStorage.getItem('__spider_test_init')){localStorage.removeItem('spidernet_accounting_v1');localStorage.removeItem('spidernet_theme');sessionStorage.setItem('__spider_test_init','1')}window.__testDialogs=[];window.__promptQueue=[];window.__printCount=0;window.alert=m=>window.__testDialogs.push({type:'alert',message:String(m)});window.__confirmAnswer=true;window.confirm=m=>{window.__testDialogs.push({type:'confirm',message:String(m)});return window.__confirmAnswer};window.prompt=(m,f)=>{window.__testDialogs.push({type:'prompt',message:String(m)});return window.__promptQueue.length?window.__promptQueue.shift():(f||'')};window.print=()=>{window.__printCount++;window.__lastPrintText=document.getElementById('billPrintSheet')?.innerText||document.getElementById('posStatementPrint')?.innerText||''}});
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html',{waitUntil:'load'});
  check((await page.title()).includes('SPIDER NET')|| (await page.locator('#view').innerText()).includes('SPIDER NET'),'فتح التطبيق');
  check(await page.locator('#nav [data-tab="home"]').count()===1,'واجهة التنقل الأساسية جاهزة');
@@ -233,6 +233,15 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  });
  const parseMoneyForTest=v=>Number(String(v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,]/g,'').replace(/٫/g,'.').replace(/[^0-9.-]/g,''));
  check(!!cashTrialRow&&Math.abs(parseMoneyForTest(cashTrialRow.debit)-777)<0.011&&Math.abs(parseMoneyForTest(cashTrialRow.credit))<0.011,'تسوية الصندوق في يوم الجرد تشمل الحركات المسجلة في اليوم نفسه دون تكرارها');
+ // Verify that one multi-category delivery prints as one invoice with both card classes and a combined total.
+ await tab('cards');await action('add-card');await fill({name:'كرت اختبار 500',face:'500',pricePos:'250',cost:'200',opening:'10',alertAt:'1',note:'اختبار فاتورة متعددة الفئات'});check(await submit(),'إضافة فئة ثانية لاختبار الفاتورة');
+ data=await db();const secondCardId=data.cards.find(x=>x.name==='كرت اختبار 500').id;
+ await tab('pos');await action('add-delivery');await fill({date:'2026-10-26',posId,cardId,qty:'1',unitPrice:'120',cardId2:secondCardId,qty2:'1',unitPrice2:'250',mode:'cash',note:'فاتورة فئتين'});check(await submit(),'تسجيل تسليم بفئتين في حركة واحدة');
+ data=await db();const batchRows=data.deliveries.filter(x=>x.note==='فاتورة فئتين');const batchId=batchRows[0]?.batchId;
+ check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId),'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
+ await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
+ const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||''}));
+ check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
