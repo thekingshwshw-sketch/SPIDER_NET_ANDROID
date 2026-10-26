@@ -62,10 +62,10 @@ try{
  await action('edit-card:'+cardId);await fill({opening:'101'});check(await submit(),'تعديل المخزون الافتتاحي');check((await db()).cards[0].opening===101,'حفظ المخزون الافتتاحي المعدل');
  await action('edit-card:'+cardId);await fill({opening:'101.5'});check(!(await submit()),'رفض المخزون الكسري');check((await db()).cards[0].opening===101,'عدم تغيير البيانات عند رفض كمية');await cancel();
  await tab('pos');await action('add-pos');await fill({name:'نقطة اختبار 01',owner:'مالك اختبار',phone:'777123456',area:'المدينة',address:'شارع الاختبار',note:'اختبار آلي'});check(await submit(),'إضافة نقطة بيع');
- data=await db();const posId=data.pos[0].id;
+ data=await db();const posId=data.pos[0].id;check(data.pos[0].prices?.[cardId]===undefined,'السعر الأساسي هو الافتراضي عند ترك سعر النقطة فارغًا');
  await page.locator('#globalSearch').fill('نقطة اختبار 01');await page.locator('#globalSearch').press('Enter');check((await page.locator('#view').innerText()).includes('سجل العمليات التفصيلي'),'البحث العام يفتح نقطة البيع المطابقة');
  await page.locator('#globalSearch').fill('كرت اختبار 100');await page.locator('#globalSearch').press('Enter');check((await page.locator('#view').innerText()).includes('كرت اختبار 100'),'البحث العام يعثر على فئة الكروت');await tab('pos');
- await action('add-delivery');await fill({date:'2026-10-21',posId,cardId,qty:'10',mode:'credit',unitPrice:'120',note:'بيع آجل'});check(await submit(),'تسجيل بيع آجل');data=await db();const deliveryId=data.deliveries[0].id;
+ await action('add-delivery');check(await page.locator('[name="unitPrice"]').inputValue()==='120','تعبئة سعر البيع من السعر الأساسي الافتراضي');await fill({date:'2026-10-21',posId,cardId,qty:'10',mode:'credit',unitPrice:'120',note:'بيع آجل'});check(await submit(),'تسجيل بيع آجل');data=await db();const deliveryId=data.deliveries[0].id;
  const debt=d=>d.deliveries.filter(x=>x.posId===posId&&x.mode==='credit').reduce((s,x)=>s+Number(x.amount||0),0)+d.consignmentSettlements.filter(x=>x.posId===posId).reduce((s,x)=>s+Number(x.soldQty||0)*Number(x.unitPrice||0),0)-d.payments.filter(x=>x.posId===posId).reduce((s,x)=>s+Number(x.amount||0),0)-d.deliveries.filter(x=>x.posId===posId&&x.mode==='credit').reduce((s,x)=>s+Number(x.returnAmount||0),0);
  const stock=d=>d.cards[0].opening-d.deliveries.reduce((s,x)=>s+x.qty,0)+d.stockAdjustments.reduce((s,x)=>s+x.delta,0)+d.consignmentSettlements.reduce((s,x)=>s+x.returnQty,0)-d.walletLoads.reduce((s,x)=>s+x.qty,0);
  const cashBalanceOf=d=>
