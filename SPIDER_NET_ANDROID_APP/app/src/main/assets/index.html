@@ -513,8 +513,10 @@ function printOperation(kind,id){
  const add=(label,value)=>details.push({label:label,value:value===null||value===undefined||value===''?'—':String(value)});
  if(kind==='delivery'){
   const x=item('deliveries');if(!x)return alert('عملية التسليم غير موجودة.');
-  title=x.mode==='consignment'?'سند تسليم كروت أمانة':'سند بيع / تسليم كروت';date=x.date;amount=num(x.amount);note=x.note||'';
-  add('نقطة البيع',(pos(x.posId)||{}).name);add('فئة الكرت',cardLabel(x.cardId));add('الكمية',x.qty);add('سعر الوحدة',money(x.unitPrice));add('نوع التسليم',x.mode==='cash'?'بيع نقدي':x.mode==='credit'?'بيع آجل':'أمانة');add('الإجمالي',money(amount));
+  const batchRows=x.batchId?db.deliveries.filter(d=>d.posId===x.posId&&d.batchId===x.batchId):[x];
+  title=x.mode==='consignment'?'سند تسليم كروت أمانة':'فاتورة بيع / تسليم كروت';date=x.date;reference=x.batchId||x.id;amount=sum(batchRows,d=>num(d.amount??(num(d.qty)*num(d.unitPrice))));note=x.note||'';
+  add('نقطة البيع',(pos(x.posId)||{}).name);add('نوع الحركة',x.mode==='cash'?'بيع نقدي':x.mode==='credit'?'بيع آجل':'تسليم أمانة');add('تاريخ الحركة',date);add('رقم العملية',reference);
+  lineRows=batchRows.map(d=>'<tr><td dir="ltr">'+esc(d.date||date)+'</td><td>'+esc(cardLabel(d.cardId))+'</td><td>'+esc(x.mode==='cash'?'بيع نقدي':x.mode==='credit'?'بيع آجل':'تسليم أمانة')+'</td><td class="simple-numeric">'+num(d.qty)+'</td><td class="simple-numeric">'+money(d.unitPrice)+'</td><td class="simple-numeric">'+money(num(d.amount??(num(d.qty)*num(d.unitPrice))))+'</td></tr>').join('');
  }else if(kind==='payment'){
   const x=item('payments');if(!x)return alert('عملية التحصيل غير موجودة.');
   title='سند تحصيل من نقطة بيع';date=x.date;amount=num(x.amount);note=x.note||'';
@@ -552,7 +554,7 @@ function printOperation(kind,id){
   if(x.flags&&x.flags.length)note+=(note?' / ':'')+x.flags.join(' / ');
  }else return alert('نوع المستند غير مدعوم للطباعة.');
  const items=details.map(d=>'<div class="print-item"><span class="print-label">'+esc(d.label)+'</span><span class="print-value">'+esc(d.value)+'</span></div>').join('');
- const lineTable=lineRows?'<table class="operation-lines"><thead><tr><th>رمز الحساب</th><th>الحساب</th><th>مدين</th><th>دائن</th></tr></thead><tbody>'+lineRows+'</tbody></table><div class="print-total">إجمالي المدين: '+money(amount)+' — إجمالي الدائن: '+money(amount)+'</div>':'<div class="print-total">المبلغ: '+money(amount)+'</div>';
+ const lineTable=lineRows?(kind==='delivery'?'<table class="operation-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الحبة</th><th>الإجمالي</th></tr></thead><tbody>'+lineRows+'</tbody></table><div class="print-total">إجمالي الفاتورة: '+money(amount)+'</div>':'<table class="operation-lines"><thead><tr><th>رمز الحساب</th><th>الحساب</th><th>مدين</th><th>دائن</th></tr></thead><tbody>'+lineRows+'</tbody></table><div class="print-total">إجمالي المدين: '+money(amount)+' — إجمالي الدائن: '+money(amount)+'</div>'):'<div class="print-total">المبلغ: '+money(amount)+'</div>';
  const html='<section id="billPrintSheet" dir="rtl"><h1>SPIDER NET</h1><h2>'+esc(title)+'</h2><div class="print-grid"><div class="print-item"><span class="print-label">الرقم المرجعي</span><span class="print-value">'+esc(reference)+'</span></div><div class="print-item"><span class="print-label">التاريخ</span><span class="print-value">'+esc(date||'—')+'</span></div>'+items+'<div class="print-item"><span class="print-label">تاريخ الطباعة</span><span class="print-value">'+esc(dateNow())+'</span></div></div>'+lineTable+'<div class="print-note"><b>ملاحظات / مرجع:</b><br>'+esc(note||'—')+'</div><div class="print-signatures"><div>إعداد / اعتماد</div><div>المستلم / التوقيع</div></div><p style="text-align:center;font-size:10px;margin-top:25px">مستند داخلي مستخرج من سجل SPIDER NET؛ يراجع مع الإثبات الأصلي.</p></section>';
  const old=document.getElementById('billPrintSheet');if(old)old.remove();$('#app').insertAdjacentHTML('beforeend',html);document.body.classList.add('printing-bill');
  if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint(title);return}
