@@ -634,7 +634,15 @@ function accountingRecords(){
   else if(num(x.delta)<0)one('auto:stock-adjust:'+x.id,x.date,x.id,'نقص/تسوية مخزون — '+((card(x.cardId)||{}).name||''),'5100','1200',v,'derived',x.note||'');
  });
  (db.journalEntries||[]).forEach(x=>{if(Array.isArray(x.lines))add(x.id,x.date,x.reference||x.id,x.description||'قيد يومية يدوي',x.lines,'manual',x.note||'',x.reversalOf?['قيد عكسي لقيد سابق.']:[])});
- return records.filter(r=>validDateValue(r.date)).sort((a,b)=>a.date.localeCompare(b.date)||(((a.id.indexOf('auto:opening-stock:')===0)?-1:1)-((b.id.indexOf('auto:opening-stock:')===0)?-1:1))||a.id.localeCompare(b.id));
+ // A verified physical cash count is reconciled against the recorded cash ledger before its date.
+ // The difference is posted only once as a derived opening-equity adjustment; it is not a new cash receipt.
+ if(db.settings&&db.settings.cashOpeningConfirmed&&validDateValue(db.settings.cashOpeningDate)){
+  const openDate=db.settings.cashOpeningDate,actual=Math.max(0,num(db.settings.cashOpeningBalance));
+  const prior=records.filter(e=>e.date<openDate).reduce((total,e)=>total+e.lines.filter(l=>l.accountId==='1000').reduce((n,l)=>n+l.debit-l.credit,0),0);
+  const delta=Math.round((actual-prior)*100)/100;
+  if(Math.abs(delta)>0.01)one('auto:cash-opening-reconciliation',openDate,'OPEN-CASH','تسوية رصيد الصندوق بعد الجرد الفعلي',delta>0?'1000':'3000',delta>0?'3000':'1000',Math.abs(delta),'derived','موازنة افتتاحية بين رصيد الصندوق الفعلي المعتمد وصافي القيود النقدية السابقة لتاريخ الجرد. راجع المستندات؛ الطرف المقابل يذهب إلى حقوق الملكية الافتتاحية مؤقتًا.');
+ }
+ return records.filter(r=>validDateValue(r.date)).sort((a,b)=>a.date.localeCompare(b.date)||((((a.id==='auto:cash-opening-reconciliation')||(a.id.indexOf('auto:opening-stock:')===0))?0:1)-(((b.id==='auto:cash-opening-reconciliation')||(b.id.indexOf('auto:opening-stock:')===0))?0:1))||a.id.localeCompare(b.id));
 }
 function accountMovement(entries,accountId){
  let debit=0,credit=0;for(const e of entries)for(const l of e.lines)if(l.accountId===accountId){debit+=l.debit;credit+=l.credit}
@@ -690,7 +698,7 @@ function accountingView(){
  const equity=totals.filter(x=>x.a.type==='equity').map(x=>({a:x.a,value:-x.m.net})).filter(x=>Math.abs(x.value)>0.005);
  const sumAssets=assets.reduce((n,x)=>n+x.value,0),sumLiab=liabilities.reduce((n,x)=>n+x.value,0),sumEquity=equity.reduce((n,x)=>n+x.value,0)+cumulativeProfit;
  const issues=[];
- if(!db.settings.cashOpeningConfirmed||!validDateValue(db.settings.cashOpeningDate))issues.push('رصيد افتتاحي نقدي معتمد وتاريخ جرد غير مثبتين؛ لا تعتبر الصندوق مطابقًا للواقع.');else issues.push('رصيد الصندوق في الإعدادات لا يُرحّل تلقائيًا إلى دفتر الأستاذ. أضف قيد افتتاحي فقط إذا لم تكن قد سجلته سابقًا.');
+ if(!db.settings.cashOpeningConfirmed||!validDateValue(db.settings.cashOpeningDate))issues.push('رصيد افتتاحي نقدي معتمد وتاريخ جرد غير مثبتين؛ لا تعتبر الصندوق مطابقًا للواقع.');
  if((db.cards||[]).some(c=>num(c.opening)>0&&num(c.cost)<=0))issues.push('توجد فئات مخزون افتتاحي دون تكلفة مدخلة؛ قيمة الأصول وتكلفة المبيعات ناقصة.');
  if((db.deliveries||[]).some(x=>num(x.qty)>0&&num((card(x.cardId)||{}).cost)<=0)||(db.walletSales||[]).some(x=>num(x.qty)>0&&num((card(x.cardId)||{}).cost)<=0))issues.push('هناك مبيعات لا يمكن احتساب تكلفة بضاعتها من التكلفة المدخلة للفئة.');
  if((db.cashMovements||[]).length)issues.push('المقبوضات النقدية الإضافية مسجلة مؤقتًا كأمانات غير مصنفة حتى تحدد طبيعتها.');
