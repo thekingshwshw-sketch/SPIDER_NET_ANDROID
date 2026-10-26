@@ -652,18 +652,38 @@ function accountingTable(headers,body){
  return '<div class="table-wrap"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+(body||'<tr><td colspan="'+headers.length+'" class="empty">لا توجد حركات ضمن المرشحات المحددة.</td></tr>')+'</tbody></table></div>';
 }
 function addJournalEntry(){
- formModal('تسجيل قيد يومية مزدوج',[field('التاريخ','date','date',dateNow(),null,true),field('البيان / سبب القيد','description','text','',null,true),field('الحساب المدين','debitAccount','text','1000',accountingChart.map(a=>[a.id,a.code+' — '+a.name]),true),field('الحساب الدائن','creditAccount','text','3000',accountingChart.map(a=>[a.id,a.code+' — '+a.name]),true),field('المبلغ','amount','number','',null,true),textArea('المرجع والملاحظات','note','')],d=>{
-  const amount=Number(d.amount);
+ const opts=accountingChart.map(a=>[a.id,a.code+' — '+a.name]);
+ const fields=[field('التاريخ','date','date',dateNow(),null,true),field('البيان / سبب القيد','description','text','',null,true)];
+ for(let i=1;i<=3;i++)fields.push(field('الحساب المدين — السطر '+i,'debitAccount'+i,'text','1000',opts,false),field('مبلغ المدين — السطر '+i,'debitAmount'+i,'number','',null,false));
+ for(let i=1;i<=3;i++)fields.push(field('الحساب الدائن — السطر '+i,'creditAccount'+i,'text','3000',opts,false),field('مبلغ الدائن — السطر '+i,'creditAmount'+i,'number','',null,false));
+ fields.push(textArea('المرجع والملاحظات','note',''));
+ formModal('قيد يومية مزدوج — حتى 3 أسطر لكل طرف',fields,d=>{
   if(!validDateValue(d.date)||!d.description.trim())return alert('أدخل تاريخًا وبيانًا واضحًا للقيد.'),false;
-  if(!accountById(d.debitAccount)||!accountById(d.creditAccount))return alert('اختر حسابًا مدينًا وحسابًا دائنًا صالحين.'),false;
-  if(d.debitAccount===d.creditAccount)return alert('لا يمكن أن يكون الحساب المدين والدائن هو الحساب نفسه.'),false;
-  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;
+  const lines=[];
+  for(let i=1;i<=3;i++){
+   const raw=String(d['debitAmount'+i]??'').trim();if(!raw)continue;
+   const amount=Number(raw),account=String(d['debitAccount'+i]||'');
+   if(!Number.isFinite(amount)||amount<=0)return alert('مبالغ المدين يجب أن تكون أرقامًا موجبة.'),false;
+   if(!accountById(account))return alert('اختر حسابًا صالحًا لكل مبلغ مدين.'),false;
+   lines.push({accountId:account,debit:Math.round(amount*100)/100,credit:0});
+  }
+  for(let i=1;i<=3;i++){
+   const raw=String(d['creditAmount'+i]??'').trim();if(!raw)continue;
+   const amount=Number(raw),account=String(d['creditAccount'+i]||'');
+   if(!Number.isFinite(amount)||amount<=0)return alert('مبالغ الدائن يجب أن تكون أرقامًا موجبة.'),false;
+   if(!accountById(account))return alert('اختر حسابًا صالحًا لكل مبلغ دائن.'),false;
+   lines.push({accountId:account,debit:0,credit:Math.round(amount*100)/100});
+  }
+  const debit=lines.reduce((n,l)=>n+l.debit,0),credit=lines.reduce((n,l)=>n+l.credit,0);
+  if(!lines.some(l=>l.debit>0)||!lines.some(l=>l.credit>0))return alert('أدخل مبلغًا مدينًا واحدًا على الأقل ومبلغًا دائنًا واحدًا على الأقل.'),false;
+  if(Math.abs(debit-credit)>0.011)return alert('القيد غير متوازن. مجموع المدين '+money(debit)+' ومجموع الدائن '+money(credit)+'. صحح المبالغ حتى يتساويا.'),false;
   db.journalEntries=db.journalEntries||[];
-  db.journalEntries.push({id:uid(),date:d.date,reference:'JV-'+(db.journalEntries.length+1),description:d.description.trim(),note:d.note||'',lines:[{accountId:d.debitAccount,debit:amount,credit:0},{accountId:d.creditAccount,debit:0,credit:amount}],source:'manual',status:'posted',reversalOf:null});
-  addAudit('تسجيل قيد يومية مزدوج',d.description.trim()+' / '+money(amount)+' / مدين '+accountById(d.debitAccount).name+' / دائن '+accountById(d.creditAccount).name);
+  db.journalEntries.push({id:uid(),date:d.date,reference:'JV-'+String(db.journalEntries.length+1).padStart(4,'0'),description:d.description.trim(),note:d.note||'',lines:lines,source:'manual',status:'posted',reversalOf:null});
+  addAudit('تسجيل قيد يومية مزدوج',d.description.trim()+' / مدين '+money(debit)+' / دائن '+money(credit));
   return persist();
  });
 }
+
 function reverseJournalEntry(id){
  const entry=accountingRecords().find(x=>x.id===id&&x.source==='manual');
  if(!entry)return alert('يمكن عكس القيود اليدوية فقط. صحح العمليات التشغيلية من شاشة العملية الأصلية.');
