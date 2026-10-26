@@ -214,6 +214,21 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  const printBeforeBill=await page.evaluate(()=>window.__printCount);await action('print-bill:'+testBill.id);check(await page.evaluate(n=>window.__printCount===n+1,printBeforeBill)&&await page.locator('#billPrintSheet').count()===0,'طباعة سند الفاتورة وتنظيف مساحة الطباعة بعد إغلاق المعاينة');
  await action('add-expense');await fill({date:'2026-10-25',category:'أخرى',name:'مصروف اختبار الطباعة',amount:'15',paymentMethod:'cash',note:'اختبار'});check(await submit(),'إضافة مصروف لاختبار الطباعة');data=await db();const testExpense=data.expenses[data.expenses.length-1];
  const printBeforeExpense=await page.evaluate(()=>window.__printCount);await action('print-expense:'+testExpense.id);check(await page.evaluate(n=>window.__printCount===n+1,printBeforeExpense)&&await page.locator('#billPrintSheet').count()===0,'طباعة سند المصروف وتنظيف مساحة الطباعة بعد إغلاق المعاينة');
+ // Regression: an approved cash count already includes movements recorded on the count date.
+ const cashBaseline=await db();
+ cashBaseline.settings.cashOpeningBalance=777;
+ cashBaseline.settings.cashOpeningDate='2026-10-25';
+ cashBaseline.settings.cashOpeningConfirmed=true;
+ cashBaseline.cashMovements=cashBaseline.cashMovements||[];
+ cashBaseline.cashMovements.push({id:'test-opening-count-same-day',date:'2026-10-25',kind:'in',category:'اختبار حركة يوم الجرد',amount:17,note:'اختبار آلي'});
+ await page.evaluate(d=>localStorage.setItem('spidernet_accounting_v1',JSON.stringify(d)),cashBaseline);
+ await page.reload({waitUntil:'load'});
+ const cashReconciliation=await page.evaluate(date=>{
+  const entries=window.accountingRecords().filter(e=>e.date<=date);
+  return {cash:window.accountMovement(entries,'1000').net,allBalanced:window.accountingRecords().every(e=>Math.abs(e.debit-e.credit)<0.011)};
+ },'2026-10-25');
+ check(Math.abs(cashReconciliation.cash-777)<0.011,'تسوية الصندوق في يوم الجرد تشمل الحركات المسجلة في اليوم نفسه دون تكرارها');
+ check(cashReconciliation.allBalanced,'كل قيود اليومية المستخلصة متوازنة مدينًا ودائنًا');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
