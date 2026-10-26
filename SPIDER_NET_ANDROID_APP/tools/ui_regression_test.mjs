@@ -224,13 +224,14 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await page.evaluate(d=>localStorage.setItem('spidernet_accounting_v1',JSON.stringify(d)),cashBaseline);
  await page.reload({waitUntil:'load'});
  await tab('accounting');
+ await page.locator('#ledgerTo').fill('2026-10-25');
+ await action('accounting-filter');
  const cashTrialRow=await page.evaluate(()=>{
   const section=[...document.querySelectorAll('#view section.panel')].find(x=>x.querySelector('h3')?.textContent.includes('ميزان المراجعة'));
   const row=section&&[...section.querySelectorAll('tbody tr')].find(x=>x.cells[0]?.textContent.trim()==='1000');
   return row?{debit:row.cells[4]?.textContent||'',credit:row.cells[5]?.textContent||''}:null;
  });
  const parseMoneyForTest=v=>Number(String(v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,]/g,'').replace(/٫/g,'.').replace(/[^0-9.-]/g,''));
- console.log('Cash reconciliation regression UI row: '+JSON.stringify({cashTrialRow,parsedDebit:cashTrialRow&&parseMoneyForTest(cashTrialRow.debit),parsedCredit:cashTrialRow&&parseMoneyForTest(cashTrialRow.credit)}));
  check(!!cashTrialRow&&Math.abs(parseMoneyForTest(cashTrialRow.debit)-777)<0.011&&Math.abs(parseMoneyForTest(cashTrialRow.credit))<0.011,'تسوية الصندوق في يوم الجرد تشمل الحركات المسجلة في اليوم نفسه دون تكرارها');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
