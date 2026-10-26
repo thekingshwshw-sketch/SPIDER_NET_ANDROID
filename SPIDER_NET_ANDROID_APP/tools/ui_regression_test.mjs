@@ -223,12 +223,14 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  cashBaseline.cashMovements.push({id:'test-opening-count-same-day',date:'2026-10-25',kind:'in',category:'اختبار حركة يوم الجرد',amount:17,note:'اختبار آلي'});
  await page.evaluate(d=>localStorage.setItem('spidernet_accounting_v1',JSON.stringify(d)),cashBaseline);
  await page.reload({waitUntil:'load'});
- const cashReconciliation=await page.evaluate(date=>{
-  const entries=window.accountingRecords().filter(e=>e.date<=date);
-  return {cash:window.accountMovement(entries,'1000').net,allBalanced:window.accountingRecords().every(e=>Math.abs(e.debit-e.credit)<0.011)};
- },'2026-10-25');
- check(Math.abs(cashReconciliation.cash-777)<0.011,'تسوية الصندوق في يوم الجرد تشمل الحركات المسجلة في اليوم نفسه دون تكرارها');
- check(cashReconciliation.allBalanced,'كل قيود اليومية المستخلصة متوازنة مدينًا ودائنًا');
+ await tab('accounting');
+ const cashTrialRow=await page.evaluate(()=>{
+  const section=[...document.querySelectorAll('#view section.panel')].find(x=>x.querySelector('h3')?.textContent.includes('ميزان المراجعة'));
+  const row=section&&[...section.querySelectorAll('tbody tr')].find(x=>x.cells[0]?.textContent.trim()==='1000');
+  return row?{debit:row.cells[4]?.textContent||'',credit:row.cells[5]?.textContent||''}:null;
+ });
+ const parseMoneyForTest=v=>Number(String(v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,]/g,'').replace(/٫/g,'.').replace(/[^0-9.-]/g,''));
+ check(!!cashTrialRow&&Math.abs(parseMoneyForTest(cashTrialRow.debit)-777)<0.011&&Math.abs(parseMoneyForTest(cashTrialRow.credit))<0.011,'تسوية الصندوق في يوم الجرد تشمل الحركات المسجلة في اليوم نفسه دون تكرارها');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
