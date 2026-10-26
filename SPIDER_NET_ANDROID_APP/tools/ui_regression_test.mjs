@@ -41,7 +41,7 @@ try{
  await page.locator('#mobileNav [data-mobile-tab="settings"]').click();check(await page.locator('#startDate').count()===1,'زر المزيد في التنقل السفلي يفتح الإعدادات');
  await page.setViewportSize({width:1440,height:1000});
  const routedActions=new Set([...html.matchAll(/case'([^']+)':/g)].map(m=>m[1]));
- for(const id of ['home','cards','pos','wallets','expenses','partners','reports','settings','audit']){
+ for(const id of ['home','cards','pos','wallets','expenses','partners','accounting','reports','settings','audit']){
   await tab(id);
   check(await page.locator('#view').count()===1,'التنقل إلى '+id);
   const actions=await page.locator('#view [data-action]').evaluateAll(bs=>bs.map(b=>b.getAttribute('data-action')||''));
@@ -195,6 +195,23 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  check(recoveryErrors.length===0,'لا توجد استثناءات JavaScript في سيناريو البيانات التالفة');await recoveryContext.close();
  // Run the below-cost pricing regression last so its test transaction cannot contaminate cash/debt/stock assertions above.
  await tab('pos');const deliveryCountBeforeLowCost=(await db()).deliveries.length;await action('add-delivery');await fill({date:'2026-10-21',posId,cardId,qty:'1',mode:'credit',unitPrice:'80',note:'اختبار تخفيض مقصود'});await page.evaluate(()=>window.__confirmAnswer=false);await submit();data=await db();check(data.deliveries.length===deliveryCountBeforeLowCost,'إلغاء التخفيض يمنع حفظ العملية');check(await page.locator('#modalBack').evaluate(e=>e.classList.contains('show')),'تبقى نافذة البيع مفتوحة عند رفض التخفيض');await page.evaluate(()=>window.__confirmAnswer=true);check(await submit(),'السماح ببيع أقل من التكلفة بعد التأكيد');data=await db();const lowCostConfirm=await page.evaluate(()=>window.__testDialogs.some(x=>x.type==='confirm'&&x.message.includes('أقل من تكلفة الكرت')&&x.message.includes('التكلفة')&&x.message.includes('سعر البيع')));check(lowCostConfirm,'تحذير التخفيض يعرض التكلفة وسعر البيع');check(data.deliveries.length===deliveryCountBeforeLowCost+1&&data.deliveries.find(x=>x.id===deliveryId)?.unitPrice===120&&data.deliveries.some(x=>x.note==='اختبار تخفيض مقصود'&&x.unitPrice===80),'سعر العملية الجديدة لا يغيّر سعر العملية التاريخية');
+ // Double-entry module: a manual balanced entry must persist and flow into ledger/trial balance.
+ await tab('accounting');
+ check((await page.locator('#view').innerText()).includes('ميزان المراجعة')&&(await page.locator('#view').innerText()).includes('دفتر الأستاذ العام'),'عرض ميزان المراجعة ودفتر الأستاذ من قسم المحاسبة');
+ const ledBefore=await db();const journalBefore=(ledBefore.journalEntries||[]).length;
+ await action('add-journal-entry');
+ await fill({date:'2026-10-25',description:'قيد اختبار محاسبي',debitAccount:'1000',creditAccount:'3100',amount:'123',note:'اختبار آلي'});
+ check(await submit(),'حفظ قيد اليومية المزدوج من النموذج');
+ data=await db();const je=data.journalEntries[(data.journalEntries||[]).length-1];
+ check((data.journalEntries||[]).length===journalBefore+1&&je.lines.length===2&&je.lines.reduce((n,l)=>n+Number(l.debit||0),0)===je.lines.reduce((n,l)=>n+Number(l.credit||0),0),'حفظ القيد كسطرين متساويين مدينًا ودائنًا');
+ const ledgerAudit=await page.evaluate(()=>{const es=accountingRecords();return {count:es.length,unbalanced:es.filter(e=>Math.abs(e.debit-e.credit)>0.011).length,hasManual:es.some(e=>e.description==='قيد اختبار محاسبي'),hasTrial:document.querySelector('#view').innerText.includes('ميزان المراجعة'),hasLedger:document.querySelector('#view').innerText.includes('دفتر الأستاذ العام')}});
+ check(ledgerAudit.unbalanced===0&&ledgerAudit.hasManual&&ledgerAudit.hasTrial&&ledgerAudit.hasLedger,'كل قيود اليومية المستخلصة واليدوية متوازنة وتظهر في التقارير');
+ const printBeforeLedger=await page.evaluate(()=>window.__printCount);await action('print-accounting');check(await page.evaluate(n=>window.__printCount===n+1,printBeforeLedger)&&!(await page.evaluate(()=>document.body.classList.contains('printing-accounting'))),'طباعة تقارير المحاسبة دون تعليق وضع الطباعة في المتصفح');
+ // Print both a recorded invoice/obligation and a recorded expense.
+ await tab('expenses');await action('add-bill');await fill({name:'فاتورة اختبار الطباعة',amount:'250',due:'2026-10-25',recurring:'no',note:'اختبار طباعة'});check(await submit(),'إضافة فاتورة لاختبار الطباعة');data=await db();const testBill=data.bills[data.bills.length-1];
+ const printBeforeBill=await page.evaluate(()=>window.__printCount);await action('print-bill:'+testBill.id);check(await page.evaluate(n=>window.__printCount===n+1,printBeforeBill)&&await page.locator('#billPrintSheet').count()===0,'طباعة سند الفاتورة وتنظيف مساحة الطباعة بعد إغلاق المعاينة');
+ await action('add-expense');await fill({date:'2026-10-25',category:'أخرى',name:'مصروف اختبار الطباعة',amount:'15',paymentMethod:'cash',note:'اختبار'});check(await submit(),'إضافة مصروف لاختبار الطباعة');data=await db();const testExpense=data.expenses[data.expenses.length-1];
+ const printBeforeExpense=await page.evaluate(()=>window.__printCount);await action('print-expense:'+testExpense.id);check(await page.evaluate(n=>window.__printCount===n+1,printBeforeExpense)&&await page.locator('#billPrintSheet').count()===0,'طباعة سند المصروف وتنظيف مساحة الطباعة بعد إغلاق المعاينة');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
