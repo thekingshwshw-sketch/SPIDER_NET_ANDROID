@@ -1035,6 +1035,13 @@ function statement(id){selectedPosId=id;tab='pos-detail';posFrom='';posTo='';ren
 function walletStock(id){let w=wallet(id);let rows=db.cards.map(c=>`<tr><td>${esc(c.name)}</td><td>${money(c.face)}</td><td>${stockWallet(id,c.id)}</td><td>${money(Math.max(0,stockWallet(id,c.id))*cCost(c))}</td></tr>`);showModal('مخزون المحفظة — '+w.name,table(['الفئة','القيمة الاسمية','الكمية المتاحة','القيمة حسب التكلفة'],rows))}
 function integrity(){
  const issues=[];const ids=new Set();
+ const configuredStartDate=validDateValue(db.settings&&db.settings.startDate)?db.settings.startDate:'';
+ if(configuredStartDate){
+  const datedTables=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','cashMovements','stockAdjustments','partnerMoves','journalEntries'];
+  let preStartMovementCount=datedTables.reduce((n,key)=>n+(db[key]||[]).filter(r=>validDateValue(String(r.date||'').slice(0,10))&&String(r.date).slice(0,10)<configuredStartDate).length,0);
+  preStartMovementCount+=(db.bills||[]).filter(b=>{const d=String(b.date||b.createdAt||b.paidDate||b.due||'').slice(0,10);return validDateValue(d)&&d<configuredStartDate}).length;
+  if(preStartMovementCount)issues.push('توجد '+preStartMovementCount+' حركة مسجلة قبل تاريخ بدء المحاسبة '+configuredStartDate+'؛ لا ينشئ النظام تلقائيًا أرصدة افتتاحية كاملة من هذه الحركات. راجع المخزون وذمم نقاط البيع والصندوق قبل اعتماد التقارير.');
+ }
  db.cards.forEach(c=>{if(!c.id||ids.has('card:'+c.id))issues.push('معرّف فئة كروت مكرر أو مفقود: '+(c.name||c.id));ids.add('card:'+c.id);if(!Number.isFinite(Number(c.face))||num(c.face)<=0)issues.push('قيمة اسمية غير صحيحة: '+c.name);if(!Number.isFinite(Number(c.pricePos))||num(c.pricePos)<0)issues.push('سعر نقطة بيع غير صحيح: '+c.name);if(!Number.isFinite(Number(c.cost))||num(c.cost)<0)issues.push('تكلفة غير صحيحة: '+c.name);if(!Number.isInteger(Number(c.opening))||num(c.opening)<0)issues.push('مخزون افتتاحي غير صحيح: '+c.name);if(stockMain(c.id)<0)issues.push('مخزون رئيسي سالب لفئة '+c.name+': '+stockMain(c.id));if(num(c.cost)===0)issues.push('تكلفة الكرت صفر أو غير مدخلة: '+c.name+'؛ الربح غير موثوق.')});
  db.pos.forEach(p=>{if(!p.id||!String(p.name||'').trim())issues.push('بيانات نقطة بيع ناقصة: '+(p.name||p.id||''))});
  db.wallets.forEach(w=>db.cards.forEach(c=>{if(stockWallet(w.id,c.id)<0)issues.push('مخزون سالب في '+w.name+' لفئة '+c.name)}));
