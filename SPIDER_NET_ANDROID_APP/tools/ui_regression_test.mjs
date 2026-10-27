@@ -253,7 +253,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||'',sheetCount:document.querySelectorAll('#billPrintSheet').length}));
  if(!(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي')))console.log('BATCH_INVOICE_DIAGNOSTIC '+JSON.stringify({printsBeforeBatch,invoicePrint,batchId,batchRows,alerts:await dialogs()}));
- check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
+ check(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل الفئتين المسجلتين والإجمالي الكلي');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
