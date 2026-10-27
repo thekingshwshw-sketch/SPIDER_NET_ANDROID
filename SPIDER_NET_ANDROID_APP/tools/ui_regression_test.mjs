@@ -251,7 +251,8 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  data=await db();const batchRows=data.deliveries.filter(x=>x.note==='فاتورة فئتين');const batchId=batchRows[0]?.batchId;
  check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId),'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
- const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||''}));
+ const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||'',sheetCount:document.querySelectorAll('#billPrintSheet').length}));
+ if(!(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي')))console.log('BATCH_INVOICE_DIAGNOSTIC '+JSON.stringify({printsBeforeBatch,invoicePrint,batchId,batchRows,alerts:await dialogs()}));
  check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
