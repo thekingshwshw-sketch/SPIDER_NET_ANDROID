@@ -11,8 +11,8 @@ android {
         applicationId 'com.spidernet.accounting.design2026.printupdate'
         minSdk 23
         targetSdk 35
-        versionCode 10
-        versionName '2.1.5'
+        versionCode 9
+        versionName '2.1.4'
     }
 
     compileOptions {
