@@ -8,7 +8,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.spidernet.accounting.design2026'
+        applicationId 'com.spidernet.accounting.design2026.printupdate'
         minSdk 23
         targetSdk 35
         versionCode 9

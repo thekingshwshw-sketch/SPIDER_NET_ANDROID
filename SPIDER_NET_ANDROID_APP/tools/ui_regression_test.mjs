@@ -254,6 +254,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||'',sheetCount:document.querySelectorAll('#billPrintSheet').length}));
  if(!(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي')))console.log('BATCH_INVOICE_DIAGNOSTIC '+JSON.stringify({printsBeforeBatch,invoicePrint,batchId,batchRows,alerts:await dialogs()}));
  check(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل الفئتين المسجلتين والإجمالي الكلي');
+ check(invoicePrint.text.includes('الدين المتبقي على نقطة البيع حتى الآن'),'فاتورة التسليم تعرض إجمالي الدين المتبقي على نقطة البيع');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
