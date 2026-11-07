@@ -2,12 +2,12 @@ name: Build Spider Net Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, redesign/premium-dark-navy-cyan-silver-2026-11-08]
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
   pull_request:
-    branches: [main]
+    branches: [main, fix/ui-button-audit-2026-10-24]
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
