@@ -252,7 +252,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId),'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||''}));
- check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
+ console.log('PRINT_BATCH_DEBUG '+JSON.stringify({count:invoicePrint.count,expected:printsBeforeBatch+1,hasCard100:invoicePrint.text.includes('كرت اختبار 100'),hasCard500:invoicePrint.text.includes('كرت اختبار 500'),hasTotal:invoicePrint.text.includes('الإجمالي الكلي'),text:invoicePrint.text.slice(0,1800)}));check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
