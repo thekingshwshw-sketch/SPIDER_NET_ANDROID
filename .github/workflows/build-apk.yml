@@ -2,7 +2,7 @@ name: Build Spider Net Android APK
 
 on:
   push:
-    branches: [main, redesign/premium-dark-navy-cyan-silver-2026-11-08]
+    branches: [main]
     paths:
       - 'SPIDER_NET_ANDROID_APP/**'
       - '.github/workflows/build-apk.yml'
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
