@@ -248,11 +248,11 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await tab('cards');await action('add-card');await fill({name:'كرت اختبار 500',face:'500',pricePos:'250',cost:'200',opening:'10',alertAt:'1',note:'اختبار فاتورة متعددة الفئات'});check(await submit(),'إضافة فئة ثانية لاختبار الفاتورة');
  data=await db();const secondCardId=data.cards.find(x=>x.name==='كرت اختبار 500').id;
  await tab('pos');await action('add-delivery');await fill({date:'2026-10-26',posId,cardId,qty:'1',unitPrice:'120',cardId2:secondCardId,qty2:'1',unitPrice2:'250',mode:'cash',note:'فاتورة فئتين'});check(await submit(),'تسجيل تسليم بفئتين في حركة واحدة');
- data=await db();const batchRows=data.deliveries.filter(x=>x.note==='فاتورة فئتين');const batchId=batchRows[0]?.batchId;
- check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId),'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
+ data=await db();const batchRows=data.deliveries.filter(x=>x.note==='فاتورة فئتين');const batchId=batchRows[0]?.batchId;const expectedCardNames=batchRows.map(x=>data.cards.find(c=>c.id===x.cardId)?.name).filter(Boolean);
+ check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId)&&expectedCardNames.length===2,'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||''}));
- console.log('PRINT_BATCH_DEBUG '+JSON.stringify({count:invoicePrint.count,expected:printsBeforeBatch+1,hasCard100:invoicePrint.text.includes('كرت اختبار 100'),hasCard500:invoicePrint.text.includes('كرت اختبار 500'),hasTotal:invoicePrint.text.includes('الإجمالي الكلي'),text:invoicePrint.text.slice(0,1800)}));check(invoicePrint.count===printsBeforeBatch+1&&invoicePrint.text.includes('كرت اختبار 100')&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل فئتي الكروت والإجمالي الكلي');
+ check(invoicePrint.count===printsBeforeBatch+1&&expectedCardNames.every(name=>invoicePrint.text.includes(name))&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل اسمي الفئتين الفعليين والإجمالي الكلي');
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
