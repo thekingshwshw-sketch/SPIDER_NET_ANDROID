@@ -311,6 +311,11 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  check(!(await submit()),'رفض تعديل فاتورة من فترة مغلقة');
  check((await db()).deliveries.find(x=>x.id===periodDebt.id).qty===periodDebt.qty,'الحفاظ على بيانات الفاتورة التاريخية بعد رفض التعديل');
  await cancel();
+ // Reject overlapping period creation before opening the next consecutive period.
+ await tab('periods');await action('period-create');
+ await fill({name:'فترة متداخلة مرفوضة',startDate:'2026-10-15',endDate:'2026-11-05',openingCash:'0',openingCashConfirmed:'no',note:'اختبار منع التداخل'});
+ check(!(await submit()),'رفض إنشاء فترة تتداخل مع فترة أكتوبر المغلقة');
+ await cancel();
  // Start the next custom period on the exact next calendar day.
  await tab('periods');await action('period-create');
  await fill({name:'فترة اختبار نوفمبر',startDate:'2026-11-01',endDate:'2026-11-18',openingCash:'0',openingCashConfirmed:'no',note:'اختبار ترحيل'});
