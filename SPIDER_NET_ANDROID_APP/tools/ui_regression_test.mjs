@@ -28,8 +28,9 @@ try{
  const desktopLayout=await page.evaluate(()=>({headerBottom:document.querySelector('#topbar').getBoundingClientRect().bottom,mainTop:document.querySelector('#view').getBoundingClientRect().top}));
  check(desktopLayout.mainTop>=desktopLayout.headerBottom-1,'محتوى سطح المكتب يبدأ أسفل الشريط العلوي دون تداخل');
  await page.setViewportSize({width:820,height:1000});
- const tabletClosed=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),style=getComputedStyle(e),matrix=new DOMMatrix(style.transform);return {position:style.position,translateX:matrix.m41}});
- check(tabletClosed.position==='fixed'&&tabletClosed.translateX>0,'قائمة الجهاز اللوحي مخفية كدرج ولا تحجز مساحة في الصفحة');
+ const tabletClosed=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),style=getComputedStyle(e),matrix=new DOMMatrix(style.transform);return {position:style.position,transform:style.transform,translateX:matrix.m41,left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width,layoutDisplay:getComputedStyle(document.querySelector('.layout')).display}});
+ console.log('TABLET_MENU_DIAG '+JSON.stringify(tabletClosed));
+ check(tabletClosed.position==='fixed'&&tabletClosed.translateX!==0,'قائمة الجهاز اللوحي مخفية كدرج ولا تحجز مساحة في الصفحة');
  await page.locator('#menuToggle').click();
  const tabletOpen=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),r=e.getBoundingClientRect();return {right:r.right,left:r.left,width:r.width,open:document.body.classList.contains('nav-open')}});
  check(tabletOpen.open&&tabletOpen.width>240&&Math.abs(tabletOpen.right-820)<2,'فتح قائمة الجهاز اللوحي كدرج مثبت بمحاذاة الشاشة');
