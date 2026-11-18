@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="dark">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b14">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f3f7f4">
 <title>SPIDER NET | Smart Accounting System</title>
 <style>
 /* SPIDER NET — consolidated foundation styles; old experimental themes removed */
@@ -564,17 +564,269 @@ tbody tr:hover{background:#0a2a42!important}
 .period-card>.actions,.period-card>.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 #monthlyPeriodPrintSheet{display:none}
 @media print{body.printing-monthly-period #app>.topbar,body.printing-monthly-period .sidebar,body.printing-monthly-period .mobile-nav,body.printing-monthly-period .footer,body.printing-monthly-period #view,body.printing-monthly-period .modal-back{display:none!important}body.printing-monthly-period #monthlyPeriodPrintSheet{display:block!important;position:static!important;background:#fff!important;color:#111!important;padding:0!important}body.printing-monthly-period #monthlyPeriodPrintSheet .panel{background:#fff!important;color:#111!important;box-shadow:none!important;break-inside:avoid}body.printing-monthly-period #monthlyPeriodPrintSheet table{width:100%;border-collapse:collapse}body.printing-monthly-period #monthlyPeriodPrintSheet th,body.printing-monthly-period #monthlyPeriodPrintSheet td{border:1px solid #cbd5e1;padding:6px;color:#111!important}}
+
+/* SPIDER NET — Visual Identity 2026.11
+   A distinct emerald / deep-ink visual system. Presentation layer only. */
+:root{
+ --bg:#f3f7f4;--panel:#ffffff;--panel2:#edf4f0;--line:#dce8e1;
+ --text:#142d3b;--muted:#6f8584;--accent:#0c9b6b;--accent2:#23b8ae;
+ --danger:#d95366;--warn:#bd8425;--shadow:0 12px 32px rgba(16,49,40,.065);
+ --navy:#0d2939;--navy2:#123a48;--soft-blue:#e9f3f6;
+ --soft-green:#e2f6ed;--soft-red:#fff0f1;--soft-purple:#f0edfa;
+ color-scheme:light
+}
+html[data-theme="light"]{
+ --bg:#f3f7f4;--panel:#fff;--panel2:#edf4f0;--line:#dce8e1;
+ --text:#142d3b;--muted:#6f8584;--accent:#0c9b6b;--accent2:#23b8ae;
+ --danger:#d95366;--warn:#bd8425;--shadow:0 12px 32px rgba(16,49,40,.065);
+ --soft-blue:#e9f3f6;--soft-green:#e2f6ed;--soft-red:#fff0f1;--soft-purple:#f0edfa;
+ color-scheme:light
+}
+html[data-theme="dark"]{
+ --bg:#0c1b24;--panel:#132832;--panel2:#193640;--line:#294a50;
+ --text:#edf6f1;--muted:#a1b6b0;--accent:#45d6a0;--accent2:#49d5ce;
+ --danger:#ff8290;--warn:#f0c16b;--shadow:0 14px 35px rgba(0,0,0,.24);
+ --soft-blue:#203c47;--soft-green:#174338;--soft-red:#472b34;--soft-purple:#332e4a;
+ color-scheme:dark
+}
+html{scrollbar-color:var(--line) var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.65}
+.app{width:min(1680px,100%);padding:0 18px;gap:0}
+.topbar{
+ position:sticky;top:0;z-index:40;height:72px;min-height:72px;
+ margin:0 0 16px;padding:0 20px;grid-template-columns:minmax(230px,1fr) minmax(240px,430px) minmax(320px,1fr);
+ border:1px solid var(--line);border-top:0;border-radius:0 0 20px 20px;
+ background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(18px);
+ box-shadow:0 8px 25px rgba(17,56,43,.055)
+}
+.topbar-brand{gap:11px}
+.brand-emblem{
+ width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
+ color:#eafff5;background:linear-gradient(145deg,#0b7455,#0caa78);
+ border:1px solid #20bd8c;box-shadow:0 7px 18px rgba(12,155,107,.2)
+}
+.brand-emblem svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8}
+.brand-copy strong,.sidebar-brand b{font-size:15px;letter-spacing:.8px;font-weight:900;color:var(--text)}
+.brand-copy small,.sidebar-brand small{font-size:10px;letter-spacing:.25px;color:var(--muted)}
+.global-search{height:42px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);padding:0 13px}
+.global-search input{font-size:12px}
+.top-user{gap:6px}
+.profile-chip{border-radius:12px}
+.avatar{background:#dff5eb;color:#08774f}
+.icon-button{width:37px;height:37px;border-radius:12px;color:var(--muted)}
+.icon-button:hover{color:var(--accent);background:var(--soft-green);border-color:var(--line)}
+.layout{grid-template-columns:254px minmax(0,1fr);gap:17px;align-items:stretch}
+.sidebar{
+ grid-column:1;grid-row:1;position:relative;top:auto;min-height:calc(100vh - 105px);
+ padding:15px 12px;border:1px solid #173e4a;border-radius:20px;
+ color:#eef8f3;background:linear-gradient(165deg,#102f3e 0%,#0b2634 58%,#0b202c 100%);
+ box-shadow:0 14px 34px rgba(7,36,43,.16)
+}
+.sidebar-brand{padding:12px 9px 19px;border-bottom:1px solid #ffffff19;gap:10px}
+.sidebar-brand .brand-emblem{width:40px;height:40px;background:linear-gradient(145deg,#0c9b6b,#23b8ae);border:0}
+.sidebar-brand b{color:#f2fbf6;font-size:15px}
+.sidebar-brand small{color:#a7c5ba}
+.nav-caption{padding:19px 14px 8px;color:#86a99f;font-size:10px;font-weight:700}
+.nav-list{gap:5px}
+.sidebar .nav{
+ min-height:47px;margin:0;padding:8px 11px;border-radius:12px;
+ border:1px solid transparent;color:#c6d9d2;background:transparent
+}
+.sidebar .nav:hover{background:#ffffff0c;border-color:#ffffff12}
+.sidebar .nav.active{
+ color:#fff;background:linear-gradient(105deg,#087d59,#0e9c70);
+ border-color:#34c493;box-shadow:0 7px 17px #0002,inset -3px 0 #a7f3d0
+}
+.sidebar .nav-copy b{font-size:12px;font-weight:750}
+.sidebar .nav-copy small{font-size:9px;color:#9bb7ae}
+.sidebar .nav.active .nav-copy small{color:#d8f7e9}
+.sidebar .nav-svg{color:inherit}
+.sidebar-bottom{padding-top:17px}
+.theme-switch{background:#ffffff0b;border:1px solid #ffffff1c;color:#e6f4ee;border-radius:12px}
+.switch-dot{background:#2e5b56}
+.sidebar-version{color:#87a99e;font-size:9px}
+.main{grid-column:2;grid-row:1;min-width:0;padding:23px 5px 26px}
+.dashboard-page{max-width:1260px}
+.dashboard-head{margin-bottom:19px;align-items:center}
+.dashboard-head h2{font-size:25px;letter-spacing:-.3px;font-weight:900}
+.dashboard-welcome{font-size:14px;color:var(--text)}
+.dashboard-head p{font-size:12px;color:var(--muted)}
+.breadcrumb{font-size:11px}
+.dashboard-tools{gap:8px}
+.soft-tool{min-height:38px;padding:8px 12px;border-radius:11px;background:var(--panel);color:var(--text);font-size:11px}
+.dashboard-quick .primary{border-radius:12px;background:linear-gradient(110deg,#0b9869,#20b89b);box-shadow:0 7px 18px rgba(12,155,107,.19);font-weight:800}
+button,input,select,textarea{font-family:inherit}
+button{border-radius:11px;border-color:var(--line);background:var(--panel);color:var(--text)}
+button.primary{background:linear-gradient(110deg,#0b9869,#20b89b);border-color:#0b9869;color:#fff;font-weight:800}
+button.danger{color:var(--danger)}
+input,select,textarea{background:var(--panel);border-color:var(--line);border-radius:11px;color:var(--text)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.field label{font-size:12px;color:var(--muted);font-weight:750}
+.panel,.dashboard-section,.lower-card,.pos-card,.detail-stat,.period-card,.modal,.lockbox{
+ border-radius:17px;border-color:var(--line);background:var(--panel);box-shadow:var(--shadow)
+}
+.panel{padding:18px;margin-bottom:15px}
+.panel h3{font-size:16px;font-weight:850}
+.section-title h2{font-size:21px;font-weight:900}
+.dashboard-metrics{gap:12px;margin-bottom:15px}
+.dash-metric,.metric{
+ position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;
+ background:var(--panel);box-shadow:var(--shadow);color:var(--text)
+}
+.dash-metric{min-height:114px;padding:16px;gap:12px}
+.dash-metric:after{
+ content:"";position:absolute;inset:0 0 auto;height:3px;
+ background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.82
+}
+.metric-icon{width:43px;height:43px;border-radius:13px;background:var(--soft-green);color:var(--accent);flex-basis:43px}
+.metric-icon .nav-svg{stroke:currentColor}
+.dash-metric .label{font-size:11px;color:var(--muted);font-weight:750}
+.dash-metric .value{font-size:23px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+.dash-metric .hint{font-size:10px;color:var(--muted)}
+.tone-green .metric-icon{background:var(--soft-green);color:var(--accent)}
+.tone-red .metric-icon{background:var(--soft-red);color:var(--danger)}
+.tone-blue .metric-icon{background:var(--soft-blue);color:#2597b7}
+.tone-purple .metric-icon{background:var(--soft-purple);color:#8c70cf}
+.dashboard-section{padding:17px 18px;margin-bottom:15px;border-radius:17px}
+.dashboard-section-head h3{font-size:14px;font-weight:850}
+.dashboard-section-head small{font-size:10px}
+.dashboard-table-wrap{border:1px solid var(--line);border-radius:12px}
+.dashboard-table th{background:var(--panel2);color:var(--muted);font-size:10px}
+.dashboard-table td{font-size:11px;border-bottom-color:var(--line)}
+.dashboard-table tbody tr:hover{background:color-mix(in srgb,var(--accent) 5%,var(--panel))}
+.table-wrap{border-color:var(--line);border-radius:13px;background:var(--panel)}
+table{border-spacing:0}
+th{background:var(--panel2);color:var(--muted);font-weight:800}
+th,td{border-bottom-color:var(--line)}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+.badge{font-weight:750}
+.badge.ok,.status-pill{background:var(--soft-green);color:#087b56}
+.badge.warn{background:#fff4df;color:#946411}
+.badge.bad{background:var(--soft-red);color:var(--danger)}
+.note{border-radius:13px;background:var(--panel2);border-color:var(--line)}
+.modal-back{background:rgba(4,22,29,.58);backdrop-filter:blur(7px)}
+.modal{border-radius:19px}
+.lock{background:radial-gradient(ellipse at 50% 0%,#174b4a,var(--bg) 62%)}
+.lockbox{background:var(--panel)}
+.pos-list{gap:12px}
+.pos-card{padding:16px}
+.pos-card:hover{border-color:var(--accent);box-shadow:0 14px 30px rgba(12,155,107,.1)}
+.detail-stat{background:var(--panel2)}
+.cashbox-grid>div{background:var(--panel2);border-color:var(--line);border-radius:13px}
+.mobile-nav{
+ background:color-mix(in srgb,var(--panel) 96%,transparent)!important;
+ border:1px solid var(--line)!important;border-radius:18px 18px 0 0!important;
+ box-shadow:0 -8px 28px rgba(11,39,43,.1)!important;backdrop-filter:blur(18px)
+}
+.mobile-nav-item{color:var(--muted);border-radius:12px}
+.mobile-nav-item.active{color:var(--accent);background:var(--soft-green);font-weight:850}
+.footer{color:var(--muted)}
+/* Print and invoice identity */
+#billPrintSheet.spider-invoice{
+ display:none;background:#fff;color:#152f3b;direction:rtl;
+ width:210mm;max-width:100%;min-height:297mm;margin:0 auto;padding:14mm 13mm;
+ box-sizing:border-box;font-family:Tahoma,Arial,sans-serif;position:relative;overflow:hidden;
+ border:1px solid #e1e9e4;border-radius:16px;line-height:1.65
+}
+.spider-invoice .invoice-accent{position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#0b8f66,#35c8b0)}
+.spider-invoice .invoice-brand-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 0 18px;border-bottom:1px solid #dce8e1}
+.spider-invoice .invoice-brand{display:flex;align-items:center;gap:12px;color:#123747}
+.spider-invoice .invoice-brand-mark{width:53px;height:53px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,#0b805e,#19b28c);color:#fff}
+.spider-invoice .invoice-brand-mark svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:1.9}
+.spider-invoice .invoice-brand b{display:block;font-size:23px;line-height:1.25;letter-spacing:.8px;font-weight:900}
+.spider-invoice .invoice-brand small{display:block;font-size:11px;color:#6d8583}
+.spider-invoice .invoice-title{text-align:left;min-width:140px}
+.spider-invoice .invoice-title small{display:block;color:#0b9b6c;font-size:9px;letter-spacing:1.5px;font-weight:800}
+.spider-invoice .invoice-title h1{font-size:26px;color:#123747;margin:2px 0 5px;line-height:1.25}
+.spider-invoice .invoice-status{display:inline-flex;border-radius:30px;padding:4px 11px;font-size:10px;font-weight:800;background:#eef4f0;color:#52645e}
+.spider-invoice .invoice-status.is-paid{background:#e2f6ed;color:#08784f}
+.spider-invoice .invoice-status.is-due{background:#fff3dc;color:#9b6710}
+.spider-invoice .invoice-status.is-consignment{background:#e8f5f6;color:#117889}
+.spider-invoice .invoice-number-strip{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.spider-invoice .invoice-number-box{border:1px solid #e1eae4;border-radius:12px;background:#f7faf8;padding:11px 14px}
+.spider-invoice .invoice-number-box span{display:block;color:#748982;font-size:10px;margin-bottom:3px}
+.spider-invoice .invoice-number-box strong{display:block;font-size:14px;color:#183948;direction:ltr;text-align:right;overflow-wrap:anywhere}
+.spider-invoice .invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 20px}
+.spider-invoice .invoice-party{padding:14px 15px;border:1px solid #dfe9e3;border-radius:13px;background:#fff;min-width:0}
+.spider-invoice .invoice-party .eyebrow{display:block;color:#0b996b;font-size:10px;font-weight:850;margin-bottom:6px}
+.spider-invoice .invoice-party h3{font-size:16px;color:#173c49;margin:0 0 7px}
+.spider-invoice .invoice-party p{font-size:11px;color:#5b726f;margin:3px 0;overflow-wrap:anywhere}
+.spider-invoice .invoice-table{width:100%;border-collapse:collapse;margin:0 0 18px;min-width:0}
+.spider-invoice .invoice-table th{background:#123b47;color:#fff;font-size:10px;font-weight:800;padding:11px 9px;border:1px solid #123b47;text-align:right}
+.spider-invoice .invoice-table td{padding:11px 9px;border-bottom:1px solid #e4ece7;color:#213e49;font-size:11px;text-align:right}
+.spider-invoice .invoice-table tbody tr:nth-child(even){background:#f6faf7}
+.spider-invoice .invoice-table .numeric{text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.spider-invoice .invoice-bottom{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:14px;align-items:stretch}
+.spider-invoice .invoice-note{border:1px solid #e0e9e3;border-radius:12px;padding:13px;background:#f8faf9}
+.spider-invoice .invoice-note b{display:block;font-size:11px;color:#1b4850;margin-bottom:6px}
+.spider-invoice .invoice-note p{font-size:11px;color:#637974;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.spider-invoice .invoice-total-card{border:1px solid #cfe7dc;border-radius:14px;overflow:hidden;background:#f3faf6}
+.spider-invoice .invoice-total-line{display:flex;justify-content:space-between;gap:12px;padding:11px 13px;font-size:11px;color:#547069}
+.spider-invoice .invoice-grand-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:linear-gradient(105deg,#0b805e,#0f9e76);color:white;font-weight:850}
+.spider-invoice .invoice-grand-total strong{font-size:18px;white-space:nowrap}
+.spider-invoice .invoice-signatures{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:44px}
+.spider-invoice .invoice-signature{border-top:1px solid #9fb6aa;padding-top:8px;color:#60766d;font-size:10px;text-align:center}
+.spider-invoice .invoice-footer{border-top:1px solid #dce8e1;margin-top:27px;padding-top:10px;display:flex;justify-content:space-between;gap:12px;color:#82958c;font-size:9px}
+@media(max-width:760px){
+ .app{padding:0 10px 76px}
+ .topbar{height:62px;min-height:62px;padding:0 10px;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-radius:0 0 15px 15px}
+ .topbar .global-search{display:none}
+ .layout{display:block;min-height:calc(100vh - 75px)}
+ .sidebar{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(300px,86vw);height:auto;min-height:0;border-radius:0 0 0 20px;transform:translateX(110%);transition:transform .22s ease;overflow-y:auto}
+ body.nav-open .sidebar{transform:translateX(0)}
+ .main{padding:17px 1px 20px}
+ .dashboard-head{align-items:flex-start;flex-direction:column}
+ .dashboard-head h2{font-size:21px}
+ .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dash-metric{min-height:98px;padding:12px;gap:8px}
+ .dash-metric .value{font-size:19px}
+ .metric-icon{width:37px;height:37px;flex-basis:37px}
+ .dashboard-bottom{grid-template-columns:1fr}
+ .dashboard-section{padding:13px}
+ .panel{padding:14px}
+ .mobile-nav{position:fixed;bottom:0;left:8px;right:8px;z-index:60;height:65px;padding:7px 5px;display:flex;justify-content:space-around;align-items:center}
+ .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;padding:5px 2px;font-size:9px}
+ .mobile-nav-item .nav-svg{width:18px;height:18px}
+ .simple-statement{padding:12px}
+ .cashbox-grid{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+ .dashboard-metrics{grid-template-columns:1fr 1fr;gap:7px}
+ .dash-metric{padding:10px;min-height:94px}
+ .dash-metric .value{font-size:17px}
+ .profile-chip>span:nth-child(2){display:none}
+ .top-user{gap:2px}
+}
+@media print{
+ @page{size:A4;margin:0}
+ body.printing-bill{background:#fff!important;color:#152f3b!important}
+ body.printing-bill #app{display:block!important;width:210mm!important;max-width:210mm!important;padding:0!important;margin:0 auto!important}
+ body.printing-bill #app .topbar,body.printing-bill #app .sidebar,body.printing-bill #app .main,body.printing-bill #app .mobile-nav,body.printing-bill #app .footer{display:none!important}
+ body.printing-bill #billPrintSheet.spider-invoice{display:block!important;position:relative!important;width:210mm!important;max-width:210mm!important;min-height:297mm!important;margin:0!important;padding:15mm 14mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;background:#fff!important;color:#152f3b!important}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-accent{display:block!important}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-party,body.printing-bill #billPrintSheet.spider-invoice .invoice-number-box,body.printing-bill #billPrintSheet.spider-invoice .invoice-note,body.printing-bill #billPrintSheet.spider-invoice .invoice-total-card{break-inside:avoid}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-table tr{break-inside:avoid}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-footer{position:absolute;bottom:12mm;right:14mm;left:14mm}
+ body.printing-pos .print-receipt{font-family:Tahoma,Arial,sans-serif;background:#fff!important;color:#183744!important;border:0!important;border-radius:0!important;padding:0!important}
+ body.printing-pos .receipt-head{border-bottom:3px solid #0b9869!important;padding-bottom:10px!important}
+ body.printing-pos .receipt-brand{color:#123b47!important}
+ body.printing-pos .receipt-brand svg{stroke:#0b9869!important}
+ body.printing-pos .receipt-lines th{background:#123b47!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body.printing-pos .receipt-summary .receipt-due th,body.printing-pos .receipt-summary .receipt-due td{background:#e4f6ed!important;color:#08784f!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body.printing-accounting .accounting-print-heading{border-color:#0b9869!important;color:#123b47!important}
+}
+
 </style></head>
 <body>
 <div class="app" id="app">
 <header class="topbar" id="topbar">
-  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
+  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
   <div class="global-search"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="ابحث عن نقطة بيع أو فئة كروت..." aria-label="بحث في نقاط البيع وفئات الكروت"><kbd>↵</kbd></div>
   <div class="top-user"><button class="profile-chip" id="profileBtn" title="مدير النظام"><span class="avatar">م</span><span><b>مدير النظام</b><small>حساب محلي</small></span><span class="chevron">⌄</span></button><span class="top-divider"></span><button class="icon-button notification-button" id="notificationBtn" aria-label="التنبيهات" title="التنبيهات">♧<span id="notificationCount" class="notification-count">0</span></button><button class="icon-button" id="themeBtn" title="تبديل المظهر" aria-label="تبديل المظهر"><span class="theme-icon">☾</span></button><button class="icon-button" id="settingsBtn" title="الإعدادات" aria-label="الإعدادات">⚙</button><button class="icon-button" id="lockBtn" title="قفل النظام" aria-label="قفل النظام">▣</button><button class="icon-button desktop-action" id="backupBtn" title="نسخة احتياطية" aria-label="نسخة احتياطية">⇩</button><button class="icon-button desktop-action" id="restoreBtn" title="استعادة نسخة" aria-label="استعادة نسخة">⤴</button><button class="icon-button desktop-action" id="printBtn" title="طباعة / PDF" aria-label="طباعة / PDF">▤</button><input id="restoreFile" type="file" accept="application/json,.json" class="hidden"></div>
 </header>
-<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.2.0<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
+<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.2.0<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
 <div class="modal-back" id="modalBack"><div class="modal"><div class="modal-head"><h3 id="modalTitle"></h3><button id="modalClose">إغلاق</button></div><div id="modalBody"></div></div></div>
-<div class="lock" id="lockScreen"><div class="lockbox"><div class="brand-emblem" style="margin:0 auto 12px;width:64px;height:64px;border-radius:18px"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
+<div class="lock" id="lockScreen"><div class="lockbox"><div class="brand-emblem" style="margin:0 auto 12px;width:64px;height:64px;border-radius:18px"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
 <script>
 (()=>{'use strict';
 const KEY='spidernet_accounting_v1';
@@ -850,7 +1102,7 @@ function posDetailView(id){
  ];
  return '<div class="section-title no-print"><h2>كشف حساب نقطة البيع</h2><div class="actions">'+btn('← كل نقاط البيع','back-pos')+btn('تعديل بيانات النقطة','edit-pos:'+id)+(db.deliveries.some(x=>x.posId===id&&x.mode==='consignment')?btn('تسوية الأمانة','consign-to:'+id):'')+btn('طباعة / حفظ PDF','print-pos','primary')+btn('حفظ الكشف كصورة','image-pos')+'</div></div>'+
  '<section class="panel no-print simple-filter"><h3>فترة الكشف</h3><div class="form-grid"><div class="field"><label for="posFrom">من تاريخ</label><input type="date" id="posFrom" value="'+esc(posFrom)+'"></div><div class="field"><label for="posTo">إلى تاريخ</label><input type="date" id="posTo" value="'+esc(posTo)+'"></div></div><div class="actions"><button class="primary" id="applyPosFilter">تطبيق الفترة</button><button id="clearPosFilter">عرض كل التاريخ</button></div></section>'+
- '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark" aria-label="شعار سبايدر نت"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
+ '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark" aria-label="شعار سبايدر نت"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
 }
 function wirePosDetail(){const search=$('#posSearch');if(search)search.addEventListener('input',()=>{posSearch=search.value;const start=search.selectionStart;const v=$('#view');v.innerHTML=posView();bindActions(v);const n=$('#posSearch');n.focus();n.setSelectionRange(start,start)});const apply=$('#applyPosFilter');if(apply)apply.onclick=()=>{const from=$('#posFrom').value,to=$('#posTo').value;if(from&&to&&from>to)return alert('تاريخ البداية يجب أن يكون قبل تاريخ النهاية.');posFrom=from;posTo=to;render()};const clear=$('#clearPosFilter');if(clear)clear.onclick=()=>{posFrom='';posTo='';render()}}
 function walletsView(){
@@ -1813,12 +2065,37 @@ function printDeliveryBatchInvoice(batchId){
  const first=lines[0],p=pos(first.posId);if(!p)return alert('نقطة البيع المرتبطة بالفاتورة غير موجودة.');
  if(lines.some(x=>x.posId!==first.posId||x.date!==first.date||x.mode!==first.mode))return alert('بيانات مجموعة الفاتورة غير متطابقة؛ لم تتم الطباعة لتجنب دمج عمليات مختلفة.');
  const movement=first.mode==='cash'?'بيع نقدي':first.mode==='credit'?'بيع آجل':'تسليم أمانة';
- const items=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(cardLabel(x.cardId))+'</td><td>'+esc(x.qty)+'</td><td>'+money(x.unitPrice)+'</td><td>'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
- const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
  const paymentNote=first.mode==='cash'?'تحصيل نقدي عند التسليم':first.mode==='credit'?'مبلغ آجل — يُتابع ضمن مديونية نقطة البيع':'أمانة — لا تُثبت كدين إلا بعد تسوية الكروت المباعة';
- const html='<section id="billPrintSheet" dir="rtl"><h1>SPIDER NET</h1><h2>فاتورة تسليم كروت</h2><div class="print-grid"><div class="print-item"><span class="print-label">رقم الفاتورة / مرجع العملية</span><span class="print-value">'+esc(first.batchId||first.id)+'</span></div><div class="print-item"><span class="print-label">تاريخ العملية</span><span class="print-value">'+esc(first.date||'—')+'</span></div><div class="print-item"><span class="print-label">نقطة البيع</span><span class="print-value">'+esc(p.name||'—')+'</span></div><div class="print-item"><span class="print-label">المالك / الهاتف</span><span class="print-value">'+esc(p.owner||'—')+' / '+esc(p.phone||'—')+'</span></div><div class="print-item"><span class="print-label">نوع الحركة</span><span class="print-value">'+movement+'</span></div><div class="print-item"><span class="print-label">حالة التحصيل</span><span class="print-value">'+paymentNote+'</span></div></div><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#e8f0f7"><th style="border:1px solid #999;padding:9px">م</th><th style="border:1px solid #999;padding:9px">فئة الكرت</th><th style="border:1px solid #999;padding:9px">الكمية</th><th style="border:1px solid #999;padding:9px">سعر الوحدة</th><th style="border:1px solid #999;padding:9px">الإجمالي</th></tr></thead><tbody>'+items+'</tbody></table><div class="print-total">الإجمالي الكلي: '+money(total)+'</div><div class="print-note"><b>ملاحظات:</b> '+esc(first.note||'—')+'</div><div class="print-signatures"><div>توقيع مسؤول الشبكة</div><div>توقيع مستلم نقطة البيع</div></div><p style="text-align:center;font-size:10px;margin-top:22px">يرجى مراجعة الكميات والفئات والإجمالي قبل التوقيع.</p></section>';
+ const statusClass=first.mode==='cash'?'is-paid':first.mode==='credit'?'is-due':'is-consignment';
+ const statusText=first.mode==='cash'?'مدفوعة نقدياً':first.mode==='credit'?'مستحق التحصيل':'أمانة / تسوية لاحقة';
+ const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
+ const totalQty=lines.reduce((n,x)=>n+num(x.qty),0);
+ const totalLabel=first.mode==='consignment'?'القيمة المرجعية للبضاعة':'الإجمالي المستحق';
+ const rows=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(cardLabel(x.cardId))+'</strong></td><td class="numeric">'+esc(x.qty)+'</td><td class="numeric">'+money(x.unitPrice)+'</td><td class="numeric">'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
+ const html='<section id="billPrintSheet" class="spider-invoice" dir="rtl">'+
+ '<div class="invoice-accent"></div>'+
+ '<header class="invoice-brand-row">'+
+ '<div class="invoice-brand"><span class="invoice-brand-mark"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></span><span><b>SPIDER NET</b><small>نظام محاسبي ذكي</small></span></div>'+
+ '<div class="invoice-title"><small>SPIDER NET • SALES DOCUMENT</small><h1>فاتورة تسليم كروت</h1><span class="invoice-status '+statusClass+'">'+statusText+'</span></div>'+
+ '</header>'+
+ '<div class="invoice-number-strip">'+
+ '<div class="invoice-number-box"><span>رقم الفاتورة / مرجع العملية</span><strong>'+esc(first.batchId||first.id)+'</strong></div>'+
+ '<div class="invoice-number-box"><span>تاريخ الإصدار</span><strong>'+esc(first.date||'—')+'</strong></div>'+
+ '</div>'+
+ '<div class="invoice-parties">'+
+ '<section class="invoice-party"><span class="eyebrow">الفاتورة إلى</span><h3>'+esc(p.name||'نقطة بيع')+'</h3><p>المالك: '+esc(p.owner||'غير محدد')+'</p><p>الهاتف: '+esc(p.phone||'غير محدد')+'</p><p>المنطقة: '+esc(p.area||'—')+'</p></section>'+
+ '<section class="invoice-party"><span class="eyebrow">تفاصيل العملية</span><h3>'+movement+'</h3><p>حالة العملية: '+statusText+'</p><p>طريقة التسوية: '+paymentNote+'</p><p>عدد الأصناف: '+lines.length+' • إجمالي الكمية: '+money(totalQty)+'</p></section>'+
+ '</div>'+
+ '<table class="invoice-table"><thead><tr><th style="width:7%">م</th><th>فئة الكرت</th><th style="width:15%">الكمية</th><th style="width:19%">سعر الوحدة</th><th style="width:22%">الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+ '<div class="invoice-bottom">'+
+ '<div class="invoice-note"><b>ملاحظات وشروط التسليم</b><p>'+esc(first.note||'لا توجد ملاحظات مسجلة.')+'</p><p>'+esc(paymentNote)+'</p></div>'+
+ '<div class="invoice-total-card"><div class="invoice-total-line"><span>إجمالي الكمية</span><strong>'+money(totalQty)+'</strong></div><div class="invoice-grand-total"><span>'+totalLabel+'</span><strong>'+money(total)+'</strong></div></div>'+
+ '</div>'+
+ '<div class="invoice-signatures"><div class="invoice-signature">تسليم مسؤول الشبكة</div><div class="invoice-signature">استلام نقطة البيع</div></div>'+
+ '<footer class="invoice-footer"><span>SPIDER NET · نظام محاسبي ذكي</span><span>تم إنشاء المستند من سجل العمليات المسجل داخل النظام</span></footer>'+
+ '</section>';
  const old=document.getElementById('billPrintSheet');if(old)old.remove();$('#app').insertAdjacentHTML('beforeend',html);document.body.classList.add('printing-bill');
- if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('فاتورة تسليم SPIDER NET');return}
+ if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('فاتورة SPIDER NET');return}
  try{window.print()}finally{document.body.classList.remove('printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove()}
 }
 function printPosStatement(){if(tab!=='pos-detail'||!pos(selectedPosId))return;document.body.classList.add('printing-pos');if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('كشف حساب نقطة البيع');return;}window.print();document.body.classList.remove('printing-pos')}
@@ -1869,9 +2146,9 @@ function exportPosImage(){
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
  },'image/png');
 }
-function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
+function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_visual_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
 function bindActions(root){root.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();runAction(b.dataset.action)}));if(root.id==='view'){wirePosDetail()}}
-setTheme(localStorage.getItem('spidernet_theme')==='light'?'light':'dark');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>requestPrint('تقرير SPIDER NET');$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{const items=alerts();const body=items.length?`<div class="alert-list">${items.map(a=>`<div class="note ${a.type==='bad'?'danger-note':'warning'}"><b>${a.type==='bad'?'يتطلب مراجعة':'تنبيه'}</b><p>${esc(a.text)}</p></div>`).join('')}</div>`:'<div class="note">لا توجد تنبيهات بناءً على البيانات المسجلة حاليًا.</div>';showModal('مركز التنبيهات',body)};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};
+setTheme(localStorage.getItem('spidernet_visual_theme')==='dark'?'dark':'light');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>requestPrint('تقرير SPIDER NET');$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{const items=alerts();const body=items.length?`<div class="alert-list">${items.map(a=>`<div class="note ${a.type==='bad'?'danger-note':'warning'}"><b>${a.type==='bad'?'يتطلب مراجعة':'تنبيه'}</b><p>${esc(a.text)}</p></div>`).join('')}</div>`:'<div class="note">لا توجد تنبيهات بناءً على البيانات المسجلة حاليًا.</div>';showModal('مركز التنبيهات',body)};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};
 $('#lockBtn').onclick=()=>{if(!db.settings.pin)return alert('عيّن رقمًا سريًا من الإعدادات أولًا.');$('#lockScreen').classList.add('show')};$('#unlockBtn').onclick=()=>{if($('#unlockPin').value===db.settings.pin){$('#lockScreen').classList.remove('show');$('#unlockPin').value='';$('#unlockMsg').textContent=''}else $('#unlockMsg').textContent='الرقم السري غير صحيح.'};
 // Dispatch modal/global actions and protect nested quick-action buttons.
 document.addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let act=b.dataset.action;if($('#modalBack').classList.contains('show')&&b.closest('#modalBody'))return;runAction(act)});
