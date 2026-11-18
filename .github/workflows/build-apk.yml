@@ -56,7 +56,7 @@ jobs:
               'Native print/image results': 'window.onNativePrintResult=function' in html and 'window.onNativeImageResult=function' in html,
               'Native audit export': 'fun saveJsonExport(' in kotlin and 'AndroidBackup.saveJsonExport' in html and 'window.onNativeExportResult=function' in html,
               'Android back navigation bridge': 'window.onAndroidBackPressed=function' in html and 'window.onAndroidBackPressed ? window.onAndroidBackPressed() : false' in kotlin,
-              'Launcher label matches build version': 'Smart Accounting 2.1.4' in Path('app/src/main/AndroidManifest.xml').read_text(encoding='utf-8') and "versionName '2.1.4'" in Path('app/build.gradle').read_text(encoding='utf-8'),
+              'Launcher label matches build version': 'Smart Accounting 2.2.0' in Path('app/src/main/AndroidManifest.xml').read_text(encoding='utf-8') and "versionName '2.2.0'" in Path('app/build.gradle').read_text(encoding='utf-8'),
               'Checked-in backup implementation': 'window.onNativeBackupLoaded=function' in html and 'function applyBackupText(' in html,
           }
           failed = [name for name, ok in checks.items() if not ok]
