@@ -2090,7 +2090,7 @@ function printDeliveryBatchInvoice(batchId){
  '<table class="invoice-table"><thead><tr><th style="width:7%">م</th><th>فئة الكرت</th><th style="width:15%">الكمية</th><th style="width:19%">سعر الوحدة</th><th style="width:22%">الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
  '<div class="invoice-bottom">'+
  '<div class="invoice-note"><b>ملاحظات وشروط التسليم</b><p>'+esc(first.note||'لا توجد ملاحظات مسجلة.')+'</p><p>'+esc(paymentNote)+'</p></div>'+
- '<div class="invoice-total-card"><div class="invoice-total-line"><span>إجمالي الكمية</span><strong>'+money(totalQty)+'</strong></div><div class="invoice-grand-total"><span>'+totalLabel+'</span><strong>'+money(total)+'</strong></div></div>'+
+ '<div class="invoice-total-card"><div class="invoice-total-line"><span>إجمالي الكمية</span><strong>'+quantityText+'</strong></div><div class="invoice-grand-total"><span>'+totalLabel+'</span><strong>'+money(total)+'</strong></div></div>'+
  '</div>'+
  '<div class="invoice-signatures"><div class="invoice-signature">تسليم مسؤول الشبكة</div><div class="invoice-signature">استلام نقطة البيع</div></div>'+
  '<footer class="invoice-footer"><span>SPIDER NET · نظام محاسبي ذكي</span><span>تم إنشاء المستند من سجل العمليات المسجل داخل النظام</span></footer>'+
