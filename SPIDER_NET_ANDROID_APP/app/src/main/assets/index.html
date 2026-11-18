@@ -676,7 +676,7 @@ function partnersView(){
  });
  let moves=db.partnerMoves.slice().reverse().map(x=>{
   const kind=x.kind==='withdrawal'?'سحب شخصي':x.kind==='paid_for_network'?'دفع للشبكة من ماله':x.kind==='partner_repayment'?'سداد مستحق للشريك':x.kind==='profit_distribution'?'توزيع أرباح معتمد':'تسوية قديمة / سجل غير مرحّل';
-  const method=x.kind==='partner_repayment'?((x.paymentMethod||'cash')==='transfer'?'تحويل/محفظة':'نقدًا'):'—';
+  const method=(x.kind==='partner_repayment'||x.kind==='profit_distribution')?((x.paymentMethod||'cash')==='transfer'?'تحويل/محفظة':'نقدًا'):'—';
   return `<tr><td>${esc(x.date)}</td><td>${esc(db.partners.find(p=>p.id===x.partnerId)?.name||'—')}</td><td>${kind}</td><td>${money(x.amount)}</td><td>${esc(method)}</td><td>${esc(x.note||'')}</td><td>${btn('طباعة','print-op:partnerMove:'+x.id)} ${x.expenseId||x.billId?'مرتبط بسجل أصلي':btn('حذف','delete:partnerMove:'+x.id)}</td></tr>`;
  });
  return `${sectionTitle('حسابات الشركاء',btn('تسجيل حركة شريك','add-partner-move','primary'))}<div class="note warning">السحب الشخصي ليس مصروف تشغيل. ودفع الشريك نيابة عن الشبكة يُنشئ مبلغًا مستحقًا له، ولا يُعامل كرأس مال. سداد المستحق يسجل كحركة مستقلة ويخصم من الصندوق فقط إذا كان نقدًا. الحركات القديمة من نوع «تسوية» تبقى سجلًا غير مرحّل ولا يعاد تفسيرها ماليًا تلقائيًا.</div><section class="panel"><h3>ملخص الشركاء</h3>${table(['الشريك','الحصة','السحوبات الشخصية','دفع من ماله للشبكة','المسترد للشريك','المستحق للشريك الآن','إجراءات'],rows)}</section><section class="panel"><h3>سجل الحركات</h3>${table(['التاريخ','الشريك','نوع الحركة','المبلغ','طريقة الدفع','ملاحظات','إجراء'],moves)}</section>`;
@@ -1692,9 +1692,9 @@ function createMonthlyPeriod(){
  ],d=>{
   if(!monthlyValidRange(d.startDate,d.endDate))return alert('تحقق من تاريخ البداية والنهاية. يجب أن تكون التواريخ صحيحة والنهاية لا تسبق البداية.'),false;
   if(monthlyRangeOverlaps(d.startDate,d.endDate))return alert('الفترة تتداخل مع فترة مالية موجودة. اختر نطاقًا غير متداخل.'),false;
-  const previous=(db.periods||[]).filter(p=>p.status==='CLOSED'&&p.endDate<d.startDate).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
+  const previous=(db.periods||[]).filter(p=>['CLOSED','LOCKED'].includes(p.status)&&p.endDate<d.startDate).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
   if(previous&&previous.endDate>=d.startDate)return alert('الفترة السابقة تتداخل مع بداية الفترة الجديدة.'),false;
-  const laterClosed=(db.periods||[]).some(p=>p.status==='CLOSED'&&p.startDate>d.endDate);
+  const laterClosed=(db.periods||[]).some(p=>['CLOSED','LOCKED'].includes(p.status)&&p.startDate>d.endDate);
   if(laterClosed&&!previous)return alert('لا يمكن إدراج فترة قديمة خلف فترات مغلقة دون إجراء ترحيل تاريخي خاص.'),false;
   if(previous){const next=new Date(previous.endDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);const nextDay=next.toISOString().slice(0,10);if(d.startDate!==nextDay)return alert('يجب أن تبدأ الفترة الجديدة في اليوم التالي مباشرة لنهاية الفترة المغلقة السابقة ('+nextDay+'). هذا يمنع ضياع الحركات بين الفترات.'),false;}
   let openingCash=null,openingSource='غير محدد';
@@ -1754,7 +1754,7 @@ function saveMonthlyPeriodReview(id){
   const key=el.getAttribute('data-monthly-count'),raw=el.value.trim(),quantity=Number(raw);
   if(raw===''||!Number.isInteger(quantity)||quantity<0)return alert('أدخل كمية جرد فعلية صحيحة لكل سطر مخزون.'),false;
   const row=monthlyInventoryCountRows(p).find(x=>x.key===key);if(!row)return alert('تعذر مطابقة سطر الجرد: '+key),false;
-  const reason=document.querySelector('[data-monthly-reason="'+CSS.escape(key)+'"]')?.value?.trim()||'';
+  const reason=[...document.querySelectorAll('[data-monthly-reason]')].find(el=>el.getAttribute('data-monthly-reason')===key)?.value?.trim()||'';
   const variance=quantity-Number(row.book);
   if(variance!==0&&!reason)return alert('اكتب سبب فرق الجرد للصنف '+row.cardName+' في '+row.label+'.'),false;
   stockCounts.push({key,locationType:row.locationType,locationId:row.locationId,cardId:row.cardId,label:row.label,cardName:row.cardName,bookQuantity:Number(row.book),physicalQuantity:quantity,variance,reason});
