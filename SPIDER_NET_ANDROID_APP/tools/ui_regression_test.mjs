@@ -35,7 +35,7 @@ try{
  await page.locator('#settingsBtn').click();check(await page.locator('#startDate').count()===1,'زر الإعدادات يفتح شاشة الإعدادات');
  check((await Promise.all(['#backupBtn','#restoreBtn','#printBtn'].map(s=>page.locator(s).isVisible()))).every(Boolean),'أزرار النسخ الاحتياطي والاستعادة والطباعة ظاهرة على شاشة الحاسوب');
  await page.locator('#printBtn').click();check(await page.evaluate(()=>window.__printCount===1),'زر الطباعة العام يستدعي الطباعة مرة واحدة');
- await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='light','مفتاح المظهر الجانبي يعمل');await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='dark','إعادة المظهر الجانبي إلى الوضع الداكن');
+ await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='dark','مفتاح المظهر الجانبي ينقل إلى الوضع الداكن');await page.locator('#sidebarTheme').click();check(await page.locator('html').getAttribute('data-theme')==='light','إعادة المظهر الجانبي إلى الوضع الفاتح');
  await page.setViewportSize({width:390,height:844});
  await page.locator('#menuToggle').click();check(await page.locator('body').evaluate(e=>e.classList.contains('nav-open')),'زر فتح القائمة يعمل على الهاتف');
  await page.locator('#closeMenu').click();check(!(await page.locator('body').evaluate(e=>e.classList.contains('nav-open'))),'زر إغلاق القائمة يعمل على الهاتف');
