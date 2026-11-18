@@ -258,10 +258,10 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await tab('periods');
  check((await page.locator('#view').innerText()).includes('الإدارة المالية الشهرية'),'عرض لوحة الإدارة المالية الشهرية');
  await action('period-create');
- await fill({name:'فترة اختبار أكتوبر',startDate:'2026-10-10',endDate:'2026-10-31',openingCash:'777',openingCashConfirmed:'yes',note:'اختبار فترات محاسبية'});
+ await fill({name:'فترة اختبار أكتوبر',startDate:'2026-10-10',endDate:'2026-10-31',openingCash:'100000',openingCashConfirmed:'yes',note:'اختبار فترات محاسبية'});
  check(await submit(),'إنشاء أول فترة مالية مخصصة برصيد نقدي فعلي مؤكد');
  data=await db();const firstPeriod=data.periods.find(x=>x.name==='فترة اختبار أكتوبر');
- check(!!firstPeriod&&firstPeriod.status==='OPEN'&&firstPeriod.openingCash===777,'حفظ الفترة المفتوحة ورصيد افتتاحي مؤكد');
+ check(!!firstPeriod&&firstPeriod.status==='OPEN'&&firstPeriod.openingCash===100000,'حفظ الفترة المفتوحة ورصيد افتتاحي مؤكد');
  await tab('pos');await action('add-delivery');
  await fill({date:'2026-10-31',posId,cardId,qty:'1',mode:'credit',unitPrice:'120',note:'دين لاختبار ترحيل الفترات'});
  check(await submit(),'إنشاء دين جديد في الفترة الأولى');
