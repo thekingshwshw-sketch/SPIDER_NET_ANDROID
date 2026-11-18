@@ -583,7 +583,10 @@ let recoveryInfo={available:false,reason:'',raw:null,blocked:false};
 let recoveryExportPending=false;
 const empty=()=>({version:1,settings:{startDate:'',startDateConfirmed:false,cashOpeningBalance:0,cashOpeningDate:'',cashOpeningConfirmed:false,currentPeriodId:null,pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],cashMovements:[],audit:[],closures:[],journalEntries:[],periods:[],periodSnapshots:[],profitDistributions:[]});
 let db=load(),tab='home',selectedPosId=null,posSearch='',posFrom='',posTo='',ledgerFrom='',ledgerTo='',ledgerAccount='';
-let lastCommittedState=JSON.stringify(db);function preserveRecovery(raw,reason){
+let lastCommittedState=JSON.stringify(db);
+let authorizedRestoreWrite=false;
+let authorizedCloseCommit=false;
+function preserveRecovery(raw,reason){
  if(!raw)return;
  let saved=false;
  try{
@@ -640,7 +643,48 @@ function walletCash(){return sum(db.walletSales,x=>x.amount)}
 function cashIsInBaseline(x){const d=String(x?.date||x?.paidDate||'');return !db.settings.cashOpeningDate||d>=db.settings.cashOpeningDate}
 function cashReceiptsTotal(){return sum(db.deliveries.filter(x=>x.mode==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.payments.filter(x=>x.method==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&cashIsInBaseline(x)),x=>x.amount)}
 function cashOutflowsTotal(){return sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&cashIsInBaseline({...x,date:x.paidDate||x.date})),x=>x.amount)+sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&cashIsInBaseline(x)),x=>x.amount)}
-function cashBalance(){return num(db.settings.cashOpeningBalance)+cashReceiptsTotal()-cashOutflowsTotal()}
+function cashBalanceAsOf(asOfDate=dateNow()){
+ const asOf=validDateValue(asOfDate)?asOfDate:dateNow();
+ const periods=Array.isArray(db.periods)?db.periods:[];
+ const active=periods.find(p=>['OPEN','REVIEW'].includes(p.status)&&p.startDate<=asOf&&p.endDate>=asOf)
+  ||periods.find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ const start=active?.startDate||'';
+ if(active){
+  const inWindow=x=>{const d=String(x?.date||'').slice(0,10);return validDateValue(d)&&d>=start&&d<=asOf};
+  const receipts=
+   sum(db.deliveries.filter(x=>x.mode==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.payments.filter(x=>x.method==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&inWindow(x)),x=>x.amount);
+  const outflows=
+   sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&inWindow({...x,date:x.paidDate||x.date})),x=>x.amount)
+   +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&inWindow(x)),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&inWindow(x)),x=>x.amount);
+  return num(active.openingCash)+receipts-outflows;
+ }
+ const lastClosed=periods.filter(p=>['CLOSED','LOCKED'].includes(p.status)&&p.endDate<=asOf).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0];
+ if(lastClosed){
+  const snap=monthlySnapshotFor(lastClosed.id);
+  return snap&&Number.isFinite(Number(snap.cash?.closing))?Number(snap.cash.closing):0;
+ }
+ const baseline=validDateValue(db.settings.cashOpeningDate)?db.settings.cashOpeningDate:accountingStartDate();
+ const inWindow=x=>{const d=String(x?.date||'').slice(0,10);return validDateValue(d)&&d>=baseline&&d<=asOf};
+ const receipts=
+  sum(db.deliveries.filter(x=>x.mode==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.payments.filter(x=>x.method==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&inWindow(x)),x=>x.amount);
+ const outflows=
+  sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&inWindow({...x,date:x.paidDate||x.date})),x=>x.amount)
+  +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&inWindow(x)),x=>x.amount)
+  +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&inWindow(x)),x=>x.amount);
+ return num(db.settings.cashOpeningBalance)+receipts-outflows;
+}
+function cashBalance(){return cashBalanceAsOf(dateNow())}
 function posUnitPrice(posId,cardId){const p=pos(posId),c=card(cardId),v=p?.prices?.[cardId];return v!==undefined&&v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):num(c?.pricePos)}
 
 function transferReceipts(){
@@ -1431,7 +1475,7 @@ function restoreCommittedState(){
  }
 }
 function persist(){
- if(typeof monthlyPrepareWrite==='function'&&!monthlyPrepareWrite())return false;
+ if(!authorizedRestoreWrite&&!authorizedCloseCommit&&typeof monthlyPrepareWrite==='function'&&!monthlyPrepareWrite())return false;
  if(recoveryInfo.blocked){
   restoreCommittedState();
   alert('تم إيقاف الحفظ لحماية البيانات المعزولة. احتفظ بالنسخة الخام خارج التطبيق ثم استعد نسخة JSON سليمة من زر الاستعادة؛ تنزيل النسخة الخام وحده لا يعيد تفعيل التسجيل.');
@@ -1505,32 +1549,63 @@ function restore(){
  $('#restoreFile').click();
 }
 function applyBackupText(text,fileName){
- let previous=db;
+ const previous=db;
+ let restoreFlagWasSet=authorizedRestoreWrite;
  try{
   const x=JSON.parse(text);
+  if(!x||typeof x!=='object'||Array.isArray(x)||x.version!==1)throw Error('format');
   const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
-  // Monthly fields are optional for older backups; initialize them without rejecting legacy files.
-  if(!Array.isArray(x.periods))x.periods=[];if(!Array.isArray(x.periodSnapshots))x.periodSnapshots=[];if(!Array.isArray(x.profitDistributions))x.profitDistributions=[];if(x.settings.currentPeriodId===undefined)x.settings.currentPeriodId=null;
-  if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
-  if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
+  if(!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
+  if(x.consignmentSettlements===undefined)x.consignmentSettlements=[];
+  const optionalMonthlyArrays=['periods','periodSnapshots','profitDistributions'];
+  for(const key of optionalMonthlyArrays){
+   if(x[key]===undefined)x[key]=[];
+   else if(!Array.isArray(x[key]))throw Error('monthly-'+key);
+  }
+  if(x.settings.currentPeriodId===undefined)x.settings.currentPeriodId=null;
+  if(x.settings.currentPeriodId!==null&&typeof x.settings.currentPeriodId!=='string')throw Error('current-period');
+  const periodIds=new Set();
+  for(const p of x.periods){
+   if(!p||typeof p!=='object'||typeof p.id!=='string'||!p.id||periodIds.has(p.id)||!monthlyValidRange(p.startDate,p.endDate)||!['OPEN','REVIEW','CLOSED','LOCKED'].includes(p.status))throw Error('period-row');
+   periodIds.add(p.id);
+  }
+  const orderedPeriods=x.periods.slice().sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+  for(let i=1;i<orderedPeriods.length;i++)if(orderedPeriods[i].startDate<=orderedPeriods[i-1].endDate)throw Error('period-overlap');
+  const snapshotPeriodIds=new Set();
+  const snapshotIds=new Set();
+  for(const s of x.periodSnapshots){
+   if(!s||typeof s!=='object'||typeof s.id!=='string'||!s.id||snapshotIds.has(s.id)||!periodIds.has(s.periodId)||!s.cash||!Number.isFinite(Number(s.cash.closing)))throw Error('period-snapshot');
+   snapshotIds.add(s.id);snapshotPeriodIds.add(s.periodId);
+  }
+  if(x.periods.some(p=>['CLOSED','LOCKED'].includes(p.status)&&!snapshotPeriodIds.has(p.id)))throw Error('closed-period-without-snapshot');
+  const partnerIds=new Set(x.partners.filter(p=>p&&typeof p.id==='string').map(p=>p.id));
+  const distributionIds=new Set();
+  for(const d of x.profitDistributions){
+   if(!d||typeof d!=='object'||typeof d.id!=='string'||!d.id||distributionIds.has(d.id)||!periodIds.has(d.sourcePeriodId)||!partnerIds.has(d.partnerId)||!validDateValue(d.date)||!Number.isFinite(Number(d.amount))||num(d.amount)<=0)throw Error('profit-distribution');
+   distributionIds.add(d.id);
+  }
+  if(x.settings.currentPeriodId!==null&&!x.periods.some(p=>p.id===x.settings.currentPeriodId&&['OPEN','REVIEW'].includes(p.status)))throw Error('current-period-reference');
   if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
   const wasBlocked=recoveryInfo.blocked;
-  recoveryInfo.blocked=false; // An explicitly confirmed, structurally valid backup is the authorized recovery path.
+  recoveryInfo.blocked=false;
   db=x;
   addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');
-  if(!persist()){
+  authorizedRestoreWrite=true;
+  let saved=false;
+  try{saved=persist()}finally{authorizedRestoreWrite=restoreFlagWasSet}
+  if(!saved){
    db=previous;
    recoveryInfo.blocked=wasBlocked;
    return false;
   }
  }catch(err){
   db=previous;
-  alert('تعذرت استعادة النسخة أو حفظها. لم تُعتمد بيانات النسخة المختارة. تحقق من سلامة الملف ومساحة التخزين.');
+  authorizedRestoreWrite=restoreFlagWasSet;
+  alert('تعذرت استعادة النسخة أو حفظها. لم تُعتمد بيانات النسخة المختارة. تحقق من سلامة ملف الفترات واللقطات والقيود ومساحة التخزين.');
   return false;
  }
  try{
-  closeModal();
-  render();
+  closeModal();render();
  }catch(renderError){
   alert('حُفظت النسخة الاحتياطية، لكن تعذر تحديث الواجهة. أعد فتح التطبيق للتحقق من البيانات.');
   return true;
@@ -1538,8 +1613,6 @@ function applyBackupText(text,fileName){
  alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');
  return true;
 }
-window.onNativeBackupLoaded=function(text,fileName){applyBackupText(text,fileName||'ملف مستعاد')};
-window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};
 function saveSettings(){
  const s=$('#startDate').value,p=$('#newPin').value,opening=Number($('#cashOpeningBalance').value),openingDate=$('#cashOpeningDate').value,confirmed=$('#cashOpeningConfirmed').value==='yes';
  if(s&&!validDateValue(s))return alert('تاريخ بدء النظام غير صحيح. اتركه فارغًا إذا لم تحدده.');
@@ -1817,11 +1890,11 @@ function monthlyInventoryCountRows(period){
  (db.cards||[]).forEach(c=>rows.push({key:'main|'+c.id,locationType:'main',locationId:'main',cardId:c.id,label:'المخزون الرئيسي',cardName:c.name,book:monthlyStockAtDate('main','main',c.id,d)}));
  (db.wallets||[]).forEach(w=>(db.cards||[]).forEach(c=>{
   const q=monthlyStockAtDate('wallet',w.id,c.id,d);
-  if(q!==0||num((w.opening||{})[c.id])>0)rows.push({key:'wallet|'+w.id+'|'+c.id,locationType:'wallet',locationId:w.id,cardId:c.id,label:'محفظة: '+w.name,cardName:c.name,book:q});
+  rows.push({key:'wallet|'+w.id+'|'+c.id,locationType:'wallet',locationId:w.id,cardId:c.id,label:'محفظة: '+w.name,cardName:c.name,book:q});
  }));
  (db.pos||[]).forEach(p=>(db.cards||[]).forEach(c=>{
   const q=monthlyStockAtDate('pos',p.id,c.id,d);
-  if(q!==0)rows.push({key:'pos|'+p.id+'|'+c.id,locationType:'pos',locationId:p.id,cardId:c.id,label:'عهدة نقطة البيع: '+p.name,cardName:c.name,book:q});
+  rows.push({key:'pos|'+p.id+'|'+c.id,locationType:'pos',locationId:p.id,cardId:c.id,label:'عهدة نقطة البيع: '+p.name,cardName:c.name,book:q});
  }));
  return rows;
 }
@@ -1958,7 +2031,7 @@ function reviewMonthlyPeriod(id){
   +'<div class="field"><label for="monthlyBuffer">سيولة تشغيلية تريد إبقاءها بعد الالتزامات</label><input id="monthlyBuffer" type="number" min="0" step="any" value="0"></div>'
   +'<div class="field"><label for="monthlyReviewNote">ملاحظات الإقفال</label><textarea id="monthlyReviewNote" placeholder="ملاحظات الجرد أو التسويات"></textarea></div>'
   +'<h3>جرد المخزون حسب الموقع والفئة</h3><div class="table-wrap"><table><thead><tr><th>الموقع</th><th>فئة الكرت</th><th>الرصيد الدفتري</th><th>الجرد الفعلي</th><th>سبب الفرق</th></tr></thead><tbody>'+(countRows||'<tr><td colspan="5">لا توجد أصناف مخزون مسجلة.</td></tr>')+'</tbody></table></div>'
-  +'<p class="small muted">يشمل الجرد المخزون الرئيسي، مخزون المحافظ، والكروت الموجودة لدى نقاط البيع بنظام الأمانة. أي فرق سيظهر في التسوية المحاسبية ضمن حسابات معلقة، ولن يُعامل تلقائيًا كإيراد أو مصروف تشغيلي.</p>'
+  +'<p class="small muted">يشمل الجرد المخزون الرئيسي، مخزون المحافظ، والكروت الموجودة لدى نقاط البيع بنظام الأمانة. عند اعتماد الإقفال تُرحّل الزيادة إلى حساب مكاسب تسوية المخزون (4190)، ويُرحّل النقص إلى حساب خسائر وتسويات نقص المخزون (5100). لذلك يؤثر فرق الكمية وتكلفتها على ربح الفترة؛ اكتب السبب وتحقق من التكلفة قبل الاعتماد.</p>'
   +'<div class="actions"><button id="monthlyReviewSave" class="primary">حفظ نتائج الجرد للمراجعة</button><button type="button" data-cancel>إلغاء</button></div>';
  showModal('مراجعة وإقفال '+monthlyPeriodLabel(p),html);
  $('#monthlyReviewSave').onclick=()=>saveMonthlyPeriodReview(id);
