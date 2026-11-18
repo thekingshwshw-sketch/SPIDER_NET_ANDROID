@@ -340,6 +340,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  const printBeforePeriod=await page.evaluate(()=>window.__printCount);
  await page.locator('#monthlyPeriodPrint').click();
  check(await page.evaluate(n=>window.__printCount===n+1,printBeforePeriod)&&await page.locator('#monthlyPeriodPrintSheet').count()===0,'طباعة تقرير الفترة وتنظيف مساحة الطباعة');
+ await page.locator('#modalClose').click();
 
  // Critical review regressions: zero-stock count rows, split receipts, backdated receipts, date edits,
  // failed-close rollback, frozen partner shares, live liabilities, linked payout deletion and safe restore.
