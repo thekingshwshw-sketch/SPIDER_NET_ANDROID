@@ -1250,24 +1250,72 @@ function editDelivery(id){
 }
 function editPayment(id){
  const old=db.payments.find(x=>x.id===id);if(!old)return alert('لم نعثر على عملية التحصيل هذه.');
- formModal('تعديل تحصيل مبلغ',[field('تاريخ التحصيل','date','date',old.date||dateNow(),null,true),field('المبلغ المستلم','amount','number',old.amount,null,true),field('طريقة الاستلام','method','text',old.method||'cash',[['cash','نقدًا'],['transfer','محفظة / تحويل']],true),textArea('ملاحظات / رقم مرجع','note',old.note||'')],d=>{
-  const amount=Number(d.amount);if(!validDateValue(d.date))return alert('أدخل تاريخ التحصيل الصحيح.'),false;
+ formModal('تعديل تحصيل مبلغ',[
+  field('تاريخ التحصيل','date','date',old.date||dateNow(),null,true),
+  field('المبلغ المستلم','amount','number',old.amount,null,true),
+  field('طريقة الاستلام','method','text',old.method||'cash',[['cash','نقدًا'],['transfer','محفظة / تحويل']],true),
+  textArea('ملاحظات / رقم مرجع','note',old.note||'')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!validDateValue(d.date))return alert('أدخل تاريخ التحصيل الصحيح.'),false;
   if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;
-  const maxAllowed=Math.max(0,posDebt(old.posId)+num(old.amount));if(amount>maxAllowed+0.009)return alert('المبلغ أكبر من الدين الممكن تسديده حسب السجل ('+money(maxAllowed)+').'),false;
+  if(!['cash','transfer'].includes(d.method))return alert('اختر طريقة استلام صحيحة.'),false;
+  const paymentPeriod=monthlyPeriodForDate(d.date);
+  if((db.periods||[]).length&&(!paymentPeriod||paymentPeriod.status!=='OPEN'))return alert('تاريخ التحصيل يجب أن يقع داخل فترة مالية مفتوحة.'),false;
+  const savedPayments=db.payments;
+  let currentOpen=[];
+  try{
+   db.payments=savedPayments.filter(x=>String(x.id)!==String(old.id));
+   currentOpen=monthlyDebtAnalysis('9999-12-31').items
+    .filter(x=>x.posId===old.posId&&x.remaining>0.009&&x.date<=d.date)
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+  }finally{db.payments=savedPayments}
+  const available=currentOpen.reduce((n,x)=>n+x.remaining,0);
+  if(amount>available+0.009)return alert('المبلغ يتجاوز الدين المتبقي بعد استبعاد هذا التحصيل واحتساب جميع التحصيلات الأخرى، بما فيها المسجلة بتاريخ لاحق. المتاح: '+money(available)+'.'),false;
   let updatedAllocations=null;
   if(Array.isArray(old.allocations)&&old.allocations.length){
-   const keep=db.payments;db.payments=keep.filter(x=>x.id!==old.id);const ref=old.allocations[0];
-   const target=simpleOutstandingItems(old.posId).find(x=>x.sourceType===ref.sourceType&&String(x.sourceId)===String(ref.sourceId));db.payments=keep;
-   if(!target)return alert('تعذر العثور على الدين المرتبط بهذا التحصيل. راجع كشف الحساب.'),false;
-   if(amount>target.remaining+0.009)return alert('المبلغ أكبر من المتبقي على الدين المحدد ('+money(target.remaining)+').'),false;
-   updatedAllocations=[{sourceType:ref.sourceType,sourceId:ref.sourceId,amount}];
+   let budget=amount;updatedAllocations=[];
+   // Preserve the original invoice split first; reduce from the last allocation if the receipt is reduced.
+   for(const allocation of old.allocations){
+    if(budget<=0.009)break;
+    const due=currentOpen.find(x=>x.sourceType===allocation.sourceType&&String(x.sourceId)===String(allocation.sourceId));
+    if(!due||due.remaining<=0.009)continue;
+    const applied=Math.min(budget,Math.max(0,num(allocation.amount)),due.remaining);
+    if(applied>0.009){
+     updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||allocation.originPeriodId||null});
+     due.remaining-=applied;budget-=applied;
+    }
+   }
+   // If the amount increased, or an original invoice has been settled by another receipt,
+   // allocate only the residual to the oldest currently outstanding eligible invoices.
+   for(const due of currentOpen){
+    if(budget<=0.009)break;
+    const already=updatedAllocations.filter(x=>x.sourceType===due.sourceType&&String(x.sourceId)===String(due.sourceId)).reduce((n,x)=>n+x.amount,0);
+    const still=Math.max(0,due.remaining-already);
+    const applied=Math.min(budget,still);
+    if(applied>0.009){
+     updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});
+     budget-=applied;
+    }
+   }
+   if(budget>0.009||Math.abs(updatedAllocations.reduce((n,x)=>n+x.amount,0)-amount)>0.02)return alert('تعذر الحفاظ على توزيع التحصيل على الفواتير دون تجاوز الأرصدة المتبقية. لم يتم تعديل العملية.'),false;
+  }else if(old.allocationMode!=='unallocated'){
+   let budget=amount;updatedAllocations=[];
+   for(const due of currentOpen){
+    if(budget<=0.009)break;
+    const applied=Math.min(budget,due.remaining);
+    if(applied>0.009){updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});due.remaining-=applied;budget-=applied;}
+   }
+   if(budget>0.009)return alert('لا توجد فواتير متبقية كافية لتخصيص مبلغ التحصيل. لم يتم التعديل.'),false;
   }
   const previous=old.date+' / '+money(old.amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا');
-  old.date=d.date;old.amount=amount;old.method=d.method;old.note=d.note||'';if(updatedAllocations)old.allocations=updatedAllocations;
-  addAudit('تعديل تحصيل نقطة بيع',(pos(old.posId)?.name||'')+' / من: '+previous+' ← إلى: '+old.date+' / '+money(amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا'));return persist();
+  old.date=d.date;old.amount=amount;old.method=d.method;old.note=d.note||'';
+  if(updatedAllocations)old.allocations=updatedAllocations;
+  old.collectionPeriodId=paymentPeriod?.id||old.collectionPeriodId||null;
+  addAudit('تعديل تحصيل نقطة بيع',(pos(old.posId)?.name||'')+' / من: '+previous+' ← إلى: '+old.date+' / '+money(amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا')+' / فواتير مرتبطة '+(old.allocations?.length||0));
+  return persist();
  });
 }
-
 function addDelivery(posId=null){
  if(!db.cards.length||!db.pos.length)return alert('أضف فئة كروت ونقطة بيع أولًا.');
  const optionalCardField=(label,name)=>'<div class="field"><label>'+label+'</label><select name="'+name+'"><option value="">— بدون فئة —</option>'+optsCards().map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></div>';
@@ -1294,7 +1342,48 @@ function addConsignmentSettlement(posId=null){
   db.consignmentSettlements.push({id:uid(),date:d.date,posId:d.posId,cardId:d.cardId,soldQty:sold,returnQty:ret,unitPrice:price,note:d.note});addAudit('تسوية أمانة',pos(d.posId).name+' / '+cardLabel(d.cardId)+' / مبيع '+sold+' / مرتجع '+ret);return persist();
  })
 }
-function addPayment(posId=null){if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');formModal('تسجيل تحصيل من نقطة بيع — يوزّع على أقدم الديون أولًا',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('المبلغ المحصّل','amount','number',0,null,true),field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),field('طريقة تخصيص المبلغ','allocationMode','text','fifo',[['fifo','تخصيص صريح لأقدم الفواتير أولًا'],['unallocated','إبقاء المبلغ غير مخصص — يحتاج مراجعة لاحقًا']],true),textArea('ملاحظات / رقم مرجع','note','')],d=>{const amount=Number(d.amount);if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;if(d.method!=='cash'&&d.method!=='transfer')return alert('اختر طريقة تحصيل صحيحة.'),false;if(!['fifo','unallocated'].includes(d.allocationMode))return alert('اختر طريقة تخصيص صحيحة.'),false;const allocations=[];if(d.allocationMode==='fifo'){const outstanding=monthlyDebtAnalysis(d.date).items.filter(x=>x.posId===d.posId&&x.remaining>0.009&&x.date<=d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));let remaining=amount;for(const due of outstanding){if(remaining<=0.009)break;const applied=Math.min(remaining,due.remaining);allocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});remaining-=applied;}if(remaining>0.009)return alert('المبلغ أكبر من الديون المستحقة بتاريخ التحصيل. المتاح حتى ذلك التاريخ: '+money(amount-remaining)+'.'),false;}else if(amount>Math.max(0,posDebt(d.posId))+0.009)return alert('المبلغ أكبر من الدين المسجل حاليًا ('+money(Math.max(0,posDebt(d.posId)))+').'),false;const row={id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note,allocationMode:d.allocationMode,collectionPeriodId:monthlyPeriodForDate(d.date)?.id||null};if(allocations.length)row.allocations=allocations;db.payments.push(row);addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount)+' / '+(allocations.length?'تخصيص صريح على '+allocations.length+' فاتورة':'تحصيل غير مخصص يحتاج مراجعة'));return persist()})}
+function addPayment(posId=null){
+ if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');
+ formModal('تسجيل تحصيل من نقطة بيع — يوزّع على الديون المتبقية أولًا',[
+  field('التاريخ','date','date',dateNow(),null,true),
+  field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),
+  field('المبلغ المحصّل','amount','number',0,null,true),
+  field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),
+  field('طريقة تخصيص المبلغ','allocationMode','text','fifo',[['fifo','تخصيص صريح لأقدم الديون المتبقية'],['unallocated','إبقاء المبلغ غير مخصص — يحتاج مراجعة']],true),
+  textArea('ملاحظات / رقم مرجع','note','')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;
+  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;
+  if(!['cash','transfer'].includes(d.method))return alert('اختر طريقة تحصيل صحيحة.'),false;
+  if(!['fifo','unallocated'].includes(d.allocationMode))return alert('اختر طريقة تخصيص صحيحة.'),false;
+  const paymentPeriod=monthlyPeriodForDate(d.date);
+  if((db.periods||[]).length&&(!paymentPeriod||paymentPeriod.status!=='OPEN'))return alert('تاريخ التحصيل يجب أن يقع داخل فترة مالية مفتوحة. لا يمكن التسجيل بتاريخ خارج الفترات أو داخل فترة قيد المراجعة/مغلقة.'),false;
+  // Use the latest recorded debt state, not the historical balance as of the typed date.
+  // This prevents a backdated receipt from being allocated to an invoice already paid later.
+  const currentOpen=monthlyDebtAnalysis('9999-12-31').items
+   .filter(x=>x.posId===d.posId&&x.remaining>0.009&&x.date<=d.date)
+   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+  const available=currentOpen.reduce((n,x)=>n+x.remaining,0);
+  if(amount>available+0.009)return alert('المبلغ أكبر من الدين المتبقي فعليًا حتى بعد احتساب التحصيلات المسجلة لاحقًا. المتاح للفواتير المستحقة في تاريخ التحصيل: '+money(available)+'.'),false;
+  const allocations=[];
+  if(d.allocationMode==='fifo'){
+   let remaining=amount;
+   for(const due of currentOpen){
+    if(remaining<=0.009)break;
+    const applied=Math.min(remaining,due.remaining);
+    if(applied>0.009)allocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});
+    remaining-=applied;
+   }
+   if(remaining>0.009)return alert('تعذر توزيع كامل المبلغ على الديون المتبقية. لم يتم حفظ التحصيل.'),false;
+  }
+  const row={id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note,allocationMode:d.allocationMode,collectionPeriodId:paymentPeriod?.id||null};
+  if(allocations.length)row.allocations=allocations;
+  db.payments.push(row);
+  addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount)+' / '+(allocations.length?'تخصيص صريح على '+allocations.length+' فاتورة':'تحصيل غير مخصص يحتاج مراجعة'));
+  return persist();
+ });
+}
 function addLoad(walletId=null){
  if(!db.wallets.length||!db.cards.length)return alert('أضف محفظة وفئة كروت أولًا.');
  formModal('تحويل مخزون إلى محفظة',[field('التاريخ','date','date',dateNow(),null,true),field('المحفظة','walletId','text',walletId||db.wallets[0].id,optsWallets(),true),field('فئة الكرت','cardId','text',db.cards[0].id,optsCards(),true),field('الكمية','qty','number',1,null,true),textArea('ملاحظات','note','')],d=>{const q=Number(d.qty);if(!wallet(d.walletId)||!card(d.cardId))return alert('اختر محفظة وفئة موجودتين.'),false;if(!Number.isFinite(q)||q<=0||Math.floor(q)!==q||q>stockMain(d.cardId))return alert('أدخل عدد كروت صحيحًا لا يتجاوز المخزون الرئيسي المتاح.'),false;db.walletLoads.push({id:uid(),date:d.date,walletId:d.walletId,cardId:d.cardId,qty:q,note:d.note});addAudit('تحويل مخزون لمحفظة',wallet(d.walletId).name+' / '+cardLabel(d.cardId)+' / '+q);return persist()})
