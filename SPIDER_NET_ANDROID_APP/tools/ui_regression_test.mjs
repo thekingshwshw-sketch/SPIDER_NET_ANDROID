@@ -33,6 +33,7 @@ try{
  check(tabletClosed.position==='fixed'&&tabletClosed.visibility==='hidden','قائمة الجهاز اللوحي مخفية كدرج ولا تحجز مساحة في الصفحة');
  await page.locator('#menuToggle').click();
  const tabletOpen=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),r=e.getBoundingClientRect();return {right:r.right,left:r.left,width:r.width,visibility:getComputedStyle(e).visibility,open:document.body.classList.contains('nav-open')}});
+ console.log('TABLET_MENU_OPEN_DIAG '+JSON.stringify(tabletOpen));
  check(tabletOpen.open&&tabletOpen.visibility==='visible'&&tabletOpen.width>240&&Math.abs(tabletOpen.right-820)<2,'فتح قائمة الجهاز اللوحي كدرج مثبت بمحاذاة الشاشة');
  await page.locator('#closeMenu').click();
  await page.setViewportSize({width:1440,height:1000});
