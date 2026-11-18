@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="dark">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b14">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f3f7f4">
 <title>SPIDER NET | Smart Accounting System</title>
 <style>
 /* SPIDER NET — consolidated foundation styles; old experimental themes removed */
@@ -557,26 +557,333 @@ tbody tr:hover{background:#0a2a42!important}
 .simple-brand-mark svg{width:30px;height:30px;fill:none;stroke:#4DB8E8;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 @media print{.simple-brand-mark{background:#153b60!important}.simple-brand-mark svg{stroke:#4DB8E8!important}}
 
+/* Monthly accounting workspace and dedicated period-report print surface. */
+.period-card{margin:14px 0;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel);box-shadow:var(--shadow)}
+.period-card .section-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 10px}
+.period-card .section-title h3{margin:0 0 3px;font-size:16px;color:var(--text)}
+.period-card>.actions,.period-card>.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#monthlyPeriodPrintSheet{display:none}
+@media print{body.printing-monthly-period #app>.topbar,body.printing-monthly-period .sidebar,body.printing-monthly-period .mobile-nav,body.printing-monthly-period .footer,body.printing-monthly-period #view,body.printing-monthly-period .modal-back{display:none!important}body.printing-monthly-period #monthlyPeriodPrintSheet{display:block!important;position:static!important;background:#fff!important;color:#111!important;padding:0!important}body.printing-monthly-period #monthlyPeriodPrintSheet .panel{background:#fff!important;color:#111!important;box-shadow:none!important;break-inside:avoid}body.printing-monthly-period #monthlyPeriodPrintSheet table{width:100%;border-collapse:collapse}body.printing-monthly-period #monthlyPeriodPrintSheet th,body.printing-monthly-period #monthlyPeriodPrintSheet td{border:1px solid #cbd5e1;padding:6px;color:#111!important}}
+
+/* SPIDER NET — Visual Identity 2026.11
+   A distinct emerald / deep-ink visual system. Presentation layer only. */
+:root{
+ --bg:#f3f7f4;--panel:#ffffff;--panel2:#edf4f0;--line:#dce8e1;
+ --text:#142d3b;--muted:#6f8584;--accent:#0c9b6b;--accent2:#23b8ae;
+ --danger:#d95366;--warn:#bd8425;--shadow:0 12px 32px rgba(16,49,40,.065);
+ --navy:#0d2939;--navy2:#123a48;--soft-blue:#e9f3f6;
+ --soft-green:#e2f6ed;--soft-red:#fff0f1;--soft-purple:#f0edfa;
+ color-scheme:light
+}
+html[data-theme="light"]{
+ --bg:#f3f7f4;--panel:#fff;--panel2:#edf4f0;--line:#dce8e1;
+ --text:#142d3b;--muted:#6f8584;--accent:#0c9b6b;--accent2:#23b8ae;
+ --danger:#d95366;--warn:#bd8425;--shadow:0 12px 32px rgba(16,49,40,.065);
+ --soft-blue:#e9f3f6;--soft-green:#e2f6ed;--soft-red:#fff0f1;--soft-purple:#f0edfa;
+ color-scheme:light
+}
+html[data-theme="dark"]{
+ --bg:#0c1b24;--panel:#132832;--panel2:#193640;--line:#294a50;
+ --text:#edf6f1;--muted:#a1b6b0;--accent:#45d6a0;--accent2:#49d5ce;
+ --danger:#ff8290;--warn:#f0c16b;--shadow:0 14px 35px rgba(0,0,0,.24);
+ --soft-blue:#203c47;--soft-green:#174338;--soft-red:#472b34;--soft-purple:#332e4a;
+ color-scheme:dark
+}
+html{scrollbar-color:var(--line) var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.65}
+.app{width:min(1680px,100%);padding:0 18px;gap:0}
+.topbar{
+ position:sticky;top:0;z-index:40;height:72px;min-height:72px;
+ margin:0 0 16px;padding:0 20px;grid-template-columns:minmax(230px,1fr) minmax(240px,430px) minmax(320px,1fr);
+ border:1px solid var(--line);border-top:0;border-radius:0 0 20px 20px;
+ background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(18px);
+ box-shadow:0 8px 25px rgba(17,56,43,.055)
+}
+.topbar-brand{gap:11px}
+.brand-emblem{
+ width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
+ color:#eafff5;background:linear-gradient(145deg,#0b7455,#0caa78);
+ border:1px solid #20bd8c;box-shadow:0 7px 18px rgba(12,155,107,.2)
+}
+.brand-emblem svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8}
+.brand-copy strong,.sidebar-brand b{font-size:15px;letter-spacing:.8px;font-weight:900;color:var(--text)}
+.brand-copy small,.sidebar-brand small{font-size:10px;letter-spacing:.25px;color:var(--muted)}
+.global-search{height:42px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);padding:0 13px}
+.global-search input{font-size:12px}
+.top-user{gap:6px}
+.profile-chip{border-radius:12px}
+.avatar{background:#dff5eb;color:#08774f}
+.icon-button{width:37px;height:37px;border-radius:12px;color:var(--muted)}
+.icon-button:hover{color:var(--accent);background:var(--soft-green);border-color:var(--line)}
+.layout{grid-template-columns:254px minmax(0,1fr);gap:17px;align-items:stretch}
+.sidebar{
+ grid-column:1;grid-row:1 / span 2;position:relative;top:auto;min-height:calc(100vh - 105px);
+ padding:15px 12px;border:1px solid #173e4a;border-radius:20px;
+ color:#eef8f3;background:linear-gradient(165deg,#102f3e 0%,#0b2634 58%,#0b202c 100%);
+ box-shadow:0 14px 34px rgba(7,36,43,.16)
+}
+.sidebar-brand{padding:12px 9px 19px;border-bottom:1px solid #ffffff19;gap:10px}
+.sidebar-brand .brand-emblem{width:40px;height:40px;background:linear-gradient(145deg,#0c9b6b,#23b8ae);border:0}
+.sidebar-brand b{color:#f2fbf6;font-size:15px}
+.sidebar-brand small{color:#a7c5ba}
+.nav-caption{padding:19px 14px 8px;color:#86a99f;font-size:10px;font-weight:700}
+.nav-list{gap:5px}
+.sidebar .nav{
+ min-height:47px;margin:0;padding:8px 11px;border-radius:12px;
+ border:1px solid transparent;color:#c6d9d2;background:transparent
+}
+.sidebar .nav:hover{background:#ffffff0c;border-color:#ffffff12}
+.sidebar .nav.active{
+ color:#fff;background:linear-gradient(105deg,#087d59,#0e9c70);
+ border-color:#34c493;box-shadow:0 7px 17px #0002,inset -3px 0 #a7f3d0
+}
+.sidebar .nav-copy b{font-size:12px;font-weight:750}
+.sidebar .nav-copy small{font-size:9px;color:#9bb7ae}
+.sidebar .nav.active .nav-copy small{color:#d8f7e9}
+.sidebar .nav-svg{color:inherit}
+.sidebar-bottom{padding-top:17px}
+.theme-switch{background:#ffffff0b;border:1px solid #ffffff1c;color:#e6f4ee;border-radius:12px}
+.switch-dot{background:#2e5b56}
+.sidebar-version{color:#87a99e;font-size:9px}
+.main{grid-column:2;grid-row:2;min-width:0;padding:23px 5px 26px}
+.dashboard-page{max-width:1260px}
+.dashboard-head{margin-bottom:19px;align-items:center}
+.dashboard-head h2{font-size:25px;letter-spacing:-.3px;font-weight:900}
+.dashboard-welcome{font-size:14px;color:var(--text)}
+.dashboard-head p{font-size:12px;color:var(--muted)}
+.breadcrumb{font-size:11px}
+.dashboard-tools{gap:8px}
+.soft-tool{min-height:38px;padding:8px 12px;border-radius:11px;background:var(--panel);color:var(--text);font-size:11px}
+.dashboard-quick .primary{border-radius:12px;background:linear-gradient(110deg,#0b9869,#20b89b);box-shadow:0 7px 18px rgba(12,155,107,.19);font-weight:800}
+button,input,select,textarea{font-family:inherit}
+button{border-radius:11px;border-color:var(--line);background:var(--panel);color:var(--text)}
+button.primary{background:linear-gradient(110deg,#0b9869,#20b89b);border-color:#0b9869;color:#fff;font-weight:800}
+button.danger{color:var(--danger)}
+input,select,textarea{background:var(--panel);border-color:var(--line);border-radius:11px;color:var(--text)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.field label{font-size:12px;color:var(--muted);font-weight:750}
+.panel,.dashboard-section,.lower-card,.pos-card,.detail-stat,.period-card,.modal,.lockbox{
+ border-radius:17px;border-color:var(--line);background:var(--panel);box-shadow:var(--shadow)
+}
+.panel{padding:18px;margin-bottom:15px}
+.panel h3{font-size:16px;font-weight:850}
+.section-title h2{font-size:21px;font-weight:900}
+.dashboard-metrics{gap:12px;margin-bottom:15px}
+.dash-metric,.metric{
+ position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;
+ background:var(--panel);box-shadow:var(--shadow);color:var(--text)
+}
+.dash-metric{min-height:114px;padding:16px;gap:12px}
+.dash-metric:after{
+ content:"";position:absolute;inset:0 0 auto;height:3px;
+ background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.82
+}
+.metric-icon{width:43px;height:43px;border-radius:13px;background:var(--soft-green);color:var(--accent);flex-basis:43px}
+.metric-icon .nav-svg{stroke:currentColor}
+.dash-metric .label{font-size:11px;color:var(--muted);font-weight:750}
+.dash-metric .value{font-size:23px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+.dash-metric .hint{font-size:10px;color:var(--muted)}
+.tone-green .metric-icon{background:var(--soft-green);color:var(--accent)}
+.tone-red .metric-icon{background:var(--soft-red);color:var(--danger)}
+.tone-blue .metric-icon{background:var(--soft-blue);color:#2597b7}
+.tone-purple .metric-icon{background:var(--soft-purple);color:#8c70cf}
+.dashboard-section{padding:17px 18px;margin-bottom:15px;border-radius:17px}
+.dashboard-section-head h3{font-size:14px;font-weight:850}
+.dashboard-section-head small{font-size:10px}
+.dashboard-table-wrap{border:1px solid var(--line);border-radius:12px}
+.dashboard-table th{background:var(--panel2);color:var(--muted);font-size:10px}
+.dashboard-table td{font-size:11px;border-bottom-color:var(--line)}
+.dashboard-table tbody tr:hover{background:color-mix(in srgb,var(--accent) 5%,var(--panel))}
+.table-wrap{border-color:var(--line);border-radius:13px;background:var(--panel)}
+table{border-spacing:0}
+th{background:var(--panel2);color:var(--muted);font-weight:800}
+th,td{border-bottom-color:var(--line)}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+.badge{font-weight:750}
+.badge.ok,.status-pill{background:var(--soft-green);color:#087b56}
+.badge.warn{background:#fff4df;color:#946411}
+.badge.bad{background:var(--soft-red);color:var(--danger)}
+.note{border-radius:13px;background:var(--panel2);border-color:var(--line)}
+.modal-back{background:rgba(4,22,29,.58);backdrop-filter:blur(7px)}
+.modal{border-radius:19px}
+.lock{background:radial-gradient(ellipse at 50% 0%,#174b4a,var(--bg) 62%)}
+.lockbox{background:var(--panel)}
+.pos-list{gap:12px}
+.pos-card{padding:16px}
+.pos-card:hover{border-color:var(--accent);box-shadow:0 14px 30px rgba(12,155,107,.1)}
+.detail-stat{background:var(--panel2)}
+.cashbox-grid>div{background:var(--panel2);border-color:var(--line);border-radius:13px}
+.mobile-nav{
+ background:color-mix(in srgb,var(--panel) 96%,transparent)!important;
+ border:1px solid var(--line)!important;border-radius:18px 18px 0 0!important;
+ box-shadow:0 -8px 28px rgba(11,39,43,.1)!important;backdrop-filter:blur(18px)
+}
+.mobile-nav-item{color:var(--muted);border-radius:12px}
+.mobile-nav-item.active{color:var(--accent);background:var(--soft-green);font-weight:850}
+.footer{color:var(--muted)}
+/* Print and invoice identity */
+#billPrintSheet.spider-invoice{
+ display:none;background:#fff;color:#152f3b;direction:rtl;
+ width:210mm;max-width:100%;min-height:297mm;margin:0 auto;padding:14mm 13mm;
+ box-sizing:border-box;font-family:Tahoma,Arial,sans-serif;position:relative;overflow:hidden;
+ border:1px solid #e1e9e4;border-radius:16px;line-height:1.65
+}
+.spider-invoice .invoice-accent{position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#0b8f66,#35c8b0)}
+.spider-invoice .invoice-brand-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 0 18px;border-bottom:1px solid #dce8e1}
+.spider-invoice .invoice-brand{display:flex;align-items:center;gap:12px;color:#123747}
+.spider-invoice .invoice-brand-mark{width:53px;height:53px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,#0b805e,#19b28c);color:#fff}
+.spider-invoice .invoice-brand-mark svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:1.9}
+.spider-invoice .invoice-brand b{display:block;font-size:23px;line-height:1.25;letter-spacing:.8px;font-weight:900}
+.spider-invoice .invoice-brand small{display:block;font-size:11px;color:#6d8583}
+.spider-invoice .invoice-title{text-align:left;min-width:140px}
+.spider-invoice .invoice-title small{display:block;color:#0b9b6c;font-size:9px;letter-spacing:1.5px;font-weight:800}
+.spider-invoice .invoice-title h1{font-size:26px;color:#123747;margin:2px 0 5px;line-height:1.25}
+.spider-invoice .invoice-status{display:inline-flex;border-radius:30px;padding:4px 11px;font-size:10px;font-weight:800;background:#eef4f0;color:#52645e}
+.spider-invoice .invoice-status.is-paid{background:#e2f6ed;color:#08784f}
+.spider-invoice .invoice-status.is-due{background:#fff3dc;color:#9b6710}
+.spider-invoice .invoice-status.is-consignment{background:#e8f5f6;color:#117889}
+.spider-invoice .invoice-number-strip{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.spider-invoice .invoice-number-box{border:1px solid #e1eae4;border-radius:12px;background:#f7faf8;padding:11px 14px}
+.spider-invoice .invoice-number-box span{display:block;color:#748982;font-size:10px;margin-bottom:3px}
+.spider-invoice .invoice-number-box strong{display:block;font-size:14px;color:#183948;direction:ltr;text-align:right;overflow-wrap:anywhere}
+.spider-invoice .invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 20px}
+.spider-invoice .invoice-party{padding:14px 15px;border:1px solid #dfe9e3;border-radius:13px;background:#fff;min-width:0}
+.spider-invoice .invoice-party .eyebrow{display:block;color:#0b996b;font-size:10px;font-weight:850;margin-bottom:6px}
+.spider-invoice .invoice-party h3{font-size:16px;color:#173c49;margin:0 0 7px}
+.spider-invoice .invoice-party p{font-size:11px;color:#5b726f;margin:3px 0;overflow-wrap:anywhere}
+.spider-invoice .invoice-table{width:100%;border-collapse:collapse;margin:0 0 18px;min-width:0}
+.spider-invoice .invoice-table th{background:#123b47;color:#fff;font-size:10px;font-weight:800;padding:11px 9px;border:1px solid #123b47;text-align:right}
+.spider-invoice .invoice-table td{padding:11px 9px;border-bottom:1px solid #e4ece7;color:#213e49;font-size:11px;text-align:right}
+.spider-invoice .invoice-table tbody tr:nth-child(even){background:#f6faf7}
+.spider-invoice .invoice-table .numeric{text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.spider-invoice .invoice-bottom{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:14px;align-items:stretch}
+.spider-invoice .invoice-note{border:1px solid #e0e9e3;border-radius:12px;padding:13px;background:#f8faf9}
+.spider-invoice .invoice-note b{display:block;font-size:11px;color:#1b4850;margin-bottom:6px}
+.spider-invoice .invoice-note p{font-size:11px;color:#637974;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.spider-invoice .invoice-total-card{border:1px solid #cfe7dc;border-radius:14px;overflow:hidden;background:#f3faf6}
+.spider-invoice .invoice-total-line{display:flex;justify-content:space-between;gap:12px;padding:11px 13px;font-size:11px;color:#547069}
+.spider-invoice .invoice-grand-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:linear-gradient(105deg,#0b805e,#0f9e76);color:white;font-weight:850}
+.spider-invoice .invoice-grand-total strong{font-size:18px;white-space:nowrap}
+.spider-invoice .invoice-signatures{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:44px}
+.spider-invoice .invoice-signature{border-top:1px solid #9fb6aa;padding-top:8px;color:#60766d;font-size:10px;text-align:center}
+.spider-invoice .invoice-footer{border-top:1px solid #dce8e1;margin-top:27px;padding-top:10px;display:flex;justify-content:space-between;gap:12px;color:#82958c;font-size:9px}
+@media(max-width:760px){
+ .app{padding:0 10px 76px}
+ .topbar{height:62px;min-height:62px;padding:0 10px;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-radius:0 0 15px 15px}
+ .topbar .global-search{display:none}
+ .layout{display:block;min-height:calc(100vh - 75px)}
+ .sidebar{position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(300px,86vw);height:auto;min-height:0;border-radius:0 0 0 20px;transform:translateX(110%);transition:transform .22s ease;overflow-y:auto}
+ body.nav-open .sidebar{transform:translateX(0)}
+ .main{padding:17px 1px 20px}
+ .dashboard-head{align-items:flex-start;flex-direction:column}
+ .dashboard-head h2{font-size:21px}
+ .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dash-metric{min-height:98px;padding:12px;gap:8px}
+ .dash-metric .value{font-size:19px}
+ .metric-icon{width:37px;height:37px;flex-basis:37px}
+ .dashboard-bottom{grid-template-columns:1fr}
+ .dashboard-section{padding:13px}
+ .panel{padding:14px}
+ .mobile-nav{position:fixed;bottom:0;left:8px;right:8px;z-index:60;height:65px;padding:7px 5px;display:flex;justify-content:space-around;align-items:center}
+ .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;padding:5px 2px;font-size:9px}
+ .mobile-nav-item .nav-svg{width:18px;height:18px}
+ .simple-statement{padding:12px}
+ .cashbox-grid{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+ .dashboard-metrics{grid-template-columns:1fr 1fr;gap:7px}
+ .dash-metric{padding:10px;min-height:94px}
+ .dash-metric .value{font-size:17px}
+ .profile-chip>span:nth-child(2){display:none}
+ .top-user{gap:2px}
+}
+@media print{
+ @page{size:A4;margin:0}
+ body.printing-bill{background:#fff!important;color:#152f3b!important}
+ body.printing-bill #app{display:block!important;width:210mm!important;max-width:210mm!important;padding:0!important;margin:0 auto!important}
+ body.printing-bill #app .topbar,body.printing-bill #app .sidebar,body.printing-bill #app .main,body.printing-bill #app .mobile-nav,body.printing-bill #app .footer{display:none!important}
+ body.printing-bill #billPrintSheet.spider-invoice{display:block!important;position:relative!important;width:210mm!important;max-width:210mm!important;min-height:297mm!important;margin:0!important;padding:15mm 14mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;background:#fff!important;color:#152f3b!important}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-accent{display:block!important}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-party,body.printing-bill #billPrintSheet.spider-invoice .invoice-number-box,body.printing-bill #billPrintSheet.spider-invoice .invoice-note,body.printing-bill #billPrintSheet.spider-invoice .invoice-total-card{break-inside:avoid}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-table tr{break-inside:avoid}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-footer{position:static;margin-top:30px}
+ body.printing-pos .print-receipt{font-family:Tahoma,Arial,sans-serif;background:#fff!important;color:#183744!important;border:0!important;border-radius:0!important;padding:0!important}
+ body.printing-pos .receipt-head{border-bottom:3px solid #0b9869!important;padding-bottom:10px!important}
+ body.printing-pos .receipt-brand{color:#123b47!important}
+ body.printing-pos .receipt-brand svg{stroke:#0b9869!important}
+ body.printing-pos .receipt-lines th{background:#123b47!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body.printing-pos .receipt-summary .receipt-due th,body.printing-pos .receipt-summary .receipt-due td{background:#e4f6ed!important;color:#08784f!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body.printing-accounting .accounting-print-heading{border-color:#0b9869!important;color:#123b47!important}
+}
+
+
+/* Shared legacy statement surfaces now follow the 2026 identity as well. */
+.mobile-pos-card,.recent-mobile-card{background:var(--panel);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.simple-statement{background:var(--panel);color:var(--text);border-color:var(--line);box-shadow:var(--shadow)}
+.simple-statement-head{border-bottom-color:var(--accent)}
+.simple-statement-brand{color:var(--text)}
+.simple-statement-brand b,.simple-statement h1,.simple-statement-section h2{color:var(--text)}
+.simple-brand-mark{background:linear-gradient(145deg,#0b805e,#19b28c);color:#fff}
+.simple-statement table:not(.simple-contact-table) th,.simple-contact-table th{background:var(--panel2);color:var(--muted);border-color:var(--line)}
+.simple-statement table:not(.simple-contact-table) td,.simple-contact-table td{color:var(--text);border-color:var(--line)}
+.simple-statement table:not(.simple-contact-table) tbody tr:nth-child(even){background:color-mix(in srgb,var(--accent) 3%,var(--panel))}
+.simple-statement .simple-total td{background:var(--panel2);color:var(--text)}
+.simple-statement .simple-balance td{background:var(--soft-green);color:var(--accent);font-weight:850}
+.simple-reminder{background:color-mix(in srgb,var(--warn) 9%,var(--panel));border-color:color-mix(in srgb,var(--warn) 30%,var(--line));color:var(--text)}
+.simple-reminder h3{color:var(--warn)}
+.simple-reminder.neutral,.simple-reminder.settled{background:var(--soft-green);border-color:color-mix(in srgb,var(--accent) 30%,var(--line));color:var(--text)}
+.simple-reminder.neutral h3,.simple-reminder.settled h3{color:var(--accent)}
+
+
+@media(max-width:900px){
+ .app{display:flex;flex-direction:column;gap:0;padding:0 10px}
+ .layout{display:block;min-height:calc(100vh - 146px);margin:0}
+ .sidebar{position:fixed;z-index:70;top:0;right:0;bottom:0;width:min(300px,86vw);height:100dvh;min-height:100dvh;border-radius:0 0 0 20px;transform:translateX(110%);transition:transform .22s ease;overflow-y:auto}
+ body.nav-open .sidebar{transform:translateX(0)}
+ .main{grid-column:auto;grid-row:auto;padding:17px 1px 20px}
+}
+
+
+@media(max-width:900px){
+ .sidebar{position:fixed!important;right:calc(-1 * min(300px,86vw))!important;left:auto!important;transform:none!important;visibility:hidden!important;pointer-events:none!important}
+ body.nav-open .sidebar{right:0!important;transform:none!important;visibility:visible!important;pointer-events:auto!important}
+}
+
+
+/* Dark-mode tables: both the table canvas and every stripe must keep readable contrast. */
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table){background:var(--panel)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(odd){background:var(--panel)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(even){background:var(--panel2)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement .receipt-lines th{background:#163b46!important;color:#f1faf5!important}
+@media print{
+ body.printing-pos .simple-statement table:not(.simple-contact-table){background:#fff!important;color:#111!important}
+ body.printing-pos .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(odd){background:#fff!important;color:#111!important}
+ body.printing-pos .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(even){background:#f4f7f5!important;color:#111!important}
+}
+
 </style></head>
 <body>
 <div class="app" id="app">
 <header class="topbar" id="topbar">
-  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
+  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
   <div class="global-search"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="ابحث عن نقطة بيع أو فئة كروت..." aria-label="بحث في نقاط البيع وفئات الكروت"><kbd>↵</kbd></div>
   <div class="top-user"><button class="profile-chip" id="profileBtn" title="مدير النظام"><span class="avatar">م</span><span><b>مدير النظام</b><small>حساب محلي</small></span><span class="chevron">⌄</span></button><span class="top-divider"></span><button class="icon-button notification-button" id="notificationBtn" aria-label="التنبيهات" title="التنبيهات">♧<span id="notificationCount" class="notification-count">0</span></button><button class="icon-button" id="themeBtn" title="تبديل المظهر" aria-label="تبديل المظهر"><span class="theme-icon">☾</span></button><button class="icon-button" id="settingsBtn" title="الإعدادات" aria-label="الإعدادات">⚙</button><button class="icon-button" id="lockBtn" title="قفل النظام" aria-label="قفل النظام">▣</button><button class="icon-button desktop-action" id="backupBtn" title="نسخة احتياطية" aria-label="نسخة احتياطية">⇩</button><button class="icon-button desktop-action" id="restoreBtn" title="استعادة نسخة" aria-label="استعادة نسخة">⤴</button><button class="icon-button desktop-action" id="printBtn" title="طباعة / PDF" aria-label="طباعة / PDF">▤</button><input id="restoreFile" type="file" accept="application/json,.json" class="hidden"></div>
 </header>
-<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.1.4<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
+<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.2.0<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
 <div class="modal-back" id="modalBack"><div class="modal"><div class="modal-head"><h3 id="modalTitle"></h3><button id="modalClose">إغلاق</button></div><div id="modalBody"></div></div></div>
-<div class="lock" id="lockScreen"><div class="lockbox"><div class="brand-emblem" style="margin:0 auto 12px;width:64px;height:64px;border-radius:18px"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
+<div class="lock" id="lockScreen"><div class="lockbox"><div class="brand-emblem" style="margin:0 auto 12px;width:64px;height:64px;border-radius:18px"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></div><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
 <script>
 (()=>{'use strict';
 const KEY='spidernet_accounting_v1';
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const num=v=>Number(v)||0;const money=v=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:2}).format(num(v))+' ر.ي';const dateNow=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};function validDateValue(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')))return false;let [y,m,d]=String(v).split('-').map(Number);let x=new Date(Date.UTC(y,m-1,d));return x.getUTCFullYear()===y&&x.getUTCMonth()===m-1&&x.getUTCDate()===d}function dateFieldValue(v,fallback=dateNow()){let s=String(v??'').trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m){let d=m[1]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[3])).padStart(2,'0');if(validDateValue(d))return d}m=s.match(/^(\d{1,2})[\/. -](\d{1,2})[\/. -](\d{4})$/);if(m){let d=m[3]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[1])).padStart(2,'0');if(validDateValue(d))return d}return validDateValue(fallback)?fallback:dateNow()}const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 let recoveryInfo={available:false,reason:'',raw:null,blocked:false};
 let recoveryExportPending=false;
-const empty=()=>({version:1,settings:{startDate:'',startDateConfirmed:false,cashOpeningBalance:0,cashOpeningDate:'',cashOpeningConfirmed:false,pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],cashMovements:[],audit:[],closures:[],journalEntries:[]});
+const empty=()=>({version:1,settings:{startDate:'',startDateConfirmed:false,cashOpeningBalance:0,cashOpeningDate:'',cashOpeningConfirmed:false,currentPeriodId:null,pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],cashMovements:[],audit:[],closures:[],journalEntries:[],periods:[],periodSnapshots:[],profitDistributions:[]});
 let db=load(),tab='home',selectedPosId=null,posSearch='',posFrom='',posTo='',ledgerFrom='',ledgerTo='',ledgerAccount='';
-let lastCommittedState=JSON.stringify(db);function preserveRecovery(raw,reason){
+let lastCommittedState=JSON.stringify(db);
+let authorizedRestoreWrite=false;
+let authorizedCloseCommit=false;
+function preserveRecovery(raw,reason){
  if(!raw)return;
  let saved=false;
  try{
@@ -599,7 +906,7 @@ function load(){
   if(!x||x.version!==1||typeof x!=='object'||Array.isArray(x)){if(raw)preserveRecovery(raw,'تنسيق بيانات التطبيق غير متوافق؛ لم تُحذف النسخة الخام.');return empty()}
   const defaults=empty();
   let changed=false,damaged=false;
-  const arrays=['cards','pos','wallets','deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','cashMovements','audit','closures','journalEntries'];
+  const arrays=['cards','pos','wallets','deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','cashMovements','audit','closures','journalEntries','periods','periodSnapshots','profitDistributions'];
   for(const key of arrays){
    if(Array.isArray(x[key]))continue;
    if(x[key]!==undefined&&x[key]!==null)damaged=true;
@@ -627,13 +934,54 @@ function load(){
 function save(action,detail=''){if(action)addAudit(action,detail,false);if(!persist())return false;render();return true}function addAudit(action,detail,doSave=false){db.audit.unshift({id:uid(),date:dateNow(),time:new Date().toLocaleTimeString('ar-YE'),action,detail});db.audit=db.audit.slice(0,1000);return doSave?persist():true}
 function sum(arr,fn){return arr.reduce((s,x)=>s+num(fn(x)),0)}function card(id){return db.cards.find(x=>x.id===id)}function pos(id){return db.pos.find(x=>x.id===id)}function wallet(id){return db.wallets.find(x=>x.id===id)}function cCost(c){return num(c?.cost)}function cardLabel(id){let c=card(id);return c?`${c.name} (${money(c.face)})`:'فئة محذوفة'}
 function posDebt(id){return sum(db.deliveries.filter(x=>x.posId===id&&x.mode==='credit'),x=>x.amount)+sum(db.consignmentSettlements.filter(x=>x.posId===id),x=>x.soldQty*x.unitPrice)-sum(db.payments.filter(x=>x.posId===id),x=>x.amount)-sum(db.deliveries.filter(x=>x.posId===id&&x.mode==='credit'),x=>x.returnAmount||0)}function posHasMovements(id){return db.deliveries.some(x=>x.posId===id)||db.consignmentSettlements.some(x=>x.posId===id)||db.payments.some(x=>x.posId===id)}
-function stockMain(cardId){let opening=num(card(cardId)?.opening);let delivered=sum(db.deliveries.filter(x=>x.cardId===cardId),x=>x.qty);let loaded=sum(db.walletLoads.filter(x=>x.cardId===cardId),x=>x.qty);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId),x=>x.delta);let consignmentReturns=sum(db.consignmentSettlements.filter(x=>x.cardId===cardId),x=>x.returnQty);return opening-delivered-loaded+adjustments+consignmentReturns}
-function stockWallet(walletId,cardId){let opening=sum(db.wallets.filter(x=>x.id===walletId),w=>(w.opening||{})[cardId]||0);return opening+sum(db.walletLoads.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)-sum(db.walletSales.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)}
+function stockMain(cardId){let opening=num(card(cardId)?.opening);let delivered=sum(db.deliveries.filter(x=>x.cardId===cardId),x=>x.qty);let loaded=sum(db.walletLoads.filter(x=>x.cardId===cardId),x=>x.qty);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId&&(!x.locationType||x.locationType==='main')),x=>x.delta);let consignmentReturns=sum(db.consignmentSettlements.filter(x=>x.cardId===cardId),x=>x.returnQty);return opening-delivered-loaded+adjustments+consignmentReturns}
+function stockWallet(walletId,cardId){let opening=sum(db.wallets.filter(x=>x.id===walletId),w=>(w.opening||{})[cardId]||0);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId&&x.locationType==='wallet'&&x.locationId===walletId),x=>x.delta);return opening+sum(db.walletLoads.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)-sum(db.walletSales.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)+adjustments}
 function walletCash(){return sum(db.walletSales,x=>x.amount)}
 function cashIsInBaseline(x){const d=String(x?.date||x?.paidDate||'');return !db.settings.cashOpeningDate||d>=db.settings.cashOpeningDate}
 function cashReceiptsTotal(){return sum(db.deliveries.filter(x=>x.mode==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.payments.filter(x=>x.method==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&cashIsInBaseline(x)),x=>x.amount)}
-function cashOutflowsTotal(){return sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&cashIsInBaseline({...x,date:x.paidDate||x.date})),x=>x.amount)+sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='partner_repayment'&&(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&cashIsInBaseline(x)),x=>x.amount)}
-function cashBalance(){return num(db.settings.cashOpeningBalance)+cashReceiptsTotal()-cashOutflowsTotal()}
+function cashOutflowsTotal(){return sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&cashIsInBaseline({...x,date:x.paidDate||x.date})),x=>x.amount)+sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&cashIsInBaseline(x)),x=>x.amount)}
+function cashBalanceAsOf(asOfDate=dateNow()){
+ const asOf=validDateValue(asOfDate)?asOfDate:dateNow();
+ const periods=Array.isArray(db.periods)?db.periods:[];
+ const active=periods.find(p=>['OPEN','REVIEW'].includes(p.status)&&p.startDate<=asOf&&p.endDate>=asOf)
+  ||periods.find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ const start=active?.startDate||'';
+ if(active){
+  const inWindow=x=>{const d=String(x?.date||'').slice(0,10);return validDateValue(d)&&d>=start&&d<=asOf};
+  const receipts=
+   sum(db.deliveries.filter(x=>x.mode==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.payments.filter(x=>x.method==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&inWindow(x)),x=>x.amount);
+  const outflows=
+   sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&inWindow({...x,date:x.paidDate||x.date})),x=>x.amount)
+   +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&inWindow(x)),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+   +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&inWindow(x)),x=>x.amount);
+  return num(active.openingCash)+receipts-outflows;
+ }
+ const lastClosed=periods.filter(p=>['CLOSED','LOCKED'].includes(p.status)&&p.endDate<=asOf).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0];
+ if(lastClosed){
+  const snap=monthlySnapshotFor(lastClosed.id);
+  return snap&&Number.isFinite(Number(snap.cash?.closing))?Number(snap.cash.closing):0;
+ }
+ const baseline=validDateValue(db.settings.cashOpeningDate)?db.settings.cashOpeningDate:accountingStartDate();
+ const inWindow=x=>{const d=String(x?.date||'').slice(0,10);return validDateValue(d)&&d>=baseline&&d<=asOf};
+ const receipts=
+  sum(db.deliveries.filter(x=>x.mode==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.payments.filter(x=>x.method==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&inWindow(x)),x=>x.amount);
+ const outflows=
+  sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&inWindow({...x,date:x.paidDate||x.date})),x=>x.amount)
+  +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&inWindow(x)),x=>x.amount)
+  +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&inWindow(x)),x=>x.amount)
+  +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&inWindow(x)),x=>x.amount);
+ return num(db.settings.cashOpeningBalance)+receipts-outflows;
+}
+function cashBalance(){return cashBalanceAsOf(dateNow())}
 function posUnitPrice(posId,cardId){const p=pos(posId),c=card(cardId),v=p?.prices?.[cardId];return v!==undefined&&v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):num(c?.pricePos)}
 
 function transferReceipts(){
@@ -648,15 +996,15 @@ function partnerTransferRepayments(){return sum(db.partnerMoves.filter(x=>x.kind
 function obligations(){return sum(db.bills.filter(x=>!x.paid),x=>x.amount)}function posReceivables(){return sum(db.pos,x=>Math.max(0,posDebt(x.id)))}function mainStockValue(){return sum(db.cards,c=>Math.max(0,stockMain(c.id))*cCost(c))}function walletStockValue(){return sum(db.cards,c=>sum(db.wallets,w=>Math.max(0,stockWallet(w.id,c.id)))*cCost(c))}
 function walletSalesRevenue(){return sum(db.walletSales,x=>x.amount)}function posRevenue(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>x.amount)+sum(db.consignmentSettlements,x=>x.soldQty*x.unitPrice)}function operatingExpenses(){return sum(db.expenses,x=>x.amount)+sum(db.bills,x=>x.amount)}function soldCardCost(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>num(x.qty)*cCost(card(x.cardId)))+sum(db.consignmentSettlements,x=>num(x.soldQty)*cCost(card(x.cardId)))+sum(db.walletSales,x=>num(x.qty)*cCost(card(x.cardId)))}function profitEstimate(){return posRevenue()+walletSalesRevenue()-soldCardCost()-operatingExpenses()}
 function alerts(){let a=[];db.pos.forEach(p=>{let d=posDebt(p.id);if(d>0)a.push({type:'warn',text:`على نقطة البيع ${p.name} مبلغ مستحق ${money(d)}`})});db.cards.forEach(c=>{let threshold=num(c.alertAt);if(threshold>0&&stockMain(c.id)<=threshold)a.push({type:'warn',text:`مخزون ${c.name} منخفض: ${stockMain(c.id)} كرت`});if(stockMain(c.id)<0)a.push({type:'bad',text:`مخزون ${c.name} سالب؛ راجع الحركات`})});db.bills.filter(b=>!b.paid).forEach(b=>a.push({type:'warn',text:`التزام غير مسدد: ${b.name} — ${money(b.amount)}، موعد ${b.due||'غير محدد'}`}));if(cashBalance()<0)a.push({type:'bad',text:'رصيد الصندوق المحسوب سالب؛ راجع تسجيل العمليات والأرصدة الافتتاحية'});return a}
-const navItems=[['home','الرئيسية','لوحة التحكم','home'],['pos','نقاط البيع','الحسابات والتحصيل','store'],['cards','المخزون والكروت','الجرد والحركة','box'],['wallets','المحافظ','التحميل والمبيعات','wallet'],['expenses','المصروفات والالتزامات','المصروفات والفواتير','receipt'],['partners','الشركاء','الحسابات والتسويات','users'],['accounting','المحاسبة المزدوجة','اليومية والأستاذ والميزان','book'],['reports','التقارير والإحصائيات','النتائج والمراجعة','chart'],['settings','الإعدادات','الحماية والبيانات','settings'],['audit','سجل التدقيق','العمليات المسجلة','cloud']];
+const navItems=[['home','الرئيسية','لوحة التحكم','home'],['pos','نقاط البيع','الحسابات والتحصيل','store'],['cards','المخزون والكروت','الجرد والحركة','box'],['wallets','المحافظ','التحميل والمبيعات','wallet'],['expenses','المصروفات والالتزامات','المصروفات والفواتير','receipt'],['partners','الشركاء','الحسابات والتسويات','users'],['accounting','المحاسبة المزدوجة','اليومية والأستاذ والميزان','book'],['reports','التقارير والإحصائيات','النتائج والمراجعة','chart'],['settings','الإعدادات','الحماية والبيانات','settings'],['audit','سجل التدقيق','العمليات المسجلة','cloud'],['periods','الإدارة الشهرية','الفترات والديون والإقفال','calendar']];
 const navSvg={home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',pos:'<path d="M3 9h18l-2-5H5L3 9Z"/><path d="M4 9v11h16V9M8 20v-6h8v6M3 9c0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0"/>',box:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Z"/><path d="m3.5 8.2 8.5 5 8.5-5M12 13v8M8 5.3l8.5 5"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/>',receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>',users:'<path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11a4 4 0 1 0-1-7.9M21 20v-1.5a4.5 4.5 0 0 0-3.5-4.4"/>',chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M17 6h3v3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"/>',cloud:'<path d="M6 18h12a4 4 0 0 0 .4-8A6.5 6.5 0 0 0 6 9.5 4.2 4.2 0 0 0 6 18Z"/><path d="M12 16V9m-3 3 3-3 3 3"/>'};
 function navIcon(key){return `<svg class="nav-svg" viewBox="0 0 24 24" aria-hidden="true">${navSvg[key]||navSvg.home}</svg>`}
-function renderNav(){const current=tab==='pos-detail'?'pos':tab;const items=navItems.map(([id,label,sub,icon])=>`<button class="nav ${current===id?'active':''}" data-tab="${id}" aria-current="${current===id?'page':'false'}">${navIcon(icon)}<span class="nav-copy"><b>${label}</b><small>${sub}</small></span><span class="nav-chevron">›</span></button>`).join('');$('#nav').innerHTML=items;$('#nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;closeMobileNav();render()});const mobile=[['home','الرئيسية','home'],['pos','نقاط البيع','pos'],['reports','التقارير','chart'],['settings','الإعدادات','settings']];$('#mobileNav').innerHTML=mobile.map(([id,label,icon])=>`<button class="mobile-nav-item ${current===id?'active':''}" data-mobile-tab="${id}">${navIcon(icon)}<span>${label}</span></button>`).join('');$('#mobileNav').querySelectorAll('[data-mobile-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.mobileTab;closeMobileNav();render()});$('#notificationCount').textContent=alerts().length}
+function renderNav(){const current=tab==='pos-detail'?'pos':tab;const items=navItems.map(([id,label,sub,icon])=>`<button class="nav ${current===id?'active':''}" data-tab="${id}" aria-current="${current===id?'page':'false'}">${navIcon(icon)}<span class="nav-copy"><b>${label}</b><small>${sub}</small></span><span class="nav-chevron">›</span></button>`).join('');$('#nav').innerHTML=items;$('#nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;closeMobileNav();render()});const mobile=[['home','الرئيسية','home'],['pos','نقاط البيع','pos'],['periods','الفترات','calendar'],['reports','التقارير','chart'],['settings','الإعدادات','settings']];$('#mobileNav').innerHTML=mobile.map(([id,label,icon])=>`<button class="mobile-nav-item ${current===id?'active':''}" data-mobile-tab="${id}">${navIcon(icon)}<span>${label}</span></button>`).join('');$('#mobileNav').querySelectorAll('[data-mobile-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.mobileTab;closeMobileNav();render()});$('#notificationCount').textContent=alerts().length}
 function closeMobileNav(){document.body.classList.remove('nav-open')}
 function recoveryBanner(){const blocked=!!recoveryInfo.blocked;return `<div class="note ${blocked?'danger-note':'warning'}"><strong>${blocked?'تنبيه حماية البيانات':'نسخة استرداد خام محفوظة'}</strong><p>${esc(recoveryInfo.reason||'توجد نسخة بيانات معزولة.')}</p><p>${blocked?'احتفظ بالنسخة الخام خارج التطبيق، ثم استعد نسخة JSON سليمة قبل متابعة التسجيل. تنزيل النسخة الخام وحده لا يعيد تفعيل الحفظ.':'يمكن تنزيل النسخة الخام للرجوع إليها. لا تحذفها حتى تتأكد من سلامة البيانات الحالية.'}</p>${btn('تنزيل نسخة البيانات المعزولة','recovery-backup','primary')}</div>`}
 function exportRecoveryCopy(){const raw=recoveryInfo.raw||localStorage.getItem(KEY+'_recovery_latest')||localStorage.getItem(KEY+'_recovery');if(!raw)return alert('لا توجد نسخة معزولة متاحة للتصدير.');const name='spider-net-recovery-'+dateNow()+'.json';if(window.AndroidBackup&&typeof window.AndroidBackup.saveBackup==='function'){recoveryExportPending=true;window.AndroidBackup.saveBackup(raw,name);return;}const blob=new Blob([raw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
 function metric(label,value,hint=''){return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div><div class="hint">${hint}</div></div>`}function table(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات بعد</td></tr>`}</tbody></table></div>`}function sectionTitle(title,buttons=''){return `<div class="section-title"><h2>${title}</h2><div class="actions no-print">${buttons}</div></div>`}function btn(label,fn,cls=''){return `<button class="${cls}" data-action="${fn}">${label}</button>`}
-function render(){renderNav();const v=$('#view');switch(tab){case'pos-detail':v.innerHTML=posDetailView(selectedPosId);break;case'home':v.innerHTML=home();break;case'cards':v.innerHTML=cardsView();break;case'pos':v.innerHTML=posView();break;case'wallets':v.innerHTML=walletsView();break;case'expenses':v.innerHTML=expensesView();break;case'partners':v.innerHTML=partnersView();break;case'accounting':v.innerHTML=accountingView();break;case'reports':v.innerHTML=reportsView();break;case'settings':v.innerHTML=settingsView();break;case'audit':v.innerHTML=auditView();break;default:v.innerHTML=home()}if(recoveryInfo.available)v.insertAdjacentHTML('afterbegin',recoveryBanner());bindActions(v)}
+function render(){renderNav();const v=$('#view');switch(tab){case'pos-detail':v.innerHTML=posDetailView(selectedPosId);break;case'home':v.innerHTML=home();break;case'cards':v.innerHTML=cardsView();break;case'pos':v.innerHTML=posView();break;case'wallets':v.innerHTML=walletsView();break;case'expenses':v.innerHTML=expensesView();break;case'partners':v.innerHTML=partnersView();break;case'accounting':v.innerHTML=accountingView();break;case'reports':v.innerHTML=reportsView();break;case'settings':v.innerHTML=settingsView();break;case'audit':v.innerHTML=auditView();break;case'periods':v.innerHTML=periodsView();break;default:v.innerHTML=home()}if(recoveryInfo.available)v.insertAdjacentHTML('afterbegin',recoveryBanner());bindActions(v)}
 function dashboardMetric(title,value,caption,icon,tone){return `<article class="metric dash-metric tone-${tone}"><span class="metric-icon">${navIcon(icon)}</span><div class="metric-copy"><div class="label">${title}</div><div class="value">${value}</div><div class="hint">${caption}</div></div></article>`}
 function home(){
  const al=alerts();
@@ -758,7 +1106,7 @@ function paySpecificDebt(sourceType,sourceId){
   if(amount>due.remaining+0.009)return alert('المبلغ أكبر من المتبقي لهذا الدين ('+money(due.remaining)+').'),false;
   if(amount>Math.max(0,posDebt(id))+0.009)return alert('المبلغ أكبر من إجمالي الدين الحالي ('+money(Math.max(0,posDebt(id)))+').'),false;
   const label=due.card+' / تاريخ البيع '+due.date+' / كمية '+due.qty;
-  db.payments.push({id:uid(),date:d.date,posId:id,amount,method:d.method,note:d.note||('سداد دين: '+label),allocations:[{sourceType,sourceId,amount}]});
+  db.payments.push({id:uid(),date:d.date,posId:id,amount,method:d.method,note:d.note||('سداد دين: '+label),allocations:[{sourceType,sourceId,amount,originPeriodId:monthlyPeriodForDate(due.date)?.id||null}],collectionPeriodId:monthlyPeriodForDate(d.date)?.id||null});
   addAudit('تسجيل سداد دين محدد',p.name+' / '+label+' / '+money(amount)+' / '+(d.method==='transfer'?'محفظة':'نقدًا'));return persist();
  });
 }
@@ -799,7 +1147,7 @@ function posDetailView(id){
  ];
  return '<div class="section-title no-print"><h2>كشف حساب نقطة البيع</h2><div class="actions">'+btn('← كل نقاط البيع','back-pos')+btn('تعديل بيانات النقطة','edit-pos:'+id)+(db.deliveries.some(x=>x.posId===id&&x.mode==='consignment')?btn('تسوية الأمانة','consign-to:'+id):'')+btn('طباعة / حفظ PDF','print-pos','primary')+btn('حفظ الكشف كصورة','image-pos')+'</div></div>'+
  '<section class="panel no-print simple-filter"><h3>فترة الكشف</h3><div class="form-grid"><div class="field"><label for="posFrom">من تاريخ</label><input type="date" id="posFrom" value="'+esc(posFrom)+'"></div><div class="field"><label for="posTo">إلى تاريخ</label><input type="date" id="posTo" value="'+esc(posTo)+'"></div></div><div class="actions"><button class="primary" id="applyPosFilter">تطبيق الفترة</button><button id="clearPosFilter">عرض كل التاريخ</button></div></section>'+
- '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark" aria-label="شعار سبايدر نت"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
+ '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark" aria-label="شعار سبايدر نت"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
 }
 function wirePosDetail(){const search=$('#posSearch');if(search)search.addEventListener('input',()=>{posSearch=search.value;const start=search.selectionStart;const v=$('#view');v.innerHTML=posView();bindActions(v);const n=$('#posSearch');n.focus();n.setSelectionRange(start,start)});const apply=$('#applyPosFilter');if(apply)apply.onclick=()=>{const from=$('#posFrom').value,to=$('#posTo').value;if(from&&to&&from>to)return alert('تاريخ البداية يجب أن يكون قبل تاريخ النهاية.');posFrom=from;posTo=to;render()};const clear=$('#clearPosFilter');if(clear)clear.onclick=()=>{posFrom='';posTo='';render()}}
 function walletsView(){
@@ -899,8 +1247,8 @@ function partnersView(){
   return `<tr><td>${esc(p.name)}</td><td>${p.share}%</td><td>${money(wd)}</td><td>${money(paid)}</td><td>${money(repaid)}</td><td><strong>${money(Math.max(0,paid-repaid))}</strong></td><td>${btn('تسجيل حركة','partner-move:'+p.id)} ${btn('تعديل الاسم','edit-partner:'+p.id)}</td></tr>`;
  });
  let moves=db.partnerMoves.slice().reverse().map(x=>{
-  const kind=x.kind==='withdrawal'?'سحب شخصي':x.kind==='paid_for_network'?'دفع للشبكة من ماله':x.kind==='partner_repayment'?'سداد مستحق للشريك':'تسوية قديمة / سجل غير مرحّل';
-  const method=x.kind==='partner_repayment'?((x.paymentMethod||'cash')==='transfer'?'تحويل/محفظة':'نقدًا'):'—';
+  const kind=x.kind==='withdrawal'?'سحب شخصي':x.kind==='paid_for_network'?'دفع للشبكة من ماله':x.kind==='partner_repayment'?'سداد مستحق للشريك':x.kind==='profit_distribution'?'توزيع أرباح معتمد':'تسوية قديمة / سجل غير مرحّل';
+  const method=(x.kind==='partner_repayment'||x.kind==='profit_distribution')?((x.paymentMethod||'cash')==='transfer'?'تحويل/محفظة':'نقدًا'):'—';
   return `<tr><td>${esc(x.date)}</td><td>${esc(db.partners.find(p=>p.id===x.partnerId)?.name||'—')}</td><td>${kind}</td><td>${money(x.amount)}</td><td>${esc(method)}</td><td>${esc(x.note||'')}</td><td>${btn('طباعة','print-op:partnerMove:'+x.id)} ${x.expenseId||x.billId?'مرتبط بسجل أصلي':btn('حذف','delete:partnerMove:'+x.id)}</td></tr>`;
  });
  return `${sectionTitle('حسابات الشركاء',btn('تسجيل حركة شريك','add-partner-move','primary'))}<div class="note warning">السحب الشخصي ليس مصروف تشغيل. ودفع الشريك نيابة عن الشبكة يُنشئ مبلغًا مستحقًا له، ولا يُعامل كرأس مال. سداد المستحق يسجل كحركة مستقلة ويخصم من الصندوق فقط إذا كان نقدًا. الحركات القديمة من نوع «تسوية» تبقى سجلًا غير مرحّل ولا يعاد تفسيرها ماليًا تلقائيًا.</div><section class="panel"><h3>ملخص الشركاء</h3>${table(['الشريك','الحصة','السحوبات الشخصية','دفع من ماله للشبكة','المسترد للشريك','المستحق للشريك الآن','إجراءات'],rows)}</section><section class="panel"><h3>سجل الحركات</h3>${table(['التاريخ','الشريك','نوع الحركة','المبلغ','طريقة الدفع','ملاحظات','إجراء'],moves)}</section>`;
@@ -922,6 +1270,7 @@ const accountingChart=[
 {id:'3000',code:'3000',name:'حقوق ملكية — أرصدة افتتاحية',type:'equity'},
 {id:'3100',code:'3100',name:'رأس مال الشركاء المعتمد',type:'equity'},
 {id:'3200',code:'3200',name:'مسحوبات الشركاء',type:'equity'},
+{id:'3300',code:'3300',name:'توزيعات أرباح الشركاء المعتمدة',type:'equity'},
 {id:'4000',code:'4000',name:'إيرادات بيع الكروت لنقاط البيع',type:'revenue'},
 {id:'4010',code:'4010',name:'مردودات وخصومات المبيعات',type:'revenue'},
 {id:'4100',code:'4100',name:'إيرادات بيع الكروت عبر المحافظ',type:'revenue'},
@@ -999,16 +1348,21 @@ function accountingRecords(){
   if(x.kind==='withdrawal')one('auto:partner-withdrawal:'+x.id,x.date,x.id,'مسحوبات الشريك — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'3200','1000',x.amount,'derived',x.note||'');
   else if(x.kind==='paid_for_network')one('auto:partner-funded-cost:'+x.id,x.date,x.id,'مبلغ دفعه الشريك — يحتاج تصنيف طبيعة المصروف','6200','2100',x.amount,'derived',x.note||'', ['لم يرتبط هذا الدفع بمصروف/فاتورة محددة؛ عُرض في مصروفات تحتاج تصنيفًا.']);
   else if(x.kind==='partner_repayment'){const m=x.paymentMethod;one('auto:partner-repayment:'+x.id,x.date,x.id,'سداد مستحق للشريك — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'2100',methodAccount(m,'2195'),x.amount,'derived',x.note||'',m==='cash'||m==='transfer'?[]:['طريقة السداد غير محددة.'])}
+  else if(x.kind==='profit_distribution'){const m=x.paymentMethod;one('auto:partner-profit-distribution:'+x.id,x.date,x.id,'توزيع أرباح معتمد — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'3300',methodAccount(m,'2195'),x.amount,'derived',x.note||'',m==='cash'||m==='transfer'?[]:['طريقة دفع التوزيع غير محددة.'])}
   else if(x.kind==='capital_contribution')one('auto:partner-capital:'+x.id,x.date,x.id,'مساهمة رأسمالية للشريك','1000','3100',x.amount,'derived',x.note||'', ['يجب اعتماد هذه المساهمة من الشركاء قبل اعتماد رأس المال.']);
  });
  (db.cashMovements||[]).forEach(x=>{
-  if(x.kind==='in')one('auto:cash-in:'+x.id,x.date,x.id,'قبض نقدي إضافي — '+(x.category||'مصدر غير مصنف'),'1000','2190',x.amount,'derived',x.note||'', ['مصدر القبض لم يُصنّف بعد؛ لم يُسجل كإيراد لتجنب تضخيم الربح.']);
+  if(x.adjustmentType==='cash-count-shortage')one('auto:cash-count:'+x.id,x.date,x.id,'فرق جرد نقدي — عجز غير مصنف','1180','1000',x.amount,'derived',x.note||'', ['فرق جرد نقدي معلق للتسوية؛ لم يُسجل كمصروف تشغيلي.']);
+  else if(x.adjustmentType==='cash-count-surplus')one('auto:cash-count:'+x.id,x.date,x.id,'فرق جرد نقدي — زيادة غير مصنفة','1000','2190',x.amount,'derived',x.note||'', ['فرق جرد نقدي معلق للتسوية؛ لم يُسجل كإيراد تشغيلي.']);
+  else if(x.kind==='in')one('auto:cash-in:'+x.id,x.date,x.id,'قبض نقدي إضافي — '+(x.category||'مصدر غير مصنف'),'1000','2190',x.amount,'derived',x.note||'', ['مصدر القبض لم يُصنّف بعد؛ لم يُسجل كإيراد لتجنب تضخيم الربح.']);
   else one('auto:cash-out:'+x.id,x.date,x.id,'صرف نقدي إضافي — '+(x.category||'مصروف غير مصنف'),'6100','1000',x.amount,'derived',x.note||'', ['سبب الصرف يحتاج ربطًا بحساب مصروف محدد.']);
  });
  (db.stockAdjustments||[]).forEach(x=>{
   const v=cost(x.cardId,Math.abs(num(x.delta)));
-  if(num(x.delta)>0)one('auto:stock-adjust:'+x.id,x.date,x.id,'زيادة مخزون — '+((card(x.cardId)||{}).name||''),'1200','4190',v,'derived',x.note||'');
-  else if(num(x.delta)<0)one('auto:stock-adjust:'+x.id,x.date,x.id,'نقص/تسوية مخزون — '+((card(x.cardId)||{}).name||''),'5100','1200',v,'derived',x.note||'');
+  const inventoryAccount=x.locationType==='wallet'?'1210':x.locationType==='pos'?'1220':'1200';
+  const locationLabel=x.locationType==='wallet'?' — مخزون محفظة':x.locationType==='pos'?' — عهدة نقطة بيع':'';
+  if(num(x.delta)>0)one('auto:stock-adjust:'+x.id,x.date,x.id,'زيادة مخزون'+locationLabel+' — '+((card(x.cardId)||{}).name||''),inventoryAccount,'4190',v,'derived',x.note||'');
+  else if(num(x.delta)<0)one('auto:stock-adjust:'+x.id,x.date,x.id,'نقص/تسوية مخزون'+locationLabel+' — '+((card(x.cardId)||{}).name||''),'5100',inventoryAccount,v,'derived',x.note||'');
  });
  (db.journalEntries||[]).forEach(x=>{if(Array.isArray(x.lines))add(x.id,x.date,x.reference||x.id,x.description||'قيد يومية يدوي',x.lines,'manual',x.note||'',x.reversalOf?['قيد عكسي لقيد سابق.']:[])});
  // A verified physical cash count is reconciled against the recorded cash ledger before its date.
@@ -1123,7 +1477,7 @@ function reportsView(){
  let hasReceivableMoves=db.deliveries.some(x=>x.mode==='credit')||db.consignmentSettlements.length>0||db.payments.length>0;
  let hasProfitInputs=db.deliveries.length>0||db.consignmentSettlements.length>0||db.walletSales.length>0||db.expenses.length>0||db.bills.length>0;
  let closeRows=db.closures.slice().reverse().map(c=>`<tr><td>${esc(c.date)}</td><td>${esc(c.period)}</td><td>${esc(c.status==='review_snapshot'?'ملخص مراجعة — غير معتمد':c.status==='approved'?'معتمد':'سجل قديم — الحالة تحتاج مراجعة')}</td><td>${money(c.cash)}</td><td>${money(c.debt)}</td><td>${money(c.profit)}</td><td>${esc(c.note||'')}</td></tr>`);
- return `${sectionTitle('التقارير والإقفال',btn('طباعة / حفظ PDF','print-report','primary')+' '+btn('مراجعة السلامة','integrity')+' '+btn('اقتراح إقفال الفترة','close-period'))}
+ return `${sectionTitle('التقارير والإقفال',btn('طباعة / حفظ PDF','print-report','primary')+' '+btn('مراجعة السلامة','integrity')+' '+btn('الإدارة الشهرية','close-period'))}
  <div class="grid">
   ${metric('صافي الحركات النقدية المسجلة',money(cashBalance()),'لا يشمل التحويلات أو رصيدًا افتتاحيًا')}
   ${metric('إجمالي التحصيل عبر تحويل/محفظة',money(transferReceipts()),'تحصيل غير نقدي مسجل، وليس رصيد حساب')}
@@ -1193,24 +1547,72 @@ function editDelivery(id){
 }
 function editPayment(id){
  const old=db.payments.find(x=>x.id===id);if(!old)return alert('لم نعثر على عملية التحصيل هذه.');
- formModal('تعديل تحصيل مبلغ',[field('تاريخ التحصيل','date','date',old.date||dateNow(),null,true),field('المبلغ المستلم','amount','number',old.amount,null,true),field('طريقة الاستلام','method','text',old.method||'cash',[['cash','نقدًا'],['transfer','محفظة / تحويل']],true),textArea('ملاحظات / رقم مرجع','note',old.note||'')],d=>{
-  const amount=Number(d.amount);if(!validDateValue(d.date))return alert('أدخل تاريخ التحصيل الصحيح.'),false;
+ formModal('تعديل تحصيل مبلغ',[
+  field('تاريخ التحصيل','date','date',old.date||dateNow(),null,true),
+  field('المبلغ المستلم','amount','number',old.amount,null,true),
+  field('طريقة الاستلام','method','text',old.method||'cash',[['cash','نقدًا'],['transfer','محفظة / تحويل']],true),
+  textArea('ملاحظات / رقم مرجع','note',old.note||'')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!validDateValue(d.date))return alert('أدخل تاريخ التحصيل الصحيح.'),false;
   if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;
-  const maxAllowed=Math.max(0,posDebt(old.posId)+num(old.amount));if(amount>maxAllowed+0.009)return alert('المبلغ أكبر من الدين الممكن تسديده حسب السجل ('+money(maxAllowed)+').'),false;
+  if(!['cash','transfer'].includes(d.method))return alert('اختر طريقة استلام صحيحة.'),false;
+  const paymentPeriod=monthlyPeriodForDate(d.date);
+  if((db.periods||[]).length&&(!paymentPeriod||paymentPeriod.status!=='OPEN'))return alert('تاريخ التحصيل يجب أن يقع داخل فترة مالية مفتوحة.'),false;
+  const savedPayments=db.payments;
+  let currentOpen=[];
+  try{
+   db.payments=savedPayments.filter(x=>String(x.id)!==String(old.id));
+   currentOpen=monthlyDebtAnalysis('9999-12-31').items
+    .filter(x=>x.posId===old.posId&&x.remaining>0.009&&x.date<=d.date)
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+  }finally{db.payments=savedPayments}
+  const available=currentOpen.reduce((n,x)=>n+x.remaining,0);
+  if(amount>available+0.009)return alert('المبلغ يتجاوز الدين المتبقي بعد استبعاد هذا التحصيل واحتساب جميع التحصيلات الأخرى، بما فيها المسجلة بتاريخ لاحق. المتاح: '+money(available)+'.'),false;
   let updatedAllocations=null;
   if(Array.isArray(old.allocations)&&old.allocations.length){
-   const keep=db.payments;db.payments=keep.filter(x=>x.id!==old.id);const ref=old.allocations[0];
-   const target=simpleOutstandingItems(old.posId).find(x=>x.sourceType===ref.sourceType&&String(x.sourceId)===String(ref.sourceId));db.payments=keep;
-   if(!target)return alert('تعذر العثور على الدين المرتبط بهذا التحصيل. راجع كشف الحساب.'),false;
-   if(amount>target.remaining+0.009)return alert('المبلغ أكبر من المتبقي على الدين المحدد ('+money(target.remaining)+').'),false;
-   updatedAllocations=[{sourceType:ref.sourceType,sourceId:ref.sourceId,amount}];
+   let budget=amount;updatedAllocations=[];
+   // Preserve the original invoice split first; reduce from the last allocation if the receipt is reduced.
+   for(const allocation of old.allocations){
+    if(budget<=0.009)break;
+    const due=currentOpen.find(x=>x.sourceType===allocation.sourceType&&String(x.sourceId)===String(allocation.sourceId));
+    if(!due||due.remaining<=0.009)continue;
+    const applied=Math.min(budget,Math.max(0,num(allocation.amount)),due.remaining);
+    if(applied>0.009){
+     updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||allocation.originPeriodId||null});
+     budget-=applied;
+    }
+   }
+   // If the amount increased, or an original invoice has been settled by another receipt,
+   // allocate only the residual to the oldest currently outstanding eligible invoices.
+   for(const due of currentOpen){
+    if(budget<=0.009)break;
+    const already=updatedAllocations.filter(x=>x.sourceType===due.sourceType&&String(x.sourceId)===String(due.sourceId)).reduce((n,x)=>n+x.amount,0);
+    const still=Math.max(0,due.remaining-already);
+    const applied=Math.min(budget,still);
+    if(applied>0.009){
+     updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});
+     budget-=applied;
+    }
+   }
+   if(budget>0.009||Math.abs(updatedAllocations.reduce((n,x)=>n+x.amount,0)-amount)>0.02)return alert('تعذر الحفاظ على توزيع التحصيل على الفواتير دون تجاوز الأرصدة المتبقية. لم يتم تعديل العملية.'),false;
+  }else if(old.allocationMode==='fifo'){
+   let budget=amount;updatedAllocations=[];
+   for(const due of currentOpen){
+    if(budget<=0.009)break;
+    const applied=Math.min(budget,due.remaining);
+    if(applied>0.009){updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});due.remaining-=applied;budget-=applied;}
+   }
+   if(budget>0.009)return alert('لا توجد فواتير متبقية كافية لتخصيص مبلغ التحصيل. لم يتم التعديل.'),false;
   }
   const previous=old.date+' / '+money(old.amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا');
-  old.date=d.date;old.amount=amount;old.method=d.method;old.note=d.note||'';if(updatedAllocations)old.allocations=updatedAllocations;
-  addAudit('تعديل تحصيل نقطة بيع',(pos(old.posId)?.name||'')+' / من: '+previous+' ← إلى: '+old.date+' / '+money(amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا'));return persist();
+  old.date=d.date;old.amount=amount;old.method=d.method;old.note=d.note||'';
+  if(updatedAllocations)old.allocations=updatedAllocations;
+  old.collectionPeriodId=paymentPeriod?.id||old.collectionPeriodId||null;
+  addAudit('تعديل تحصيل نقطة بيع',(pos(old.posId)?.name||'')+' / من: '+previous+' ← إلى: '+old.date+' / '+money(amount)+' / '+(old.method==='transfer'?'محفظة / تحويل':'نقدًا')+' / فواتير مرتبطة '+(old.allocations?.length||0));
+  return persist();
  });
 }
-
 function addDelivery(posId=null){
  if(!db.cards.length||!db.pos.length)return alert('أضف فئة كروت ونقطة بيع أولًا.');
  const optionalCardField=(label,name)=>'<div class="field"><label>'+label+'</label><select name="'+name+'"><option value="">— بدون فئة —</option>'+optsCards().map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></div>';
@@ -1232,12 +1634,53 @@ function addConsignmentSettlement(posId=null){
   if(!Number.isFinite(sold)||!Number.isFinite(ret)||sold<0||ret<0||Math.floor(sold)!==sold||Math.floor(ret)!==ret||sold+ret<=0)return alert('الكميات يجب أن تكون أعدادًا صحيحة غير سالبة، ومجموعها أكبر من صفر.'),false;
   if(!Number.isFinite(price)||price<0||(sold>0&&price<=0))return alert('سعر التسوية غير صحيح.'),false;
   if(!Number.isFinite(sold*price))return alert('إجمالي مبيعات الأمانة يتجاوز النطاق المالي المدعوم.'),false;
-  const available=sum(db.deliveries.filter(x=>x.posId===d.posId&&x.cardId===d.cardId&&x.mode==='consignment'),x=>x.qty)-sum(db.consignmentSettlements.filter(x=>x.posId===d.posId&&x.cardId===d.cardId),x=>num(x.soldQty)+num(x.returnQty));
+  const available=sum(db.deliveries.filter(x=>x.posId===d.posId&&x.cardId===d.cardId&&x.mode==='consignment'),x=>x.qty)-sum(db.consignmentSettlements.filter(x=>x.posId===d.posId&&x.cardId===d.cardId),x=>num(x.soldQty)+num(x.returnQty))+sum(db.stockAdjustments.filter(x=>x.cardId===d.cardId&&x.locationType==='pos'&&x.locationId===d.posId),x=>x.delta);
   if(sold+ret>available)return alert('الكمية أكبر من الكروت المتاحة بالأمانة. المتاح: '+available+' كرت.'),false;
   db.consignmentSettlements.push({id:uid(),date:d.date,posId:d.posId,cardId:d.cardId,soldQty:sold,returnQty:ret,unitPrice:price,note:d.note});addAudit('تسوية أمانة',pos(d.posId).name+' / '+cardLabel(d.cardId)+' / مبيع '+sold+' / مرتجع '+ret);return persist();
  })
 }
-function addPayment(posId=null){if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');formModal('تسجيل تحصيل من نقطة بيع',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('المبلغ المحصّل','amount','number',0,null,true),field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),textArea('ملاحظات / رقم مرجع','note','')],d=>{const amount=Number(d.amount);if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;if(d.method!=='cash'&&d.method!=='transfer')return alert('اختر طريقة تحصيل صحيحة.'),false;if(amount>Math.max(0,posDebt(d.posId))+0.009)return alert('المبلغ أكبر من الدين المسجل حاليًا ('+money(Math.max(0,posDebt(d.posId)))+'). راجع الرصيد أو سجّل التسوية الصحيحة أولًا.'),false;db.payments.push({id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note});addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount));return persist()})}
+function addPayment(posId=null){
+ if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');
+ formModal('تسجيل تحصيل من نقطة بيع — يوزّع على الديون المتبقية أولًا',[
+  field('التاريخ','date','date',dateNow(),null,true),
+  field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),
+  field('المبلغ المحصّل','amount','number',0,null,true),
+  field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),
+  field('طريقة تخصيص المبلغ','allocationMode','text','fifo',[['fifo','تخصيص صريح لأقدم الديون المتبقية'],['unallocated','إبقاء المبلغ غير مخصص — يحتاج مراجعة']],true),
+  textArea('ملاحظات / رقم مرجع','note','')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;
+  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;
+  if(!['cash','transfer'].includes(d.method))return alert('اختر طريقة تحصيل صحيحة.'),false;
+  if(!['fifo','unallocated'].includes(d.allocationMode))return alert('اختر طريقة تخصيص صحيحة.'),false;
+  const paymentPeriod=monthlyPeriodForDate(d.date);
+  if((db.periods||[]).length&&(!paymentPeriod||paymentPeriod.status!=='OPEN'))return alert('تاريخ التحصيل يجب أن يقع داخل فترة مالية مفتوحة. لا يمكن التسجيل بتاريخ خارج الفترات أو داخل فترة قيد المراجعة/مغلقة.'),false;
+  // Use the latest recorded debt state, not the historical balance as of the typed date.
+  // This prevents a backdated receipt from being allocated to an invoice already paid later.
+  const currentOpen=monthlyDebtAnalysis('9999-12-31').items
+   .filter(x=>x.posId===d.posId&&x.remaining>0.009&&x.date<=d.date)
+   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+  const available=currentOpen.reduce((n,x)=>n+x.remaining,0);
+  if(amount>available+0.009)return alert('المبلغ أكبر من الدين المتبقي فعليًا حتى بعد احتساب التحصيلات المسجلة لاحقًا. المتاح للفواتير المستحقة في تاريخ التحصيل: '+money(available)+'.'),false;
+  const allocations=[];
+  if(d.allocationMode==='fifo'){
+   let remaining=amount;
+   for(const due of currentOpen){
+    if(remaining<=0.009)break;
+    const applied=Math.min(remaining,due.remaining);
+    if(applied>0.009)allocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});
+    remaining-=applied;
+   }
+   if(remaining>0.009)return alert('تعذر توزيع كامل المبلغ على الديون المتبقية. لم يتم حفظ التحصيل.'),false;
+  }
+  const row={id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note,allocationMode:d.allocationMode,collectionPeriodId:paymentPeriod?.id||null};
+  if(allocations.length)row.allocations=allocations;
+  db.payments.push(row);
+  addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount)+' / '+(allocations.length?'تخصيص صريح على '+allocations.length+' فاتورة':'تحصيل غير مخصص يحتاج مراجعة'));
+  return persist();
+ });
+}
 function addLoad(walletId=null){
  if(!db.wallets.length||!db.cards.length)return alert('أضف محفظة وفئة كروت أولًا.');
  formModal('تحويل مخزون إلى محفظة',[field('التاريخ','date','date',dateNow(),null,true),field('المحفظة','walletId','text',walletId||db.wallets[0].id,optsWallets(),true),field('فئة الكرت','cardId','text',db.cards[0].id,optsCards(),true),field('الكمية','qty','number',1,null,true),textArea('ملاحظات','note','')],d=>{const q=Number(d.qty);if(!wallet(d.walletId)||!card(d.cardId))return alert('اختر محفظة وفئة موجودتين.'),false;if(!Number.isFinite(q)||q<=0||Math.floor(q)!==q||q>stockMain(d.cardId))return alert('أدخل عدد كروت صحيحًا لا يتجاوز المخزون الرئيسي المتاح.'),false;db.walletLoads.push({id:uid(),date:d.date,walletId:d.walletId,cardId:d.cardId,qty:q,note:d.note});addAudit('تحويل مخزون لمحفظة',wallet(d.walletId).name+' / '+cardLabel(d.cardId)+' / '+q);return persist()})
@@ -1371,10 +1814,17 @@ function integrity(){
  db.expenses.forEach(x=>{if(!validDateValue(x.date)||!String(x.name||'').trim()||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ مصروف غير صحيح: '+x.id);if(x.paymentMethod!==undefined&&!['cash','transfer','partner'].includes(x.paymentMethod))issues.push('طريقة دفع غير معروفة للمصروف: '+x.id);if(x.paymentMethod==='partner'&&!db.partners.some(p=>p.id===x.partnerId))issues.push('مصروف مدفوع من شريك لا يشير إلى شريك موجود: '+x.id)});
  db.bills.forEach(x=>{if(!String(x.name||'').trim()||!validDateValue(x.due)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('اسم أو موعد أو مبلغ التزام غير صحيح: '+x.id);if(x.paid&&x.paidMethod!==undefined&&!['cash','transfer','partner'].includes(x.paidMethod))issues.push('طريقة دفع غير معروفة للالتزام المسدد: '+x.id);if(x.paid&&x.paidMethod==='partner'&&!db.partners.some(p=>p.id===x.paidPartnerId))issues.push('التزام مدفوع من شريك لا يشير إلى شريك موجود: '+x.id)});
  db.cashMovements.forEach(x=>{if(!validDateValue(x.date)||!['in','out'].includes(x.kind)||!String(x.category||'').trim()||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('حركة صندوق نقدية غير صحيحة: '+x.id)});db.partners.forEach(p=>{if(num(p.share)<0)issues.push('حصة غير صحيحة للشريك '+p.name);if(!p.id||!String(p.name||'').trim())issues.push('بيانات شريك ناقصة.')});if(db.partners.length&&Math.abs(sum(db.partners,p=>num(p.share))-100)>0.001)issues.push('مجموع نسب الشركاء لا يساوي 100%. راجع النسب قبل اعتماد أي توزيع.');
- db.partnerMoves.forEach(x=>{if(!db.partners.some(p=>p.id===x.partnerId))issues.push('حركة مرتبطة بشريك غير موجودة: '+x.id);if(!validDateValue(x.date)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ حركة شريك غير صحيح: '+x.id);if(!['withdrawal','paid_for_network','partner_repayment','settlement'].includes(x.kind))issues.push('نوع حركة شريك غير معروف: '+x.id);if(x.kind==='partner_repayment'&&!['cash','transfer'].includes(x.paymentMethod||'cash'))issues.push('طريقة دفع غير معروفة لسداد مستحق الشريك: '+x.id)});db.partners.forEach(p=>{if(partnerOutstanding(p.id)<-0.009)issues.push('قيمة السداد المسجلة للشريك أكبر من المبالغ التي دفعها للشبكة: '+p.name)});
+ db.partnerMoves.forEach(x=>{if(!db.partners.some(p=>p.id===x.partnerId))issues.push('حركة مرتبطة بشريك غير موجودة: '+x.id);if(!validDateValue(x.date)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ حركة شريك غير صحيح: '+x.id);if(!['withdrawal','paid_for_network','partner_repayment','profit_distribution','settlement'].includes(x.kind))issues.push('نوع حركة شريك غير معروف: '+x.id);if((x.kind==='partner_repayment'||x.kind==='profit_distribution')&&!['cash','transfer'].includes(x.paymentMethod||'cash'))issues.push('طريقة دفع غير معروفة لسداد/توزيع الشريك: '+x.id)});db.partners.forEach(p=>{if(partnerOutstanding(p.id)<-0.009)issues.push('قيمة السداد المسجلة للشريك أكبر من المبالغ التي دفعها للشبكة: '+p.name)});
+ // Monthly period integrity checks are additive; do not rewrite or auto-correct history.
+ (db.periods||[]).forEach(p=>{if(!monthlyValidRange(p.startDate,p.endDate))issues.push('نطاق فترة مالية غير صالح: '+(p.name||p.id));if(!['OPEN','REVIEW','CLOSED','LOCKED'].includes(p.status))issues.push('حالة فترة مالية غير معروفة: '+(p.name||p.id));if(['CLOSED','LOCKED'].includes(p.status)&&!monthlySnapshotFor(p.id))issues.push('فترة مغلقة دون لقطة إقفال محفوظة: '+(p.name||p.id));});
+ const orderedPeriods=(db.periods||[]).slice().sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+ for(let i=1;i<orderedPeriods.length;i++)if(orderedPeriods[i].startDate<=orderedPeriods[i-1].endDate)issues.push('تداخل بين الفترتين '+monthlyPeriodLabel(orderedPeriods[i-1])+' و '+monthlyPeriodLabel(orderedPeriods[i]));
+ if((db.periods||[]).filter(p=>p.status==='OPEN'||p.status==='REVIEW').length>1)issues.push('يوجد أكثر من فترة مالية نشطة في الوقت نفسه.');
+ (db.profitDistributions||[]).forEach(d=>{const snap=monthlySnapshotFor(d.sourcePeriodId);if(!db.partners.some(p=>p.id===d.partnerId)||!validDateValue(d.date)||!Number.isFinite(Number(d.amount))||num(d.amount)<=0)issues.push('سجل توزيع أرباح غير صالح: '+d.id);if(!snap)issues.push('توزيع مرتبط بفترة ليس لها إقفال: '+d.id);});
+ (db.periodSnapshots||[]).forEach(s=>{if(!db.periods.some(p=>p.id===s.periodId))issues.push('لقطة إقفال مرتبطة بفترة غير موجودة: '+s.id);if(s.metrics&&(!Number.isFinite(Number(s.metrics.netProfit))||!Number.isFinite(Number(s.cash?.closing))))issues.push('بيانات لقطة الإقفال غير مكتملة: '+s.id);});
  const unique=[...new Set(issues)];showModal('اختبار سلامة البيانات','<p>عدد الملاحظات: <b>'+unique.length+'</b></p>'+(unique.length?'<ul>'+unique.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<div class="note">اجتازت البيانات الفحوص الأساسية المحلية. هذا لا يغني عن مطابقة الأرصدة مع الجرد الفعلي وكشوف المحافظ.</div>')+'<p class="small muted">الاختبار لا يعدّل البيانات تلقائيًا. راجع كل تنبيه قبل اعتماد الحسابات.</p>');
 }
-function closePeriod(){let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='فترة المراجعة: '+period+'\nتاريخ لقطة الأرصدة: '+dateNow()+'\nصافي الحركات النقدية المسجلة حتى اللقطة: '+money(cashBalance())+'\nديون نقاط البيع الحالية: '+money(posReceivables())+'\nالالتزامات غير المسددة الحالية: '+money(obligations())+'\nتقدير الربح التراكمي: '+money(profitEstimate())+'\n\nتنبيه: الأرقام لقطة حالية/تراكمية وليست حساب حركة الشهر وحده أو قيد إقفال مزدوج. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,status:'review_snapshot',approved:false});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist();render()}
+function closePeriod(){tab='periods';render();return;let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='فترة المراجعة: '+period+'\nتاريخ لقطة الأرصدة: '+dateNow()+'\nصافي الحركات النقدية المسجلة حتى اللقطة: '+money(cashBalance())+'\nديون نقاط البيع الحالية: '+money(posReceivables())+'\nالالتزامات غير المسددة الحالية: '+money(obligations())+'\nتقدير الربح التراكمي: '+money(profitEstimate())+'\n\nتنبيه: الأرقام لقطة حالية/تراكمية وليست حساب حركة الشهر وحده أو قيد إقفال مزدوج. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,status:'review_snapshot',approved:false});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist();render()}
 function quick(){showModal('تسجيل عملية',`<div class="actions">${btn('تسليم كروت','add-delivery','primary')}${btn('تحصيل دين','add-payment')}${btn('مصروف','add-expense')}${btn('تحميل محفظة','add-load')}${btn('بيع محفظة','add-wallet-sale')}${btn('حركة شريك','add-partner-move')}</div><p class="small muted">اختر نوع العملية. ستُفتح نافذة منفصلة لإدخال التفاصيل.</p>`);$('#modalBody').querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.stopPropagation();closeModal();runAction(b.dataset.action)})}
 function restoreCommittedState(){
  let snapshot;
@@ -1411,6 +1861,7 @@ function restoreCommittedState(){
  }
 }
 function persist(){
+ if(!authorizedRestoreWrite&&!authorizedCloseCommit&&typeof monthlyPrepareWrite==='function'&&!monthlyPrepareWrite())return false;
  if(recoveryInfo.blocked){
   restoreCommittedState();
   alert('تم إيقاف الحفظ لحماية البيانات المعزولة. احتفظ بالنسخة الخام خارج التطبيق ثم استعد نسخة JSON سليمة من زر الاستعادة؛ تنزيل النسخة الخام وحده لا يعيد تفعيل التسجيل.');
@@ -1459,7 +1910,7 @@ function requestPrint(jobName){
  }
  try{window.print();return true}catch(e){alert('تعذر فتح واجهة الطباعة: '+(e&&e.message?e.message:'خطأ غير معروف'));return false}
 }
-window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove();alert(message||'تعذر فتح واجهة الطباعة.')}};
+window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill','printing-monthly-period');['billPrintSheet','monthlyPeriodPrintSheet'].forEach(id=>{const sheet=document.getElementById(id);if(sheet)sheet.remove()});alert(message||'تعذر فتح واجهة الطباعة.')}};
 window.onNativeImageResult=function(ok,message){alert(message||(ok?'تم حفظ صورة الكشف.':'تعذر حفظ صورة الكشف.'))};
 window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم تصدير سجل التدقيق.':'تعذر تصدير سجل التدقيق.'))};
 
@@ -1484,30 +1935,63 @@ function restore(){
  $('#restoreFile').click();
 }
 function applyBackupText(text,fileName){
- let previous=db;
+ const previous=db;
+ let restoreFlagWasSet=authorizedRestoreWrite;
  try{
   const x=JSON.parse(text);
+  if(!x||typeof x!=='object'||Array.isArray(x)||x.version!==1)throw Error('format');
   const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
-  if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
-  if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
+  if(!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
+  if(x.consignmentSettlements===undefined)x.consignmentSettlements=[];
+  const optionalMonthlyArrays=['periods','periodSnapshots','profitDistributions'];
+  for(const key of optionalMonthlyArrays){
+   if(x[key]===undefined)x[key]=[];
+   else if(!Array.isArray(x[key]))throw Error('monthly-'+key);
+  }
+  if(x.settings.currentPeriodId===undefined)x.settings.currentPeriodId=null;
+  if(x.settings.currentPeriodId!==null&&typeof x.settings.currentPeriodId!=='string')throw Error('current-period');
+  const periodIds=new Set();
+  for(const p of x.periods){
+   if(!p||typeof p!=='object'||typeof p.id!=='string'||!p.id||periodIds.has(p.id)||!monthlyValidRange(p.startDate,p.endDate)||!['OPEN','REVIEW','CLOSED','LOCKED'].includes(p.status))throw Error('period-row');
+   periodIds.add(p.id);
+  }
+  const orderedPeriods=x.periods.slice().sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+  for(let i=1;i<orderedPeriods.length;i++)if(orderedPeriods[i].startDate<=orderedPeriods[i-1].endDate)throw Error('period-overlap');
+  const snapshotPeriodIds=new Set();
+  const snapshotIds=new Set();
+  for(const s of x.periodSnapshots){
+   if(!s||typeof s!=='object'||typeof s.id!=='string'||!s.id||snapshotIds.has(s.id)||!periodIds.has(s.periodId)||!s.cash||!Number.isFinite(Number(s.cash.closing)))throw Error('period-snapshot');
+   snapshotIds.add(s.id);snapshotPeriodIds.add(s.periodId);
+  }
+  if(x.periods.some(p=>['CLOSED','LOCKED'].includes(p.status)&&!snapshotPeriodIds.has(p.id)))throw Error('closed-period-without-snapshot');
+  const partnerIds=new Set(x.partners.filter(p=>p&&typeof p.id==='string').map(p=>p.id));
+  const distributionIds=new Set();
+  for(const d of x.profitDistributions){
+   if(!d||typeof d!=='object'||typeof d.id!=='string'||!d.id||distributionIds.has(d.id)||!periodIds.has(d.sourcePeriodId)||!partnerIds.has(d.partnerId)||!validDateValue(d.date)||!Number.isFinite(Number(d.amount))||num(d.amount)<=0)throw Error('profit-distribution');
+   distributionIds.add(d.id);
+  }
+  if(x.settings.currentPeriodId!==null&&!x.periods.some(p=>p.id===x.settings.currentPeriodId&&['OPEN','REVIEW'].includes(p.status)))throw Error('current-period-reference');
   if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
   const wasBlocked=recoveryInfo.blocked;
-  recoveryInfo.blocked=false; // An explicitly confirmed, structurally valid backup is the authorized recovery path.
+  recoveryInfo.blocked=false;
   db=x;
   addAudit('استعادة نسخة احتياطية',fileName||'نسخة JSON');
-  if(!persist()){
+  authorizedRestoreWrite=true;
+  let saved=false;
+  try{saved=persist()}finally{authorizedRestoreWrite=restoreFlagWasSet}
+  if(!saved){
    db=previous;
    recoveryInfo.blocked=wasBlocked;
    return false;
   }
  }catch(err){
   db=previous;
-  alert('تعذرت استعادة النسخة أو حفظها. لم تُعتمد بيانات النسخة المختارة. تحقق من سلامة الملف ومساحة التخزين.');
+  authorizedRestoreWrite=restoreFlagWasSet;
+  alert('تعذرت استعادة النسخة أو حفظها. لم تُعتمد بيانات النسخة المختارة. تحقق من سلامة ملف الفترات واللقطات والقيود ومساحة التخزين.');
   return false;
  }
  try{
-  closeModal();
-  render();
+  closeModal();render();
  }catch(renderError){
   alert('حُفظت النسخة الاحتياطية، لكن تعذر تحديث الواجهة. أعد فتح التطبيق للتحقق من البيانات.');
   return true;
@@ -1608,7 +2092,7 @@ function deleteTransaction(type,id){
  }else if(type==='partnerMove'){
   row=find('partnerMoves');if(!row)return alert('حركة الشريك غير موجودة.');
   if(row.expenseId||row.billId)return alert('هذه الحركة ناتجة عن مصروف أو فاتورة. احذف السجل الأصلي من شاشة المصروفات والالتزامات حتى تُعالج الارتباطات معًا.');
-  label='حذف حركة شريك';detail=(db.partners.find(p=>p.id===row.partnerId)?.name||'')+' / '+row.kind+' / '+money(row.amount);linked=[['partnerMoves',row]];
+  label='حذف حركة شريك';detail=(db.partners.find(p=>p.id===row.partnerId)?.name||'')+' / '+row.kind+' / '+money(row.amount);linked=[['partnerMoves',row]];if(row.kind==='profit_distribution'){const distribution=db.profitDistributions.find(x=>String(x.id)===String(row.distributionId));if(!distribution)return alert('سجل توزيع الأرباح المرتبط بهذه الحركة غير موجود. أُوقف الحذف لحماية سجل التوزيع.');linked.push(['profitDistributions',distribution]);}
  }else return alert('نوع العملية غير مدعوم للحذف حتى الآن.');
  if(!confirm('تأكيد حذف '+label+'؟\n'+detail+'\nسيُعاد احتساب الأرصدة والتقارير من الحركات المتبقية، وسيُسجّل الحذف في سجل التدقيق.'))return false;
  for(const [key,item] of linked)remove(key,item);
@@ -1617,7 +2101,7 @@ function deleteTransaction(type,id){
  if(!persist()){render();return false}
  render();return true;
 }
-function runAction(a){if(typeof a!=='string'||!a.trim())return alert('تعذر تنفيذ الزر: لم يتم تحديد الإجراء.');let [act,id]=a.split(':');switch(act){case'undo-delete':return undoDeletedTransaction(id);case'delete':{const parts=a.split(':');return deleteTransaction(parts[1],parts.slice(2).join(':'))}case'edit-delivery':return editDelivery(id);case'edit-payment':return editPayment(id);case'pay-debt-delivery':return paySpecificDebt('delivery',id);case'pay-debt-consignment':return paySpecificDebt('consignment',id);case'quick':return quick();case'add-cash-movement':return addCashMovement();case'add-journal-entry':return addJournalEntry();case'reverse-journal':return reverseJournalEntry(id);case'print-bill':return printBill(id);case'print-expense':return printExpense(id);case'print-op':{const parts=a.slice('print-op:'.length).split(':');const kind=parts.shift();return printOperation(kind,parts.join(':'));}case'accounting-filter':{const f=$('#ledgerFrom')?.value||'',t=$('#ledgerTo')?.value||'',a=$('#ledgerAccount')?.value||'';if(f&&!validDateValue(f))return alert('تاريخ البداية غير صالح.');if(t&&!validDateValue(t))return alert('تاريخ النهاية غير صالح.');if(f&&t&&f>t)return alert('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية.');ledgerFrom=f;ledgerTo=t;ledgerAccount=a;return render()}case'accounting-reset-filter':ledgerFrom='';ledgerTo='';ledgerAccount='';return render();case'print-accounting':return printAccounting();case'open-pos':selectedPosId=id;posFrom='';posTo='';tab='pos-detail';return render();case'back-pos':tab='pos';return render();case'print-pos':return printPosStatement();case'print-batch-invoice':return printDeliveryBatchInvoice(id);case'image-pos':return exportPosImage();case'add-card':return addCard();case'edit-card':return addCard(id);case'add-pos':return addPos();case'edit-pos':return addPos(id);case'add-wallet':return addWallet();case'add-delivery':return addDelivery();case'deliver-to':return addDelivery(id);case'add-payment':return addPayment();case'payment-to':return addPayment(id);case'consign-to':return addConsignmentSettlement(id);case'add-load':return addLoad();case'load-to':return addLoad(id);case'add-wallet-sale':return addWalletSale();case'sale-from':return addWalletSale(id);case'add-expense':return addExpense();case'add-bill':return addBill();case'edit-bill':return editBill(id);case'pay-bill':return payBill(id);case'add-partner-move':return addPartnerMove();case'partner-move':return addPartnerMove(id);case'statement':return statement(id);case'wallet-stock':return walletStock(id);case'backup':return backup();case'restore':return restore();case'recovery-backup':return exportRecoveryCopy();case'export-audit':return exportAudit();case'save-settings':return saveSettings();case'change-pin':return changePin();case'integrity':return integrity();case'close-period':return closePeriod();case'print-report':return requestPrint('تقرير SPIDER NET');case'adjust-stock':return adjustStock(id);case'edit-partner':return editPartner(id);default:return alert('هذا الزر مرتبط بإجراء غير معروف: '+act+'، لم تُنفذ أي تغييرات. راجع ربط الأزرار.');}}
+function runAction(a){if(typeof a!=='string'||!a.trim())return alert('تعذر تنفيذ الزر: لم يتم تحديد الإجراء.');let [act,id]=a.split(':');switch(act){case'undo-delete':return undoDeletedTransaction(id);case'delete':{const parts=a.split(':');return deleteTransaction(parts[1],parts.slice(2).join(':'))}case'edit-delivery':return editDelivery(id);case'edit-payment':return editPayment(id);case'pay-debt-delivery':return paySpecificDebt('delivery',id);case'pay-debt-consignment':return paySpecificDebt('consignment',id);case'quick':return quick();case'add-cash-movement':return addCashMovement();case'add-journal-entry':return addJournalEntry();case'reverse-journal':return reverseJournalEntry(id);case'print-bill':return printBill(id);case'print-expense':return printExpense(id);case'print-op':{const parts=a.slice('print-op:'.length).split(':');const kind=parts.shift();return printOperation(kind,parts.join(':'));}case'accounting-filter':{const f=$('#ledgerFrom')?.value||'',t=$('#ledgerTo')?.value||'',a=$('#ledgerAccount')?.value||'';if(f&&!validDateValue(f))return alert('تاريخ البداية غير صالح.');if(t&&!validDateValue(t))return alert('تاريخ النهاية غير صالح.');if(f&&t&&f>t)return alert('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية.');ledgerFrom=f;ledgerTo=t;ledgerAccount=a;return render()}case'accounting-reset-filter':ledgerFrom='';ledgerTo='';ledgerAccount='';return render();case'print-accounting':return printAccounting();case'open-pos':selectedPosId=id;posFrom='';posTo='';tab='pos-detail';return render();case'back-pos':tab='pos';return render();case'print-pos':return printPosStatement();case'print-batch-invoice':return printDeliveryBatchInvoice(id);case'image-pos':return exportPosImage();case'add-card':return addCard();case'edit-card':return addCard(id);case'add-pos':return addPos();case'edit-pos':return addPos(id);case'add-wallet':return addWallet();case'add-delivery':return addDelivery();case'deliver-to':return addDelivery(id);case'add-payment':return addPayment();case'payment-to':return addPayment(id);case'consign-to':return addConsignmentSettlement(id);case'add-load':return addLoad();case'load-to':return addLoad(id);case'add-wallet-sale':return addWalletSale();case'sale-from':return addWalletSale(id);case'add-expense':return addExpense();case'add-bill':return addBill();case'edit-bill':return editBill(id);case'pay-bill':return payBill(id);case'add-partner-move':return addPartnerMove();case'partner-move':return addPartnerMove(id);case'statement':return statement(id);case'wallet-stock':return walletStock(id);case'backup':return backup();case'restore':return restore();case'recovery-backup':return exportRecoveryCopy();case'export-audit':return exportAudit();case'save-settings':return saveSettings();case'change-pin':return changePin();case'integrity':return integrity();case'close-period':tab='periods';return render();case'period-create':return createMonthlyPeriod();case'period-review':return reviewMonthlyPeriod(id);case'period-save-review':return saveMonthlyPeriodReview(id);case'period-close':return closeMonthlyPeriod(id);case'period-reopen-review':return reopenMonthlyPeriodReview(id);case'period-distribute':return recordMonthlyDistribution(id);case'period-report':return showMonthlyPeriodReport(id);case'period-print':return printMonthlyPeriodReport(id);case'print-report':return requestPrint('تقرير SPIDER NET');case'adjust-stock':return adjustStock(id);case'edit-partner':return editPartner(id);default:return alert('هذا الزر مرتبط بإجراء غير معروف: '+act+'، لم تُنفذ أي تغييرات. راجع ربط الأزرار.');}}
 function adjustStock(id){let c=card(id);if(!c)return alert('فئة الكروت غير موجودة.');let delta=prompt('تسوية كمية المخزون لفئة '+c.name+'. أدخل عددًا صحيحًا: موجب للإضافة وسالب للنقص.');if(delta===null||delta.trim()===''||!Number.isFinite(Number(delta)))return;let n=Number(delta);if(!Number.isInteger(n)||n===0)return alert('يجب أن يكون التغيير عددًا صحيحًا من الكروت، وليس صفرًا.');if(stockMain(id)+n<0)return alert('لا يمكن أن يصبح المخزون سالبًا.');let note=prompt('سبب التسوية (مطلوب):');if(!note?.trim())return alert('يجب توثيق السبب.');db.stockAdjustments.push({id:uid(),date:dateNow(),cardId:id,delta:n,note:note.trim()});addAudit('تسوية مخزون',c.name+' / '+n+' / '+note.trim());persist();render()}
 function editPartner(id){let p=db.partners.find(x=>x.id===id);if(!p)return alert('لم يتم العثور على الشريك.');let n=prompt('اسم الشريك:',p.name);if(!n?.trim())return;p.name=n.trim();addAudit('تعديل اسم شريك',p.name);persist();render()}
 function printDeliveryBatchInvoice(batchId){
@@ -1626,12 +2110,38 @@ function printDeliveryBatchInvoice(batchId){
  const first=lines[0],p=pos(first.posId);if(!p)return alert('نقطة البيع المرتبطة بالفاتورة غير موجودة.');
  if(lines.some(x=>x.posId!==first.posId||x.date!==first.date||x.mode!==first.mode))return alert('بيانات مجموعة الفاتورة غير متطابقة؛ لم تتم الطباعة لتجنب دمج عمليات مختلفة.');
  const movement=first.mode==='cash'?'بيع نقدي':first.mode==='credit'?'بيع آجل':'تسليم أمانة';
- const items=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(cardLabel(x.cardId))+'</td><td>'+esc(x.qty)+'</td><td>'+money(x.unitPrice)+'</td><td>'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
- const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
  const paymentNote=first.mode==='cash'?'تحصيل نقدي عند التسليم':first.mode==='credit'?'مبلغ آجل — يُتابع ضمن مديونية نقطة البيع':'أمانة — لا تُثبت كدين إلا بعد تسوية الكروت المباعة';
- const html='<section id="billPrintSheet" dir="rtl"><h1>SPIDER NET</h1><h2>فاتورة تسليم كروت</h2><div class="print-grid"><div class="print-item"><span class="print-label">رقم الفاتورة / مرجع العملية</span><span class="print-value">'+esc(first.batchId||first.id)+'</span></div><div class="print-item"><span class="print-label">تاريخ العملية</span><span class="print-value">'+esc(first.date||'—')+'</span></div><div class="print-item"><span class="print-label">نقطة البيع</span><span class="print-value">'+esc(p.name||'—')+'</span></div><div class="print-item"><span class="print-label">المالك / الهاتف</span><span class="print-value">'+esc(p.owner||'—')+' / '+esc(p.phone||'—')+'</span></div><div class="print-item"><span class="print-label">نوع الحركة</span><span class="print-value">'+movement+'</span></div><div class="print-item"><span class="print-label">حالة التحصيل</span><span class="print-value">'+paymentNote+'</span></div></div><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#e8f0f7"><th style="border:1px solid #999;padding:9px">م</th><th style="border:1px solid #999;padding:9px">فئة الكرت</th><th style="border:1px solid #999;padding:9px">الكمية</th><th style="border:1px solid #999;padding:9px">سعر الوحدة</th><th style="border:1px solid #999;padding:9px">الإجمالي</th></tr></thead><tbody>'+items+'</tbody></table><div class="print-total">الإجمالي الكلي: '+money(total)+'</div><div class="print-note"><b>ملاحظات:</b> '+esc(first.note||'—')+'</div><div class="print-signatures"><div>توقيع مسؤول الشبكة</div><div>توقيع مستلم نقطة البيع</div></div><p style="text-align:center;font-size:10px;margin-top:22px">يرجى مراجعة الكميات والفئات والإجمالي قبل التوقيع.</p></section>';
+ const statusClass=first.mode==='cash'?'is-paid':first.mode==='credit'?'is-due':'is-consignment';
+ const statusText=first.mode==='cash'?'مدفوعة نقدياً':first.mode==='credit'?'مستحق التحصيل':'أمانة / تسوية لاحقة';
+ const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
+ const totalQty=lines.reduce((n,x)=>n+num(x.qty),0);
+ const quantityText=new Intl.NumberFormat('ar-YE',{maximumFractionDigits:2}).format(totalQty);
+ const totalLabel=first.mode==='consignment'?'القيمة المرجعية للبضاعة':'الإجمالي المستحق';
+ const rows=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(cardLabel(x.cardId))+'</strong></td><td class="numeric">'+esc(x.qty)+'</td><td class="numeric">'+money(x.unitPrice)+'</td><td class="numeric">'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
+ const html='<section id="billPrintSheet" class="spider-invoice" dir="rtl">'+
+ '<div class="invoice-accent"></div>'+
+ '<header class="invoice-brand-row">'+
+ '<div class="invoice-brand"><span class="invoice-brand-mark"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7 37 15 37 31 24 41 11 31 11 15Z M24 7v34M11 15l26 16M37 15 11 31M11 15l13 8 13-8M11 31l13-8 13 8"/></g><g fill="currentColor" stroke="none"><circle cx="24" cy="7" r="3"/><circle cx="37" cy="15" r="3"/><circle cx="37" cy="31" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="11" cy="31" r="3"/><circle cx="11" cy="15" r="3"/><circle cx="24" cy="23" r="3"/></g></svg></span><span><b>SPIDER NET</b><small>نظام محاسبي ذكي</small></span></div>'+
+ '<div class="invoice-title"><small>SPIDER NET • SALES DOCUMENT</small><h1>فاتورة تسليم كروت</h1><span class="invoice-status '+statusClass+'">'+statusText+'</span></div>'+
+ '</header>'+
+ '<div class="invoice-number-strip">'+
+ '<div class="invoice-number-box"><span>رقم الفاتورة / مرجع العملية</span><strong>'+esc(first.batchId||first.id)+'</strong></div>'+
+ '<div class="invoice-number-box"><span>تاريخ الإصدار</span><strong>'+esc(first.date||'—')+'</strong></div>'+
+ '</div>'+
+ '<div class="invoice-parties">'+
+ '<section class="invoice-party"><span class="eyebrow">الفاتورة إلى</span><h3>'+esc(p.name||'نقطة بيع')+'</h3><p>المالك: '+esc(p.owner||'غير محدد')+'</p><p>الهاتف: '+esc(p.phone||'غير محدد')+'</p><p>المنطقة: '+esc(p.area||'—')+'</p></section>'+
+ '<section class="invoice-party"><span class="eyebrow">تفاصيل العملية</span><h3>'+movement+'</h3><p>حالة العملية: '+statusText+'</p><p>طريقة التسوية: '+paymentNote+'</p><p>عدد الأصناف: '+lines.length+' • إجمالي الكمية: '+quantityText+'</p></section>'+
+ '</div>'+
+ '<table class="invoice-table"><thead><tr><th style="width:7%">م</th><th>فئة الكرت</th><th style="width:15%">الكمية</th><th style="width:19%">سعر الوحدة</th><th style="width:22%">الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+ '<div class="invoice-bottom">'+
+ '<div class="invoice-note"><b>ملاحظات وشروط التسليم</b><p>'+esc(first.note||'لا توجد ملاحظات مسجلة.')+'</p><p>'+esc(paymentNote)+'</p></div>'+
+ '<div class="invoice-total-card"><div class="invoice-total-line"><span>إجمالي الكمية</span><strong>'+quantityText+'</strong></div><div class="invoice-grand-total"><span>'+totalLabel+'</span><strong>'+money(total)+'</strong></div></div>'+
+ '</div>'+
+ '<div class="invoice-signatures"><div class="invoice-signature">تسليم مسؤول الشبكة</div><div class="invoice-signature">استلام نقطة البيع</div></div>'+
+ '<footer class="invoice-footer"><span>SPIDER NET · نظام محاسبي ذكي</span><span>تم إنشاء المستند من سجل العمليات المسجل داخل النظام</span></footer>'+
+ '</section>';
  const old=document.getElementById('billPrintSheet');if(old)old.remove();$('#app').insertAdjacentHTML('beforeend',html);document.body.classList.add('printing-bill');
- if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('فاتورة تسليم SPIDER NET');return}
+ if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('فاتورة SPIDER NET');return}
  try{window.print()}finally{document.body.classList.remove('printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove()}
 }
 function printPosStatement(){if(tab!=='pos-detail'||!pos(selectedPosId))return;document.body.classList.add('printing-pos');if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('كشف حساب نقطة البيع');return;}window.print();document.body.classList.remove('printing-pos')}
@@ -1682,9 +2192,9 @@ function exportPosImage(){
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
  },'image/png');
 }
-function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
+function setTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('spidernet_visual_theme',theme);let label=theme==='dark'?'الوضع الفاتح':'الوضع الداكن';let b=$('#themeBtn');if(b){b.title=label;b.setAttribute('aria-label',label)}document.querySelectorAll('.theme-label').forEach(x=>x.textContent=label);document.querySelectorAll('.theme-icon').forEach(x=>x.textContent=theme==='dark'?'☼':'☾')}
 function bindActions(root){root.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();runAction(b.dataset.action)}));if(root.id==='view'){wirePosDetail()}}
-setTheme(localStorage.getItem('spidernet_theme')==='light'?'light':'dark');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>requestPrint('تقرير SPIDER NET');$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{const items=alerts();const body=items.length?`<div class="alert-list">${items.map(a=>`<div class="note ${a.type==='bad'?'danger-note':'warning'}"><b>${a.type==='bad'?'يتطلب مراجعة':'تنبيه'}</b><p>${esc(a.text)}</p></div>`).join('')}</div>`:'<div class="note">لا توجد تنبيهات بناءً على البيانات المسجلة حاليًا.</div>';showModal('مركز التنبيهات',body)};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};
+setTheme(localStorage.getItem('spidernet_visual_theme')==='dark'?'dark':'light');$('#themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('#sidebarTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');document.addEventListener('click',e=>{if(e.target.closest('#themeShortcut'))setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(e.target.closest('#backupShortcut'))backup()});$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=restore;$('#printBtn').onclick=()=>requestPrint('تقرير SPIDER NET');$('#menuToggle').onclick=()=>document.body.classList.toggle('nav-open');$('#closeMenu').onclick=closeMobileNav;$('#navScrim').onclick=closeMobileNav;$('#notificationBtn').onclick=()=>{const items=alerts();const body=items.length?`<div class="alert-list">${items.map(a=>`<div class="note ${a.type==='bad'?'danger-note':'warning'}"><b>${a.type==='bad'?'يتطلب مراجعة':'تنبيه'}</b><p>${esc(a.text)}</p></div>`).join('')}</div>`:'<div class="note">لا توجد تنبيهات بناءً على البيانات المسجلة حاليًا.</div>';showModal('مركز التنبيهات',body)};$('#profileBtn').onclick=()=>{tab='settings';render()};$('#settingsBtn').onclick=()=>{tab='settings';render()};document.addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b&&b.closest('#view')){e.preventDefault();tab=b.dataset.tab;render()}});$('#globalSearch').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=e.currentTarget.value.trim().toLocaleLowerCase('ar');if(!q)return;const matches=db.pos.filter(p=>[p.name,p.owner,p.phone,p.area,p.address].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));if(matches.length===1){selectedPosId=matches[0].id;tab='pos-detail';render();e.currentTarget.value='';return}if(matches.length>1){tab='pos';render();const ps=document.querySelector('#posSearch');if(ps){ps.value=q;ps.dispatchEvent(new Event('input',{bubbles:true}))}return}const cardHit=db.cards.some(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q));if(cardHit){tab='cards';render();e.currentTarget.value='';return}alert('لم نعثر على نقطة بيع أو فئة كروت بهذا البحث.');});$('#restoreFile').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{applyBackupText(await f.text(),f.name)}catch(err){alert('تعذرت قراءة ملف النسخة الاحتياطية.')}finally{e.target.value=''}};
 $('#lockBtn').onclick=()=>{if(!db.settings.pin)return alert('عيّن رقمًا سريًا من الإعدادات أولًا.');$('#lockScreen').classList.add('show')};$('#unlockBtn').onclick=()=>{if($('#unlockPin').value===db.settings.pin){$('#lockScreen').classList.remove('show');$('#unlockPin').value='';$('#unlockMsg').textContent=''}else $('#unlockMsg').textContent='الرقم السري غير صحيح.'};
 // Dispatch modal/global actions and protect nested quick-action buttons.
 document.addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let act=b.dataset.action;if($('#modalBack').classList.contains('show')&&b.closest('#modalBody'))return;runAction(act)});
@@ -1697,6 +2207,565 @@ window.onAndroidBackPressed=function(){
  if(tab!=='home'){tab='home';render();return true}
  return false;
 };
+function monthlyPeriodForDate(date){
+ const d=String(date||'').slice(0,10);if(!validDateValue(d))return null;
+ return (db.periods||[]).find(p=>p.startDate<=d&&d<=p.endDate)||null;
+}
+function monthlyPreviousClosedPeriod(period){
+ return (db.periods||[]).filter(p=>p.status==='CLOSED'&&p.endDate<period.startDate)
+   .sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
+}
+function monthlySnapshotFor(periodId){return (db.periodSnapshots||[]).find(s=>s.periodId===periodId)||null}
+function monthlyValidRange(start,end){return validDateValue(start)&&validDateValue(end)&&start<=end}
+function monthlyRangeOverlaps(start,end,ignoreId=null){
+ return (db.periods||[]).some(p=>p.id!==ignoreId&&start<=p.endDate&&end>=p.startDate);
+}
+function monthlyPeriodLabel(p){return p?.name||((p?.startDate||'')+' — '+(p?.endDate||''))}
+function monthlyOriginPeriodId(date,explicit){return explicit||monthlyPeriodForDate(date)?.id||null}
+
+function monthlyDebtAnalysis(asOfDate,collectFrom='',collectTo=''){
+ const dues=[];
+ (db.deliveries||[]).filter(x=>x.mode==='credit'&&validDateValue(x.date)&&x.date<=asOfDate).forEach(x=>{
+  const amount=Math.max(0,num(x.amount)-num(x.returnAmount));
+  if(amount>0.009)dues.push({sourceType:'delivery',sourceId:x.id,posId:x.posId,date:x.date,card:cardLabel(x.cardId),amount,remaining:amount,collected:0,originPeriodId:monthlyOriginPeriodId(x.date,x.periodId),legacyAllocated:0,confirmedAllocated:0});
+ });
+ (db.consignmentSettlements||[]).filter(x=>validDateValue(x.date)&&x.date<=asOfDate&&num(x.soldQty)>0).forEach(x=>{
+  const amount=num(x.soldQty)*num(x.unitPrice);
+  if(amount>0.009)dues.push({sourceType:'consignment',sourceId:x.id,posId:x.posId,date:x.date,card:cardLabel(x.cardId),amount,remaining:amount,collected:0,originPeriodId:monthlyOriginPeriodId(x.date,x.periodId),legacyAllocated:0,confirmedAllocated:0});
+ });
+ dues.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+ let legacyUnapplied=0,allocationWarnings=0,collectionsTotal=0,collectionsOld=0,collectionsCurrent=0;
+ const payments=(db.payments||[]).filter(x=>validDateValue(x.date)&&x.date<=asOfDate).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
+ const collectInWindow=p=>(!collectFrom||p.date>=collectFrom)&&(!collectTo||p.date<=collectTo);
+ for(const payment of payments){
+  let budget=Math.max(0,num(payment.amount)),explicitApplied=0;
+  const apply=(due,wanted,isLegacy)=>{
+   if(!due||budget<=0.009||wanted<=0.009)return 0;
+   const applied=Math.min(budget,wanted,due.remaining);
+   if(applied<=0.009)return 0;
+   due.remaining-=applied;due.collected+=applied;budget-=applied;
+   if(isLegacy)due.legacyAllocated+=applied;else due.confirmedAllocated+=applied;
+   if(collectInWindow(payment)){
+    collectionsTotal+=applied;
+    if(due.originPeriodId&&due.originPeriodId!==monthlyPeriodForDate(payment.date)?.id)collectionsOld+=applied;
+    else collectionsCurrent+=applied;
+   }
+   return applied;
+  };
+  if(Array.isArray(payment.allocations)&&payment.allocations.length){
+   for(const allocation of payment.allocations){
+    if(budget<=0.009)break;
+    const due=dues.find(x=>x.posId===payment.posId&&x.sourceType===allocation.sourceType&&String(x.sourceId)===String(allocation.sourceId));
+    const applied=apply(due,num(allocation.amount),false);
+    explicitApplied+=applied;
+   }
+  }
+  if(budget>0.009){
+   const wasUnallocated=!Array.isArray(payment.allocations)||payment.allocations.length===0;
+   if(wasUnallocated||explicitApplied+0.009<num(payment.amount))allocationWarnings++;
+   for(const due of dues.filter(x=>x.posId===payment.posId&&x.date<=payment.date)){
+    if(budget<=0.009)break;
+    const applied=apply(due,budget,true);
+    if(applied>0&&collectInWindow(payment))legacyUnapplied+=0;
+   }
+   if(budget>0.009&&collectInWindow(payment))legacyUnapplied+=budget;
+  }
+ }
+ return {items:dues,legacyUnapplied,allocationWarnings,collectionsTotal,collectionsOld,collectionsCurrent,
+  outstanding:dues.reduce((n,x)=>n+x.remaining,0)};
+}
+
+function monthlyStockAtDate(locationType,locationId,cardId,date){
+ const before=(x)=>validDateValue(x?.date)&&x.date<=date;
+ if(locationType==='main'){
+  const opening=num(card(cardId)?.opening);
+  const delivered=sum((db.deliveries||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.qty);
+  const loaded=sum((db.walletLoads||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.qty);
+  const adjustments=sum((db.stockAdjustments||[]).filter(x=>x.cardId===cardId&&(!x.locationType||x.locationType==='main')&&before(x)),x=>x.delta);
+  const returns=sum((db.consignmentSettlements||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.returnQty);
+  return opening-delivered-loaded+adjustments+returns;
+ }
+ if(locationType==='wallet'){
+  const w=wallet(locationId);if(!w)return 0;
+  const opening=num((w.opening||{})[cardId]);
+  return opening+sum((db.walletLoads||[]).filter(x=>x.walletId===locationId&&x.cardId===cardId&&before(x)),x=>x.qty)
+   -sum((db.walletSales||[]).filter(x=>x.walletId===locationId&&x.cardId===cardId&&before(x)),x=>x.qty)
+   +sum((db.stockAdjustments||[]).filter(x=>x.locationType==='wallet'&&x.locationId===locationId&&x.cardId===cardId&&before(x)),x=>x.delta);
+ }
+ if(locationType==='pos'){
+  return sum((db.deliveries||[]).filter(x=>x.posId===locationId&&x.cardId===cardId&&x.mode==='consignment'&&before(x)),x=>x.qty)
+   -sum((db.consignmentSettlements||[]).filter(x=>x.posId===locationId&&x.cardId===cardId&&before(x)),x=>num(x.soldQty)+num(x.returnQty))
+   +sum((db.stockAdjustments||[]).filter(x=>x.locationType==='pos'&&x.locationId===locationId&&x.cardId===cardId&&before(x)),x=>x.delta);
+ }
+ return 0;
+}
+function monthlyInventoryCountRows(period){
+ const rows=[],d=period.endDate;
+ (db.cards||[]).forEach(c=>rows.push({key:'main|'+c.id,locationType:'main',locationId:'main',cardId:c.id,label:'المخزون الرئيسي',cardName:c.name,book:monthlyStockAtDate('main','main',c.id,d)}));
+ (db.wallets||[]).forEach(w=>(db.cards||[]).forEach(c=>{
+  const q=monthlyStockAtDate('wallet',w.id,c.id,d);
+  rows.push({key:'wallet|'+w.id+'|'+c.id,locationType:'wallet',locationId:w.id,cardId:c.id,label:'محفظة: '+w.name,cardName:c.name,book:q});
+ }));
+ (db.pos||[]).forEach(p=>(db.cards||[]).forEach(c=>{
+  const q=monthlyStockAtDate('pos',p.id,c.id,d);
+  rows.push({key:'pos|'+p.id+'|'+c.id,locationType:'pos',locationId:p.id,cardId:c.id,label:'عهدة نقطة البيع: '+p.name,cardName:c.name,book:q});
+ }));
+ return rows;
+}
+function monthlyAccountMovement(entries,accountId){
+ let debit=0,credit=0;
+ entries.forEach(e=>(e.lines||[]).filter(l=>l.accountId===accountId).forEach(l=>{debit+=num(l.debit);credit+=num(l.credit)}));
+ return {debit,credit,net:debit-credit};
+}
+function monthlyUnpaidBillsAsOf(date){
+ return sum((db.bills||[]).filter(b=>{
+  const created=String(b.date||b.createdAt||b.due||'').slice(0,10);
+  if(!validDateValue(created)||created>date)return false;
+  return !b.paid||!validDateValue(b.paidDate)||b.paidDate>date;
+ }),b=>b.amount);
+}
+function monthlyPartnerPayablesAsOf(date){
+ return sum((db.partnerMoves||[]).filter(x=>x.kind==='paid_for_network'&&validDateValue(x.date)&&x.date<=date),x=>x.amount)
+  -sum((db.partnerMoves||[]).filter(x=>x.kind==='partner_repayment'&&validDateValue(x.date)&&x.date<=date),x=>x.amount);
+}
+function monthlyPeriodMetrics(period){
+ const all=(typeof accountingRecords==='function'?accountingRecords():[]);
+ const entries=all.filter(e=>validDateValue(e.date)&&e.date>=period.startDate&&e.date<=period.endDate);
+ const revAccounts=accountingChart.filter(a=>a.type==='revenue');
+ const expAccounts=accountingChart.filter(a=>a.type==='expense');
+ const revenue=revAccounts.reduce((n,a)=>{const m=monthlyAccountMovement(entries,a.id);return n+m.credit-m.debit},0);
+ const expenses=expAccounts.reduce((n,a)=>{const m=monthlyAccountMovement(entries,a.id);return n+m.debit-m.credit},0);
+ const cashEntries=entries.filter(e=>e.id!=='auto:cash-opening-reconciliation');
+ const cashMovement=monthlyAccountMovement(cashEntries,'1000').net;
+ const transferMovement=monthlyAccountMovement(cashEntries,'1010').net;
+ const opening=Number.isFinite(Number(period.openingCash))?Number(period.openingCash):null;
+ const cashExpected=opening===null?null:opening+cashMovement;
+ const debts=monthlyDebtAnalysis(period.endDate,period.startDate,period.endDate);
+ const originDebts=debts.items.filter(x=>x.originPeriodId===period.id);
+ const legacyOrigins=debts.items.filter(x=>!x.originPeriodId);
+ return {
+  entries,revenue,expenses,netProfit:revenue-expenses,cashMovement,transferMovement,openingCash:opening,cashExpected,
+  receivablesTotal:debts.outstanding,
+  currentOriginReceivables:originDebts.reduce((n,x)=>n+x.remaining,0),
+  priorOriginReceivables:debts.items.filter(x=>x.originPeriodId&&x.originPeriodId!==period.id).reduce((n,x)=>n+x.remaining,0),
+  unassignedOriginReceivables:legacyOrigins.reduce((n,x)=>n+x.remaining,0),
+  collectionsThisPeriod:debts.collectionsTotal,oldDebtCollections:debts.collectionsOld,
+  currentDebtCollections:debts.collectionsCurrent,legacyAllocationWarnings:debts.allocationWarnings,
+  legacyUnappliedCollections:debts.legacyUnapplied,debts
+ };
+}
+function monthlyPeriodStatusLabel(status){
+ return status==='OPEN'?'مفتوحة':status==='REVIEW'?'قيد المراجعة':status==='CLOSED'?'مغلقة':'مقفلة نهائيًا';
+}
+function monthlyPeriodPill(status){
+ const cls=status==='CLOSED'||status==='LOCKED'?'ok':status==='REVIEW'?'warn':'';
+ return '<span class="badge '+cls+'">'+monthlyPeriodStatusLabel(status)+'</span>';
+}
+function monthlyPeriodCard(p){
+ const snap=monthlySnapshotFor(p.id),m=snap?.metrics;
+ const buttons=p.status==='OPEN'
+  ?btn('الجرد ومراجعة الإقفال','period-review:'+p.id,'primary')
+  :p.status==='REVIEW'
+   ?btn('اعتماد الإقفال','period-close:'+p.id,'primary')+' '+btn('إلغاء المراجعة','period-reopen-review:'+p.id)
+   :btn('عرض التقرير','period-report:'+p.id,'primary')+' '+(snap?.distributionCap>0?btn('تسجيل توزيع فعلي','period-distribute:'+p.id):'');
+ return '<section class="panel period-card"><div class="section-title"><div><h3>'+esc(monthlyPeriodLabel(p))+'</h3><p class="small muted">'+esc(p.startDate)+' إلى '+esc(p.endDate)+'</p></div>'+monthlyPeriodPill(p.status)+'</div>'
+  +(m?'<div class="grid">'+metric('صافي الربح المحاسبي',money(m.netProfit),'حسب قيود الفترة')+metric('النقد الفعلي عند الإقفال',money(snap.cash.closing),'بعد مطابقة الجرد')+metric('ديون نقاط البيع المفتوحة',money(snap.receivables.total),'جميع الفترات')+metric('الربح المقترح للتوزيع',money(snap.distributionCap),'الحد الأدنى بين الربح والسيولة')+'</div>':'<p class="small muted">لم يتم اعتماد إقفال هذه الفترة بعد.</p>')+buttons+'</section>';
+}
+function periodsView(){
+ const periods=(db.periods||[]).slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));
+ const active=periods.find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ const legacy=(db.closures||[]).filter(x=>x.status==='review_snapshot');
+ const unassigned=monthlyUnassignedTransactionsCount();
+ return '<div class="dashboard-page"><div class="dashboard-head"><div><div class="breadcrumb">SPIDER NET / الإدارة المالية / الفترات</div><h2>الإدارة المالية الشهرية</h2><p>إدارة الفترات المخصصة، الديون المرحلة، الجرد، الأرباح والسيولة.</p></div><div class="dashboard-tools">'+btn('+ إنشاء فترة مالية','period-create','primary')+'</div></div>'
+  +'<div class="note warning"><b>قاعدة النظام:</b> الدين يبقى تابعًا لفترة نشوئه. التحصيل يدخل في الفترة التي استُلم فيها، ولا يعاد تسجيله كإيراد.</div>'
+  +'<div class="grid">'+metric('الفترات المسجلة',periods.length,'فترات مالية')+metric('الفترة النشطة',active?monthlyPeriodLabel(active):'لا توجد','فترة واحدة مفتوحة للمراجعة أو التسجيل')+metric('حركات غير مرتبطة بفترة',unassigned,'تحتاج تصنيفًا أو تبقى تاريخية غير معينة')+metric('ملخصات الإقفال القديمة',legacy.length,'لقطات قديمة لا تعتبر إقفالات معتمدة')+'</div>'
+  +(active?monthlyPeriodCard(active):'<section class="panel"><h3>لا توجد فترة مفتوحة</h3><p class="small muted">أنشئ فترة جديدة لتفعيل إدارة الأشهر والديون والجرد.</p></section>')
+  +'<section class="panel"><h3>سجل الفترات المالية</h3>'+(periods.length?periods.map(monthlyPeriodCard).join(''):'<div class="empty">لم تُنشأ فترات مالية حتى الآن.</div>')+'</section>'
+  +(legacy.length?'<section class="panel"><h3>ملخصات المراجعة القديمة</h3><p class="small muted">هذه سجلات تاريخية من الوظيفة السابقة. لا تحولها إلى إقفالات معتمدة تلقائيًا.</p>'+table(['الفترة','تاريخ اللقطة','الحالة','ملاحظات'],legacy.map(x=>'<tr><td>'+esc(x.period)+'</td><td>'+esc(x.date)+'</td><td>غير معتمد</td><td>'+esc(x.note||'')+'</td></tr>'))+'</section>':'')
+  +'</div>';
+}
+function monthlyUnassignedTransactionsCount(){
+ const keys=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'];
+ let n=0;
+ keys.forEach(k=>(db[k]||[]).forEach(x=>{
+  const d=String(x.date||x.createdAt||x.due||'').slice(0,10);
+  if(!validDateValue(d))return;
+  if(!(db.periods||[]).some(p=>p.startDate<=d&&d<=p.endDate))n++;
+ }));
+ return n;
+}
+function createMonthlyPeriod(){
+ const active=(db.periods||[]).find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ if(active)return alert('توجد فترة نشطة بالفعل: '+monthlyPeriodLabel(active)+'. أكمل مراجعتها وإقفالها قبل إنشاء فترة جديدة.');
+ formModal('إنشاء فترة مالية مخصصة',[
+  field('اسم الفترة','name','text','',null,true),
+  field('تاريخ البداية','startDate','date',dateNow(),null,true),
+  field('تاريخ النهاية','endDate','date',dateNow(),null,true),
+  field('رصيد الصندوق الافتتاحي الفعلي (لأول فترة فقط)','openingCash','number','',null,false),
+  field('هل تم جرد الصندوق الافتتاحي فعليًا؟','openingCashConfirmed','text','no',[['no','لا — لم تتم المطابقة'],['yes','نعم — تم الجرد والتأكيد']],true),
+  textArea('ملاحظات افتتاح الفترة','note','')
+ ],d=>{
+  if(!monthlyValidRange(d.startDate,d.endDate))return alert('تحقق من تاريخ البداية والنهاية. يجب أن تكون التواريخ صحيحة والنهاية لا تسبق البداية.'),false;
+  if(monthlyRangeOverlaps(d.startDate,d.endDate))return alert('الفترة تتداخل مع فترة مالية موجودة. اختر نطاقًا غير متداخل.'),false;
+  const previous=(db.periods||[]).filter(p=>['CLOSED','LOCKED'].includes(p.status)&&p.endDate<d.startDate).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
+  if(previous&&previous.endDate>=d.startDate)return alert('الفترة السابقة تتداخل مع بداية الفترة الجديدة.'),false;
+  const laterClosed=(db.periods||[]).some(p=>['CLOSED','LOCKED'].includes(p.status)&&p.startDate>d.endDate);
+  if(laterClosed&&!previous)return alert('لا يمكن إدراج فترة قديمة خلف فترات مغلقة دون إجراء ترحيل تاريخي خاص.'),false;
+  if(previous){const next=new Date(previous.endDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);const nextDay=next.toISOString().slice(0,10);if(d.startDate!==nextDay)return alert('يجب أن تبدأ الفترة الجديدة في اليوم التالي مباشرة لنهاية الفترة المغلقة السابقة ('+nextDay+'). هذا يمنع ضياع الحركات بين الفترات.'),false;}
+  let openingCash=null,openingSource='غير محدد';
+  if(previous){
+   const snap=monthlySnapshotFor(previous.id);
+   if(!snap||!Number.isFinite(Number(snap.cash?.closing)))return alert('لا يوجد رصيد نقدي ختامي معتمد للفترة السابقة. راجع إقفالها قبل إنشاء الفترة التالية.'),false;
+   openingCash=Number(snap.cash.closing);openingSource='إقفال '+monthlyPeriodLabel(previous);
+  }else{
+   openingCash=Number(d.openingCash);
+   if(d.openingCash.trim()===''||!Number.isFinite(openingCash)||openingCash<0)return alert('أدخل رصيد الصندوق الافتتاحي الفعلي. يمكن أن يكون صفرًا فقط إذا كان هذا هو الرصيد الذي جردته فعلًا.'),false;
+   if(d.openingCashConfirmed!=='yes')return alert('لا تعتمد رصيدًا افتتاحيًا قبل تأكيد الجرد الفعلي.'),false;
+   openingSource='جرد افتتاحي يدوي مؤكد';
+  }
+  const p={id:uid(),name:d.name.trim()||d.startDate+' — '+d.endDate,startDate:d.startDate,endDate:d.endDate,status:'OPEN',createdAt:dateNow(),previousPeriodId:previous?.id||null,openingCash,openingCashSource:openingSource,note:d.note||''};
+  db.periods.push(p);db.settings.currentPeriodId=p.id;
+  addAudit('إنشاء فترة مالية',monthlyPeriodLabel(p)+' / رصيد افتتاحي '+money(openingCash)+' / '+openingSource);
+  return persist();
+ });
+}
+function reviewMonthlyPeriod(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p)return alert('الفترة المالية غير موجودة.');
+ if(p.status!=='OPEN')return alert('يمكن بدء مراجعة الجرد للفترة المفتوحة فقط.');
+ const rows=monthlyInventoryCountRows(p);
+ const metrics=monthlyPeriodMetrics(p);
+ if(rows.some(x=>!Number.isInteger(Number(x.book))||x.book<0))return alert('يوجد رصيد مخزون نظري سالب أو غير صحيح. عالج حركات المخزون قبل الجرد.');
+ const countRows=rows.map(r=>'<tr><td>'+esc(r.label)+'</td><td>'+esc(r.cardName)+'</td><td>'+money(r.book).replace(' ر.ي','')+'</td><td><input type="number" min="0" step="1" inputmode="numeric" data-monthly-count="'+esc(r.key)+'" placeholder="أدخل الجرد الفعلي" required></td><td><input type="text" data-monthly-reason="'+esc(r.key)+'" placeholder="سبب الفرق إذا وجد"></td></tr>').join('');
+ const html='<div class="note warning">أدخل الكميات التي جردتها فعليًا في كل موقع. لا تنسخ الرصيد النظري تلقائيًا؛ اكتب نتيجة العد الفعلية. سيتم ترحيل الجرد المعتمد إلى الفترة التالية.</div>'
+  +'<div class="form-grid"><div class="field"><label>الصندوق المتوقع حسب السجلات</label><strong>'+ (metrics.cashExpected===null?'غير محدد':money(metrics.cashExpected))+'</strong></div><div class="field"><label>رصيد الصندوق الافتتاحي</label><strong>'+money(p.openingCash)+'</strong></div></div>'
+  +'<div class="field"><label for="monthlyActualCash">النقد الموجود فعليًا عند نهاية الفترة</label><input id="monthlyActualCash" type="number" min="0" step="any" placeholder="أدخل المبلغ الذي جردته فعليًا" required></div>'
+  +'<div class="field"><label for="monthlyCashReason">سبب فرق الصندوق إذا اختلف عن السجلات</label><input id="monthlyCashReason" type="text" placeholder="مطلوب فقط عند وجود فرق"></div>'
+  +'<div class="field"><label for="monthlyReserve">احتياطي الشبكة لهذا الإقفال</label><input id="monthlyReserve" type="number" min="0" step="any" value="0" required></div>'
+  +'<div class="field"><label for="monthlyBuffer">سيولة تشغيلية تريد إبقاءها بعد الالتزامات</label><input id="monthlyBuffer" type="number" min="0" step="any" value="0"></div>'
+  +'<div class="field"><label for="monthlyReviewNote">ملاحظات الإقفال</label><textarea id="monthlyReviewNote" placeholder="ملاحظات الجرد أو التسويات"></textarea></div>'
+  +'<h3>جرد المخزون حسب الموقع والفئة</h3><div class="table-wrap"><table><thead><tr><th>الموقع</th><th>فئة الكرت</th><th>الرصيد الدفتري</th><th>الجرد الفعلي</th><th>سبب الفرق</th></tr></thead><tbody>'+(countRows||'<tr><td colspan="5">لا توجد أصناف مخزون مسجلة.</td></tr>')+'</tbody></table></div>'
+  +'<p class="small muted">يشمل الجرد المخزون الرئيسي، مخزون المحافظ، والكروت الموجودة لدى نقاط البيع بنظام الأمانة. عند اعتماد الإقفال تُرحّل الزيادة إلى حساب مكاسب تسوية المخزون (4190)، ويُرحّل النقص إلى حساب خسائر وتسويات نقص المخزون (5100). لذلك يؤثر فرق الكمية وتكلفتها على ربح الفترة؛ اكتب السبب وتحقق من التكلفة قبل الاعتماد.</p>'
+  +'<div class="actions"><button id="monthlyReviewSave" class="primary">حفظ نتائج الجرد للمراجعة</button><button type="button" data-cancel>إلغاء</button></div>';
+ showModal('مراجعة وإقفال '+monthlyPeriodLabel(p),html);
+ $('#monthlyReviewSave').onclick=()=>saveMonthlyPeriodReview(id);
+}
+function saveMonthlyPeriodReview(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='OPEN')return alert('الفترة لم تعد مفتوحة للمراجعة.');
+ const cashRaw=$('#monthlyActualCash')?.value??'',actualCash=Number(cashRaw);
+ const cashReason=$('#monthlyCashReason')?.value?.trim()||'';
+ const reserveRaw=$('#monthlyReserve')?.value??'',reserve=Number(reserveRaw);
+ const bufferRaw=$('#monthlyBuffer')?.value??'0',buffer=Number(bufferRaw);
+ if(cashRaw.trim()===''||!Number.isFinite(actualCash)||actualCash<0)return alert('أدخل النقد الفعلي الذي تم جرده.'),false;
+ if(reserveRaw.trim()===''||!Number.isFinite(reserve)||reserve<0)return alert('أدخل احتياطيًا صحيحًا. أدخل صفرًا إذا لم تعتمد احتياطيًا.'),false;
+ if(bufferRaw.trim()===''||!Number.isFinite(buffer)||buffer<0)return alert('أدخل سيولة تشغيلية مطلوبة صحيحة.'),false;
+ const metrics=monthlyPeriodMetrics(p);
+ if(metrics.cashExpected===null)return alert('لا يمكن احتساب النقد المتوقع. تحقق من الرصيد الافتتاحي للفترة.'),false;
+ const cashVariance=actualCash-metrics.cashExpected;
+ if(Math.abs(cashVariance)>0.009&&!cashReason)return alert('يوجد فرق في الصندوق ('+money(cashVariance)+'). اكتب سبب الفرق قبل حفظ المراجعة.'),false;
+ const inputs=[...document.querySelectorAll('[data-monthly-count]')],stockCounts=[];
+ for(const el of inputs){
+  const key=el.getAttribute('data-monthly-count'),raw=el.value.trim(),quantity=Number(raw);
+  if(raw===''||!Number.isInteger(quantity)||quantity<0)return alert('أدخل كمية جرد فعلية صحيحة لكل سطر مخزون.'),false;
+  const row=monthlyInventoryCountRows(p).find(x=>x.key===key);if(!row)return alert('تعذر مطابقة سطر الجرد: '+key),false;
+  const reason=[...document.querySelectorAll('[data-monthly-reason]')].find(el=>el.getAttribute('data-monthly-reason')===key)?.value?.trim()||'';
+  const variance=quantity-Number(row.book);
+  if(variance!==0&&!reason)return alert('اكتب سبب فرق الجرد للصنف '+row.cardName+' في '+row.label+'.'),false;
+  stockCounts.push({key,locationType:row.locationType,locationId:row.locationId,cardId:row.cardId,label:row.label,cardName:row.cardName,bookQuantity:Number(row.book),physicalQuantity:quantity,variance,reason});
+ }
+ p.review={reviewedAt:new Date().toISOString(),actualCash,cashExpected:metrics.cashExpected,cashVariance,cashReason,reserveAmount:reserve,workingLiquidityBuffer:buffer,stockCounts,note:$('#monthlyReviewNote')?.value?.trim()||''};
+ p.status='REVIEW';addAudit('حفظ جرد ومراجعة فترة',monthlyPeriodLabel(p)+' / نقد فعلي '+money(actualCash)+' / فروقات مخزون '+stockCounts.filter(x=>x.variance!==0).length);
+ if(!persist())return false;closeModal();render();return true;
+}
+function reopenMonthlyPeriodReview(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='REVIEW')return alert('لا توجد مراجعة مفتوحة لإعادتها.');
+ if(!confirm('إلغاء نتائج المراجعة الحالية وإعادة فتح الفترة للتسجيل؟ لن يتم حذف الحركات الأصلية.'))return;
+ p.status='OPEN';p.review=null;addAudit('إعادة فتح مراجعة فترة',monthlyPeriodLabel(p));if(persist())render();
+}
+function closeMonthlyPeriod(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='REVIEW'||!p.review)return alert('احفظ الجرد والمراجعة أولًا قبل اعتماد الإقفال.');
+ if(!confirm('اعتماد إقفال '+monthlyPeriodLabel(p)+'؟ بعد الاعتماد ستُحمى عمليات الفترة من التعديل المباشر.'))return;
+ const review=p.review;
+ const shares=(db.partners||[]).map(x=>({partnerId:x.id,name:x.name,share:Number(x.share)||0}));
+ const shareTotal=shares.reduce((n,x)=>n+x.share,0);
+ if(!shares.length||shares.some(x=>!x.partnerId||!Number.isFinite(x.share)||x.share<0)||Math.abs(shareTotal-100)>0.001){
+  return alert('لا يمكن إقفال الفترة قبل اعتماد حصص الشركاء بحيث يكون مجموعها 100%.');
+ }
+ const stockKeys=new Set((review.stockCounts||[]).map(x=>p.id+'|'+x.key));
+ const cashMarker=p.id+'|cash';
+ const oldStock=db.stockAdjustments||[],oldCash=db.cashMovements||[];
+ const plannedStock=(review.stockCounts||[]).filter(x=>Number(x.variance)!==0).map(count=>({
+  id:uid(),date:p.endDate,periodId:p.id,periodCountKey:p.id+'|'+count.key,
+  cardId:count.cardId,locationType:count.locationType,locationId:count.locationId,
+  delta:count.variance,
+  note:'فرق جرد معتمد: '+count.reason+' / '+count.label+' / '+count.cardName
+ }));
+ const plannedCash=Math.abs(Number(review.cashVariance)||0)>0.009?[{
+  id:uid(),date:p.endDate,periodId:p.id,periodCashCountKey:cashMarker,
+  kind:review.cashVariance>0?'in':'out',category:'تسوية فرق جرد نقدي',
+  amount:Math.abs(review.cashVariance),
+  adjustmentType:review.cashVariance>0?'cash-count-surplus':'cash-count-shortage',
+  note:review.cashReason
+ }]:[];
+ // Build the close in memory first. Re-counts replace old generated markers; a rejected close writes nothing.
+ db.stockAdjustments=oldStock.filter(x=>!stockKeys.has(x.periodCountKey)).concat(plannedStock);
+ db.cashMovements=oldCash.filter(x=>x.periodCashCountKey!==cashMarker).concat(plannedCash);
+ const rollbackPlanned=()=>{db.stockAdjustments=oldStock;db.cashMovements=oldCash};
+ const metrics=monthlyPeriodMetrics(p);
+ const debt=monthlyDebtAnalysis(p.endDate);
+ const unpaid=monthlyUnpaidBillsAsOf(p.endDate);
+ const partnerDue=Math.max(0,monthlyPartnerPayablesAsOf(p.endDate));
+ const reserve=Number(review.reserveAmount)||0;
+ if(reserve>Math.max(0,metrics.netProfit)+0.009){
+  rollbackPlanned();
+  return alert('الاحتياطي أكبر من صافي الربح المحاسبي بعد احتساب فروقات الجرد. لم تُرحّل أي تسويات. عدّل الاحتياطي أو راجع الجرد ثم أعد المحاولة.');
+ }
+ const profitAfterReserve=Math.max(0,metrics.netProfit-reserve);
+ const cashCapacity=Math.max(0,Number(review.actualCash)-unpaid-partnerDue-(Number(review.workingLiquidityBuffer)||0));
+ const distributionCap=Math.min(profitAfterReserve,cashCapacity);
+ const partnerShares=shares.map(x=>({
+  partnerId:x.partnerId,name:x.name,share:x.share,
+  maximumAmount:Math.round(distributionCap*x.share/100*100)/100
+ }));
+ const stockSnapshot=(review.stockCounts||[]).map(x=>({...x,closingQuantity:x.physicalQuantity}));
+ const snapshot={
+  id:uid(),periodId:p.id,createdAt:new Date().toISOString(),
+  metrics:{
+   revenue:metrics.revenue,expenses:metrics.expenses,netProfit:metrics.netProfit,
+   cashMovement:metrics.cashMovement,transferMovement:metrics.transferMovement,
+   oldDebtCollections:metrics.oldDebtCollections,collectionsThisPeriod:metrics.collectionsThisPeriod,
+   receivablesTotal:debt.outstanding,
+   currentOriginReceivables:debt.items.filter(x=>x.originPeriodId===p.id).reduce((n,x)=>n+x.remaining,0),
+   priorOriginReceivables:debt.items.filter(x=>x.originPeriodId&&x.originPeriodId!==p.id).reduce((n,x)=>n+x.remaining,0),
+   unassignedOriginReceivables:debt.items.filter(x=>!x.originPeriodId).reduce((n,x)=>n+x.remaining,0),
+   legacyAllocationWarnings:debt.allocationWarnings
+  },
+  cash:{opening:p.openingCash,expectedBeforeCount:review.cashExpected,variance:review.cashVariance,closing:review.actualCash,transferMovement:metrics.transferMovement},
+  receivables:{total:debt.outstanding,items:debt.items.map(x=>({...x})),legacyUnappliedCollections:debt.legacyUnapplied,allocationWarnings:debt.allocationWarnings},
+  payables:{unpaidBills:unpaid,partnerPayables:partnerDue,total:unpaid+partnerDue},
+  inventory:stockSnapshot,
+  reserveAmount:reserve,profitAfterReserve,cashCapacity,workingLiquidityBuffer:Number(review.workingLiquidityBuffer)||0,
+  distributionCap,partnerShares,
+  reviewNote:review.note||'',exceptions:[]
+ };
+ if(metrics.unassignedOriginReceivables>0)snapshot.exceptions.push('توجد ذمم قديمة غير مرتبطة بفترة أصلية مؤكدة.');
+ if(!p.previousPeriodId)snapshot.exceptions.push('هذه أول فترة في نظام الفترات. رصيد المخزون الافتتاحي مستمد من قاعدة النسخة القديمة ولم يُثبت جرد افتتاحي مستقل؛ راجع الكميات والتكاليف قبل الاعتماد النهائي للأرباح.');
+ if((db.cards||[]).some(x=>num(x.cost)<=0))snapshot.exceptions.push('توجد فئات بتكلفة صفرية أو غير مدخلة؛ الربح وتقييم المخزون قد يكونان ناقصين.');
+ if(metrics.legacyAllocationWarnings>0)snapshot.exceptions.push('توجد تحصيلات تاريخية غير مخصصة لفواتير محددة؛ بعض التوزيع التاريخي تقديري حسب الأقدم.');
+ if(monthlyUnassignedTransactionsCount()>0)snapshot.exceptions.push('توجد حركات خارج نطاق الفترات المسجلة.');
+ if(!db.periodSnapshots.some(x=>x.periodId===p.id))db.periodSnapshots.push(snapshot);
+ else db.periodSnapshots=db.periodSnapshots.map(x=>x.periodId===p.id?snapshot:x);
+ p.status='CLOSED';p.closedAt=new Date().toISOString();p.snapshotId=snapshot.id;p.review.approved=true;
+ db.settings.currentPeriodId=null;db.settings.lastClose=p.endDate;
+ addAudit('اعتماد إقفال فترة مالية',monthlyPeriodLabel(p)+' / ربح '+money(metrics.netProfit)+' / احتياطي '+money(reserve)+' / حد توزيع '+money(distributionCap));
+ let saved=false;
+ authorizedCloseCommit=true;
+ try{saved=persist()}finally{authorizedCloseCommit=false}
+ if(!saved)return;
+ render();
+}
+function recordMonthlyDistribution(periodId){
+ const snapshot=monthlySnapshotFor(periodId),period=(db.periods||[]).find(p=>p.id===periodId);
+ if(!snapshot||!period||period.status!=='CLOSED')return alert('لا يوجد إقفال معتمد للفترة.');
+ const frozenShares=Array.isArray(snapshot.partnerShares)&&snapshot.partnerShares.length?snapshot.partnerShares:null;
+ const shares=frozenShares||db.partners.map(p=>({partnerId:p.id,name:p.name,share:Number(p.share)||0,maximumAmount:Math.round(Number(snapshot.distributionCap||0)*Number(p.share||0)/100*100)/100}));
+ if(!shares.length||Math.abs(shares.reduce((n,x)=>n+Number(x.share||0),0)-100)>0.001)return alert('لا يمكن التوزيع قبل اعتماد نسب شركاء مجموعها 100%.');
+ if(!frozenShares&&!confirm('هذا الإقفال لا يحتوي لقطة تاريخية لحصص الشركاء. سيستخدم النظام النسب المعتمدة حاليًا، وسيحفظ النسبة المستخدمة في سجل الدفع. هل تؤكد؟'))return;
+ const open=(db.periods||[]).find(p=>p.status==='OPEN');
+ if(!open)return alert('أنشئ الفترة الحالية أولًا حتى يسجل النظام تاريخ الدفع الفعلي في الفترة الصحيحة.');
+ const distributions=()=>((db.profitDistributions||[]).filter(x=>x.sourcePeriodId===periodId));
+ const totalAlready=()=>sum(distributions(),x=>x.amount);
+ const paidForPartner=id=>sum(distributions().filter(x=>x.partnerId===id),x=>x.amount);
+ formModal('تسجيل توزيع فعلي من أرباح '+monthlyPeriodLabel(period),[
+  field('الشريك','partnerId','text',db.partners[0]?.id||'',optsPartners(),true),
+  '<div id="monthlyDistributionPartnerLimit" class="note">سيظهر هنا الحد المتاح للشريك وفق حصة الإقفال.</div>',
+  field('المبلغ المدفوع فعليًا','amount','number',0,null,true),
+  field('طريقة الدفع','paymentMethod','text','cash',[['cash','نقدًا من الصندوق'],['transfer','تحويل / محفظة']],true),
+  field('تاريخ الدفع الفعلي','date','date',dateNow(),null,true),
+  textArea('مرجع / ملاحظات','note','')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!db.partners.some(x=>x.id===d.partnerId)||!validDateValue(d.date)||!Number.isFinite(amount)||amount<=0)return alert('تحقق من الشريك والمبلغ والتاريخ.'),false;
+  if(!['cash','transfer'].includes(d.paymentMethod))return alert('اختر طريقة دفع صحيحة.'),false;
+  const payPeriod=monthlyPeriodForDate(d.date);
+  if(!payPeriod||payPeriod.status!=='OPEN')return alert('تاريخ الدفع يجب أن يقع داخل فترة مالية مفتوحة. لا تسجل دفعًا فعليًا داخل فترة مغلقة.'),false;
+  const share=shares.find(x=>x.partnerId===d.partnerId);
+  if(!share)return alert('الشريك غير موجود في لقطة حصص الإقفال. لا يمكن توزيع أرباحه دون اعتماد حصة.'),false;
+  const partnerMaximum=Number.isFinite(Number(share.maximumAmount))?Number(share.maximumAmount):Math.round(Number(snapshot.distributionCap||0)*Number(share.share||0)/100*100)/100;
+  const partnerRemaining=Math.max(0,partnerMaximum-paidForPartner(d.partnerId));
+  const availabilityDate=d.date>dateNow()?d.date:dateNow();
+  const currentBills=monthlyUnpaidBillsAsOf(availabilityDate);
+  const currentPartnerDue=Math.max(0,monthlyPartnerPayablesAsOf(availabilityDate));
+  const currentBuffer=Math.max(0,Number(payPeriod.review?.workingLiquidityBuffer)||0);
+  // New obligations reduce spendable liquidity, not the accounting-profit entitlement itself.
+  const overallRemaining=Math.max(0,Number(snapshot.distributionCap||0)-totalAlready());
+  // Evaluate the lowest dated cash balance after the proposed payout, including later receipts and spending.
+  // This allows a later receipt to fund a later expense, but rejects a payout that makes any known balance negative.
+  const cashDates=new Set([d.date]);
+  if(validDateValue(availabilityDate)&&availabilityDate>=d.date&&availabilityDate<=payPeriod.endDate)cashDates.add(availabilityDate);
+  const addCashDate=value=>{const day=String(value||'').slice(0,10);if(validDateValue(day)&&day>=d.date&&day<=payPeriod.endDate)cashDates.add(day)};
+  (db.deliveries||[]).filter(x=>x.mode==='cash').forEach(x=>addCashDate(x.date));
+  (db.payments||[]).filter(x=>x.method==='cash').forEach(x=>addCashDate(x.date));
+  (db.walletSales||[]).filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash').forEach(x=>addCashDate(x.date));
+  (db.cashMovements||[]).forEach(x=>addCashDate(x.date));
+  (db.expenses||[]).filter(x=>(x.paymentMethod||'cash')==='cash').forEach(x=>addCashDate(x.date));
+  (db.bills||[]).forEach(x=>{addCashDate(x.date||x.createdAt||x.due);if(x.paid&&(x.paidMethod||'cash')==='cash')addCashDate(x.paidDate||x.date)});
+  (db.partnerMoves||[]).forEach(x=>{
+   if(x.kind==='paid_for_network'||x.kind==='withdrawal'||(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash')addCashDate(x.date);
+  });
+  const liquidityPoints=[...cashDates].sort().map(day=>
+   cashBalanceAsOf(day)-monthlyUnpaidBillsAsOf(day)-Math.max(0,monthlyPartnerPayablesAsOf(day))-currentBuffer
+  );
+  const currentCashAvailable=Math.max(0,Math.min(...liquidityPoints));
+  const allowed=Math.min(partnerRemaining,overallRemaining);
+  if(amount>allowed+0.009)return alert('المبلغ يتجاوز الحد المتاح لهذا الشريك بعد احتساب حصته والتوزيعات السابقة والالتزامات الحالية. حصة الشريك المتبقية: '+money(partnerRemaining)+'، والمتاح إجمالًا الآن: '+money(overallRemaining)+'.'),false;
+  if(d.paymentMethod==='cash'&&amount>currentCashAvailable+0.009)return alert('المبلغ يتجاوز النقد القابل للصرف بعد الالتزامات الحالية والسيولة التشغيلية المحمية، وبعد خصم الحركات النقدية المسجلة بتاريخ لاحق ('+money(currentCashAvailable)+').'),false;
+  if(d.paymentMethod==='transfer'&&!confirm('أكدت وجود المبلغ فعليًا في حساب التحويل/المحفظة، وأنه غير محسوب ضمن الصندوق النقدي. كما أعاد النظام احتساب الالتزامات الحالية وحد التوزيع قبل التسجيل. هل تؤكد الدفع؟'))return false;
+  const row={
+   id:uid(),sourcePeriodId:periodId,periodId:payPeriod.id,partnerId:d.partnerId,date:d.date,
+   amount,paymentMethod:d.paymentMethod,note:d.note||'',
+   sharePercentAtApproval:Number(share.share||0),partnerLimitAtClose:partnerMaximum,
+   remainingPartnerLimitBeforePayment:partnerRemaining
+  };
+  db.profitDistributions.push(row);
+  const move={id:uid(),date:d.date,periodId:payPeriod.id,sourcePeriodId:periodId,partnerId:d.partnerId,kind:'profit_distribution',amount,paymentMethod:d.paymentMethod,distributionId:row.id,note:'توزيع فعلي من أرباح '+monthlyPeriodLabel(period)+(d.note?' / '+d.note:'')};
+  db.partnerMoves.push(move);
+  addAudit('توزيع أرباح فعلي',((db.partners.find(x=>x.id===d.partnerId)||{}).name||'')+' / الحصة '+num(share.share)+'% / مصدر الفترة '+monthlyPeriodLabel(period)+' / دفع '+money(amount)+' / '+(d.paymentMethod==='cash'?'نقدًا':'تحويل'));
+  return persist();
+ });
+ const form=$('#dataForm'),select=form?.elements?.partnerId,limit=$('#monthlyDistributionPartnerLimit');
+ const updateLimit=()=>{
+  const selected=shares.find(x=>x.partnerId===select?.value);
+  if(!selected||!limit)return;
+  const maximum=Number.isFinite(Number(selected.maximumAmount))?Number(selected.maximumAmount):Math.round(Number(snapshot.distributionCap||0)*Number(selected.share||0)/100*100)/100;
+  const remaining=Math.max(0,maximum-paidForPartner(selected.partnerId));
+  limit.textContent='حصة الشريك عند الإقفال: '+num(selected.share)+'% — الحد المعتمد: '+money(maximum)+' — المدفوع سابقًا: '+money(paidForPartner(selected.partnerId))+' — المتبقي لهذا الشريك: '+money(remaining)+'.';
+ };
+ select?.addEventListener('change',updateLimit);updateLimit();
+}
+function monthlyPeriodReportHtml(period){
+ const snap=monthlySnapshotFor(period.id);if(!snap)return '<p>لا يوجد تقرير إقفال معتمد.</p>';
+ const distributions=(db.profitDistributions||[]).filter(x=>x.sourcePeriodId===period.id);
+ const paid=sum(distributions,x=>x.amount);
+ const reportShares=Array.isArray(snap.partnerShares)&&snap.partnerShares.length?snap.partnerShares:(db.partners||[]).map(p=>({partnerId:p.id,name:p.name,share:p.share}));
+ const rows=reportShares.map(p=>{
+  const v=sum(distributions.filter(x=>x.partnerId===p.partnerId),x=>x.amount);
+  return '<tr><td>'+esc(p.name||(db.partners.find(x=>x.id===p.partnerId)||{}).name||'شريك غير موجود')+'</td><td>'+num(p.share)+'%</td><td>'+money(v)+'</td><td>'+money(p.maximumAmount??(snap.distributionCap*num(p.share)/100))+'</td></tr>';
+ });
+ const stock=(snap.inventory||[]).map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+esc(x.cardName)+'</td><td>'+x.bookQuantity+'</td><td>'+x.physicalQuantity+'</td><td>'+x.variance+'</td></tr>');
+ return '<div class="print-only"><h1>SPIDER NET — التقرير المالي</h1><h2>'+esc(monthlyPeriodLabel(period))+'</h2></div>'
+  +'<section class="panel"><h3>نتيجة الفترة</h3>'+table(['البيان','المبلغ'],[
+   '<tr><td>إجمالي الإيرادات المحاسبية</td><td>'+money(snap.metrics.revenue)+'</td></tr>',
+   '<tr><td>إجمالي المصروفات والتكاليف</td><td>'+money(snap.metrics.expenses)+'</td></tr>',
+   '<tr><th>صافي الربح المحاسبي</th><th>'+money(snap.metrics.netProfit)+'</th></tr>',
+   '<tr><td>احتياطي الشبكة</td><td>'+money(snap.reserveAmount)+'</td></tr>',
+   '<tr><td>الربح بعد الاحتياطي</td><td>'+money(snap.profitAfterReserve)+'</td></tr>',
+   '<tr><td>السيولة القابلة للتوزيع بعد الالتزامات والسيولة التشغيلية</td><td>'+money(snap.cashCapacity)+'</td></tr>',
+   '<tr><th>حد التوزيع المعتمد</th><th>'+money(snap.distributionCap)+'</th></tr>'
+  ])+'</section>'
+  +'<section class="panel"><h3>حركة النقد والديون</h3>'+table(['البيان','المبلغ'],[
+   '<tr><td>الصندوق الافتتاحي</td><td>'+money(snap.cash.opening)+'</td></tr>',
+   '<tr><td>حركة النقد المسجلة خلال الفترة بعد استبعاد قيد الجرد الافتتاحي</td><td>'+money(snap.metrics.cashMovement)+'</td></tr>',
+   '<tr><td>النقد المتوقع قبل الجرد</td><td>'+money(snap.cash.expectedBeforeCount)+'</td></tr>',
+   '<tr><td>فرق الجرد المسجل في حساب معلق</td><td>'+money(snap.cash.variance)+'</td></tr>',
+   '<tr><th>النقد الفعلي الختامي</th><th>'+money(snap.cash.closing)+'</th></tr>',
+   '<tr><td>تحصيل ديون فترات سابقة ضمن الفترة</td><td>'+money(snap.metrics.oldDebtCollections)+'</td></tr>',
+   '<tr><td>إجمالي الذمم المدينة المفتوحة عند الإقفال</td><td>'+money(snap.receivables.total)+'</td></tr>',
+   '<tr><td>التزامات فواتير غير مسددة</td><td>'+money(snap.payables.unpaidBills)+'</td></tr>',
+   '<tr><td>مستحقات الشركاء</td><td>'+money(snap.payables.partnerPayables)+'</td></tr>'
+  ])+'</section>'
+  +'<section class="panel"><h3>جرد المخزون المعتمد</h3>'+table(['الموقع','الفئة','دفترى','فعلي','فرق'],stock)+'</section>'
+  +'<section class="panel"><h3>توزيعات الشركاء</h3>'+table(['الشريك','الحصة عند الإقفال','المبلغ المدفوع فعليًا','حد حصة الشريك'],rows)+'<p>المبلغ المدفوع من حد التوزيع: <b>'+money(paid)+'</b></p><p>المتبقي من حد التوزيع: <b>'+money(Math.max(0,snap.distributionCap-paid))+'</b></p></section>'
+  +(snap.exceptions?.length?'<section class="panel"><h3>استثناءات تحتاج متابعة</h3><ul>'+snap.exceptions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section>':'')
+  +'<p class="small muted">هذا التقرير مبني على القيود والسجلات المحلية المسجلة. التحصيلات القديمة غير المخصصة قد تظهر كتخصيص تقديري، ويجب مراجعتها قبل اعتبارها مطابقة نهائية.</p>';
+}
+function showMonthlyPeriodReport(id){
+ const p=(db.periods||[]).find(x=>x.id===id);if(!p)return alert('الفترة غير موجودة.');
+ showModal('التقرير المالي — '+monthlyPeriodLabel(p),monthlyPeriodReportHtml(p)+'<div class="actions"><button id="monthlyPeriodPrint" class="primary">طباعة / PDF</button></div>');
+ $('#monthlyPeriodPrint').onclick=()=>printMonthlyPeriodReport(id);
+}
+function printMonthlyPeriodReport(id){
+ const p=(db.periods||[]).find(x=>x.id===id);if(!p)return alert('الفترة غير موجودة.');
+ const old=document.getElementById('monthlyPeriodPrintSheet');if(old)old.remove();
+ $('#app').insertAdjacentHTML('beforeend','<section id="monthlyPeriodPrintSheet" dir="rtl">'+monthlyPeriodReportHtml(p)+'</section>');
+ document.body.classList.add('printing-monthly-period');
+ if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('التقرير المالي '+monthlyPeriodLabel(p));return;}
+ try{window.print()}finally{document.body.classList.remove('printing-monthly-period');document.getElementById('monthlyPeriodPrintSheet')?.remove()}
+}
+function monthlyPrepareWrite(){
+ if(!Array.isArray(db.periods)||!db.periods.length)return true;
+ const tables=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries','profitDistributions'];
+ let previous={};
+ try{
+  const old=JSON.parse(lastCommittedState||'{}');
+  for(const key of tables)previous[key]=Array.isArray(old[key])?old[key]:[];
+ }catch(e){restoreCommittedState();return false}
+ const byId=rows=>new Map((rows||[]).filter(x=>x&&x.id!==undefined).map(x=>[String(x.id),x]));
+ const periodForRow=row=>{
+  if(row?.periodId){const p=db.periods.find(x=>x.id===row.periodId);if(p)return p}
+  if(row?.collectionPeriodId){const p=db.periods.find(x=>x.id===row.collectionPeriodId);if(p)return p}
+  const date=String(row?.date||row?.createdAt||row?.due||'').slice(0,10);
+  return monthlyPeriodForDate(date);
+ };
+ const reject=message=>{alert(message);restoreCommittedState();return false};
+ const destinationFor=(table,row)=>{
+  const date=String(row?.date||row?.createdAt||row?.due||'').slice(0,10);
+  if(!validDateValue(date))return {date,period:null};
+  return {date,period:monthlyPeriodForDate(date)};
+ };
+ const isBillSettlementOnly=(oldRow,newRow)=>{
+  const allowed=new Set(['paid','paidDate','paidMethod','paidPartnerId','paymentNote','paidPeriodId']);
+  const keys=new Set([...Object.keys(oldRow||{}),...Object.keys(newRow||{})]);
+  for(const key of keys)if(JSON.stringify(oldRow?.[key])!==JSON.stringify(newRow?.[key])&&!allowed.has(key))return false;
+  return !!newRow.paid&&validDateValue(newRow.paidDate);
+ };
+ for(const table of tables){
+  const oldMap=byId(previous[table]),newMap=byId(Array.isArray(db[table])?db[table]:[]);
+  for(const [id,oldRow] of oldMap){
+   const current=newMap.get(id),sourcePeriod=periodForRow(oldRow);
+   if(!current){
+    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status))
+     return reject('حُظر حذف سجل من فترة قيد المراجعة أو مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم تصحيحًا موثقًا بدل الحذف.');
+    continue;
+   }
+   if(JSON.stringify(oldRow)!==JSON.stringify(current)){
+    // A bill's expense/origin date is immutable; only its actual settlement date belongs to the receiving period.
+    if(table==='bills'&&isBillSettlementOnly(oldRow,current)){
+     const paymentPeriod=monthlyPeriodForDate(current.paidDate);
+     if(!paymentPeriod||paymentPeriod.status!=='OPEN')return reject('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مالية مفتوحة.');
+     current.paidPeriodId=paymentPeriod.id;
+     if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){
+      if(sourcePeriod.status==='REVIEW')return reject('لا يمكن سداد التزام أثناء مراجعة الفترة. أعد فتحها أو أكمل الإقفال أولًا.');
+      continue;
+     }
+     if(!sourcePeriod)continue; // Preserve an unassigned legacy origin; record only the settlement period.
+    }
+    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status))
+     return reject('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. لا يمكن نقل العملية إلى تاريخ فترة أخرى بتعديلها؛ استخدم تصحيحًا موثقًا في فترة مفتوحة.');
+    const target=destinationFor(table,current);
+    if(validDateValue(target.date)){
+     if(!target.period)return reject('تاريخ العملية المعدّلة لا يقع داخل أي فترة مالية معرفة. أنشئ الفترة المناسبة أو صحح التاريخ قبل الحفظ.');
+     if(target.period.status!=='OPEN')return reject('لا يمكن نقل أو تعديل حركة إلى فترة ليست مفتوحة ('+monthlyPeriodLabel(target.period)+').');
+     if(table==='payments')current.collectionPeriodId=target.period.id;
+     else if(table!=='bills')current.periodId=target.period.id;
+    }
+   }
+  }
+  for(const [id,row] of newMap){
+   if(oldMap.has(id))continue;
+   const target=destinationFor(table,row);
+   if(!validDateValue(target.date))return reject('تاريخ الحركة الجديدة غير صالح. لم يتم حفظها.');
+   if(!target.period)return reject('لا توجد فترة مالية مفتوحة تغطي تاريخ هذه الحركة. أنشئ الفترة التالية أو اختر تاريخًا داخل الفترة المفتوحة.');
+   if(target.period.status!=='OPEN')return reject('لا يمكن إضافة حركة بتاريخ داخل فترة غير مفتوحة ('+monthlyPeriodLabel(target.period)+').');
+   if(table==='payments')row.collectionPeriodId=target.period.id;
+   else row.periodId=target.period.id;
+  }
+ }
+ return true;
+}
 if(db.settings.pin){/* app starts unlocked; lock is explicit */}
 render();
 })();

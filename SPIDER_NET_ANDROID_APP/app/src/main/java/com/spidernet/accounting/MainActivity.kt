@@ -157,7 +157,7 @@ class MainActivity : ComponentActivity() {
                         override fun run() {
                             attempts += 1
                             if (job.isCompleted || job.isCancelled || job.isFailed || attempts >= 240) {
-                                webView.evaluateJavascript("document.body.classList.remove('printing-pos','printing-accounting','printing-bill'); var sheet=document.getElementById('billPrintSheet'); if(sheet) sheet.remove()", null)
+                                webView.evaluateJavascript("document.body.classList.remove('printing-pos','printing-accounting','printing-bill','printing-monthly-period'); ['billPrintSheet','monthlyPeriodPrintSheet'].forEach(function(id){var sheet=document.getElementById(id);if(sheet)sheet.remove()})", null)
                             } else {
                                 webView.postDelayed(this, 500)
                             }
