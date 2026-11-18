@@ -140,8 +140,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await tab('audit');const auditExportPromise=page.waitForEvent('download',{timeout:10000});await action('export-audit');const auditExport=await auditExportPromise;check(auditExport.suggestedFilename().endsWith('.json'),'زر تصدير سجل التدقيق ينزّل ملف JSON مستقل');const auditPayload=JSON.parse(await fs.readFile(await auditExport.path(),'utf8'));check(auditPayload.schemaVersion===1&&Array.isArray(auditPayload.audit),'بنية تصدير سجل التدقيق صحيحة');check(!Object.prototype.hasOwnProperty.call(auditPayload,'cards')&&!Object.prototype.hasOwnProperty.call(auditPayload,'pos'),'تصدير سجل التدقيق لا يتضمن قاعدة البيانات كاملة');check(auditPayload.audit.some(x=>String(x.action||'').includes('تصدير سجل التدقيق')||String(x.action||'').includes('تصدير')),'ملف التدقيق يتضمن أثر طلب التصدير');
  await tab('reports');
 
- await prompts(['2026-10','مراجعة آلية']);await action('close-period');data=await db();check(data.closures.length===1,'حفظ ملخص مراجعة الشهر');check(data.closures[0].status==='review_snapshot'&&data.closures[0].approved===false,'ملخص المراجعة لا يُعتمد كإقفال محاسبي تلقائيًا');await prompts(['2026-10']);await action('close-period');check((await db()).closures.length===1,'منع تكرار الفترة نفسها');
- await tab('settings');const backupP=page.waitForEvent('download',{timeout:10000});await action('backup');const backup=await backupP,backupPath=await backup.path();check(!!backupPath,'تصدير نسخة JSON');const backupData=JSON.parse(await fs.readFile(backupPath,'utf8'));check(backupData.version===1&&Array.isArray(backupData.pos)&&Array.isArray(backupData.deliveries),'سلامة بنية النسخة الاحتياطية');
+ await action('close-period');check((await page.locator('#view').innerText()).includes('الإدارة المالية الشهرية'),'زر التقارير يفتح وحدة الإدارة المالية الشهرية الجديدة');check(await page.locator('#view [data-action="period-create"]').count()===1,'وحدة الفترات تعرض إنشاء فترة مالية مخصصة');await tab('reports');await tab('settings');const backupP=page.waitForEvent('download',{timeout:10000});await action('backup');const backup=await backupP,backupPath=await backup.path();check(!!backupPath,'تصدير نسخة JSON');const backupData=JSON.parse(await fs.readFile(backupPath,'utf8'));check(backupData.version===1&&Array.isArray(backupData.pos)&&Array.isArray(backupData.deliveries),'سلامة بنية النسخة الاحتياطية');
  const headerBackupPromise=page.waitForEvent('download',{timeout:10000});await page.locator('#backupBtn').click();const headerBackup=await headerBackupPromise;check(headerBackup.suggestedFilename().endsWith('.json'),'زر النسخة الاحتياطية العلوي ينزّل ملف JSON');
  const beforeRestore=await db();await tab('expenses');await action('add-expense');await fill({date:'2026-10-23',category:'صيانة',name:'حركة بعد النسخة الاحتياطية',amount:'77',note:'اختبار الاستعادة'});check(await submit(),'إنشاء سجل بعد النسخة الاحتياطية لاختبار الاستعادة');check((await db()).expenses.length===beforeRestore.expenses.length+1,'السجل الإضافي موجود قبل الاستعادة');await tab('settings');const pickerPromise=page.waitForEvent('filechooser',{timeout:5000});await page.locator('#restoreBtn').click();const picker=await pickerPromise;await picker.setFiles(backupPath);await page.waitForTimeout(200);data=await db();check(data.pos.length===backupData.pos.length&&data.cards.length===backupData.cards.length,'زر الاستعادة العلوي يختار نسخة صالحة ويستعيدها');check(data.pos.length===beforeRestore.pos.length&&data.deliveries.length===beforeRestore.deliveries.length&&data.expenses.length===beforeRestore.expenses.length,'استعادة النسخة تعيد حالة البيانات كما كانت وقت النسخ');
  const badPath='/tmp/spider-net-invalid-backup.json';await fs.writeFile(badPath,'{broken json','utf8');const beforeBad=await db();await page.locator('#restoreFile').setInputFiles(badPath);await page.waitForTimeout(100);data=await db();check(data.pos.length===beforeBad.pos.length&&data.cards.length===beforeBad.cards.length,'النسخة التالفة لا تستبدل بيانات سليمة');check((await dialogs()).some(x=>x.type==='alert'&&x.message.includes('تعذرت استعادة')),'رسالة واضحة عند فشل الاستعادة');
@@ -253,6 +252,88 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||''}));
  check(invoicePrint.count===printsBeforeBatch+1&&expectedCardNames.every(name=>invoicePrint.text.includes(name))&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل اسمي الفئتين الفعليين والإجمالي الكلي');
+ // Monthly-period regression: two consecutive custom periods, actual stock count and historical debt allocation.
+ await tab('periods');
+ check((await page.locator('#view').innerText()).includes('الإدارة المالية الشهرية'),'عرض لوحة الإدارة المالية الشهرية');
+ await action('period-create');
+ await fill({name:'فترة اختبار أكتوبر',startDate:'2026-10-10',endDate:'2026-10-31',openingCash:'777',openingCashConfirmed:'yes',note:'اختبار فترات محاسبية'});
+ check(await submit(),'إنشاء أول فترة مالية مخصصة برصيد نقدي فعلي مؤكد');
+ data=await db();const firstPeriod=data.periods.find(x=>x.name==='فترة اختبار أكتوبر');
+ check(!!firstPeriod&&firstPeriod.status==='OPEN'&&firstPeriod.openingCash===777,'حفظ الفترة المفتوحة ورصيد افتتاحي مؤكد');
+ await tab('pos');await action('add-delivery');
+ await fill({date:'2026-10-31',posId,cardId,qty:'1',mode:'credit',unitPrice:'120',note:'دين لاختبار ترحيل الفترات'});
+ check(await submit(),'إنشاء دين جديد في الفترة الأولى');
+ data=await db();const periodDebt=data.deliveries.find(x=>x.note==='دين لاختبار ترحيل الفترات');
+ check(periodDebt.periodId===firstPeriod.id,'إسناد الفاتورة الجديدة إلى فترة نشوئها');
+ await tab('periods');await action('period-review:'+firstPeriod.id);
+ check(await page.locator('#monthlyReviewSave').isVisible(),'فتح شاشة جرد ومراجعة الإقفال');
+ const countBoxes=page.locator('[data-monthly-count]');
+ const countTotal=await countBoxes.count();
+ for(let i=0;i<countTotal;i++){
+  const input=countBoxes.nth(i);
+  const bookText=await input.evaluate(el=>el.closest('tr').cells[2].textContent||'0');
+  const quantity=parseMoneyForTest(bookText);
+  await input.fill(String(quantity));
+  if(i===0&&quantity>0){
+   await input.fill(String(quantity-1));
+   await page.locator('[data-monthly-reason]').nth(i).fill('فرق جرد موثق في اختبار الانحدار');
+  }
+ }
+ const expectedCashText=await page.locator('#modalBody .form-grid strong').first().innerText();
+ const expectedCash=parseMoneyForTest(expectedCashText);
+ check(Number.isFinite(expectedCash),'حساب النقد المتوقع من رصيد الافتتاح والحركات داخل الفترة');
+ await page.locator('#monthlyActualCash').fill(String(expectedCash-5));
+ await page.locator('#monthlyCashReason').fill('فرق صندوق موثق في اختبار الانحدار');
+ await page.locator('#monthlyReserve').fill('0');
+ await page.locator('#monthlyBuffer').fill('0');
+ await page.locator('#monthlyReviewNote').fill('اختبار آلي للفترة والجرد');
+ await page.locator('#monthlyReviewSave').click();
+ data=await db();
+ check(data.periods.find(x=>x.id===firstPeriod.id).status==='REVIEW','حفظ الجرد ونقل الفترة إلى حالة المراجعة');
+ await action('period-close:'+firstPeriod.id);
+ data=await db();
+ const firstSnapshot=data.periodSnapshots.find(x=>x.periodId===firstPeriod.id);
+ check(data.periods.find(x=>x.id===firstPeriod.id).status==='CLOSED'&&!!firstSnapshot,'اعتماد الإقفال وإنشاء لقطة مالية ثابتة');
+ check(firstSnapshot.cash.closing===expectedCash-5&&firstSnapshot.cash.variance===-5,'مطابقة الصندوق الفعلي مع تسجيل فرق الجرد');
+ check(data.cashMovements.some(x=>x.periodCashCountKey===firstPeriod.id+'|cash'&&x.adjustmentType==='cash-count-shortage'),'تسجيل فرق الصندوق في حساب معلق لا كمصروف تشغيلي');
+ check(data.stockAdjustments.some(x=>x.periodCountKey?.startsWith(firstPeriod.id+'|')&&x.locationType==='main'&&x.delta===-1),'ترحيل فرق الجرد الفعلي للمخزون الرئيسي مرة واحدة');
+ check(firstSnapshot.metrics.netProfit!==undefined&&firstSnapshot.metrics.oldDebtCollections>=0,'حفظ ربح الفترة وملخص تحصيلات الديون');
+ // No transaction may be posted or edited within the closed date range.
+ const paymentsBeforeClosedWrite=data.payments.length;
+ await tab('pos');await action('payment-to:'+posId);
+ await fill({date:'2026-10-31',posId,amount:'10',method:'cash',allocationMode:'fifo',note:'محاولة تحصيل بتاريخ فترة مغلقة'});
+ check(!(await submit()),'رفض تحصيل بتاريخ داخل فترة مغلقة');
+ check((await db()).payments.length===paymentsBeforeClosedWrite,'عدم حفظ التحصيل المرفوض في فترة مغلقة');
+ await cancel();
+ await tab('pos');await action('open-pos:'+posId);
+ await page.locator('#view [data-action="edit-delivery:'+periodDebt.id+'"]').first().click();
+ await fill({qty:'2'});
+ check(!(await submit()),'رفض تعديل فاتورة من فترة مغلقة');
+ check((await db()).deliveries.find(x=>x.id===periodDebt.id).qty===periodDebt.qty,'الحفاظ على بيانات الفاتورة التاريخية بعد رفض التعديل');
+ await cancel();
+ // Start the next custom period on the exact next calendar day.
+ await tab('periods');await action('period-create');
+ await fill({name:'فترة اختبار نوفمبر',startDate:'2026-11-01',endDate:'2026-11-18',openingCash:'0',openingCashConfirmed:'no',note:'اختبار ترحيل'});
+ check(await submit(),'إنشاء الفترة التالية اعتمادًا على لقطة الإقفال السابقة');
+ data=await db();const secondPeriod=data.periods.find(x=>x.name==='فترة اختبار نوفمبر');
+ check(!!secondPeriod&&secondPeriod.openingCash===firstSnapshot.cash.closing&&secondPeriod.previousPeriodId===firstPeriod.id,'ترحيل النقد الختامي كرصيد افتتاحي للفترة التالية');
+ // A new-period receipt explicitly identifies old origin and actual collection periods.
+ await tab('pos');await action('payment-to:'+posId);
+ await fill({date:'2026-11-01',posId,amount:'20',method:'transfer',allocationMode:'fifo',note:'تحصيل دين أكتوبر في نوفمبر'});
+ check(await submit(),'تسجيل تحصيل دين سابق في الفترة الجديدة');
+ data=await db();const newPayment=data.payments[data.payments.length-1];
+ check(newPayment.collectionPeriodId===secondPeriod.id,'تسجيل فترة التحصيل الفعلية');
+ check(Array.isArray(newPayment.allocations)&&Math.abs(newPayment.allocations.reduce((n,x)=>n+Number(x.amount||0),0)-20)<0.01,'تخصيص التحصيل صراحة إلى الفواتير القديمة');
+ check(newPayment.allocations.length>0&&newPayment.allocations.every(x=>x.originPeriodId===firstPeriod.id),'الحفاظ على الفترة الأصلية لكل دين تم تحصيله');
+ await tab('periods');
+ const periodsText=await page.locator('#view').innerText();
+ check(periodsText.includes('فترة اختبار أكتوبر')&&periodsText.includes('فترة اختبار نوفمبر'),'عرض الفترتين في السجل المالي');
+ await action('period-report:'+firstPeriod.id);
+ check((await page.locator('#modalBody').innerText()).includes('صافي الربح المحاسبي'),'عرض تقرير الإقفال المالي التفصيلي');
+ const printBeforePeriod=await page.evaluate(()=>window.__printCount);
+ await page.locator('#monthlyPeriodPrint').click();
+ check(await page.evaluate(n=>window.__printCount===n+1,printBeforePeriod)&&await page.locator('#monthlyPeriodPrintSheet').count()===0,'طباعة تقرير الفترة وتنظيف مساحة الطباعة');
+
  check(pageErrors.length===0,'لا توجد استثناءات JavaScript غير معالجة');
  console.log('SPIDER NET regression checks passed: '+passed.length);for(const p of passed)console.log('PASS: '+p);
 }catch(e){console.error('Regression failed after '+passed.length+' checks');console.error(e&&e.stack||e);console.error('Page errors: '+JSON.stringify(pageErrors));try{console.error('Dialogs: '+JSON.stringify(await dialogs()))}catch{}process.exitCode=1}
