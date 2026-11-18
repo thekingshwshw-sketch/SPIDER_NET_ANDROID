@@ -843,6 +843,12 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
  .main{grid-column:auto;grid-row:auto;padding:17px 1px 20px}
 }
 
+
+@media(max-width:900px){
+ .sidebar{visibility:hidden!important;pointer-events:none!important}
+ body.nav-open .sidebar{visibility:visible!important;pointer-events:auto!important}
+}
+
 </style></head>
 <body>
 <div class="app" id="app">
