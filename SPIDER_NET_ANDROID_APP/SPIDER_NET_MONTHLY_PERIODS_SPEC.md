@@ -68,3 +68,8 @@ The current database aggregates transfer/wallet balances into one account and do
 - Partner distribution is limited by approved distributable profit and available liquidity; it is never included in operating expenses.
 - A closed period refuses ordinary edits/deletes; a correction is a separate, traceable adjustment.
 - Existing v1 backups still load without losing records; unknown/malformed fields are preserved or flagged.
+
+
+## Automated validation requirements
+
+The regression suite must exercise two consecutive custom periods, period-end physical stock counts, cash-count variance in suspense (not operating expense), debt originated in the prior period and collected in the new period, preserved debt origin/collection period metadata, closed-period transaction rejection, closed-period source-edit rejection, report rendering and print bridge cleanup. Android integration checks and debug APK assembly are required before considering the branch validated. CI success is not a substitute for real-device print/export dialog testing.
