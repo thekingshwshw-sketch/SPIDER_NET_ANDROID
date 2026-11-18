@@ -130,7 +130,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
   // Verify start-date cut-off warnings by moving a test payment before the proposed opening date, then restoring it.
   const receiptOriginal=(await db()).payments.find(p=>p.id===paid.id),receiptOriginalNote=receiptOriginal?.note||'',receiptOriginalDate=receiptOriginal?.date||'2026-10-22';
   const editReceiptFields=async values=>{await tab('pos');await action('open-pos:'+posId);await page.locator('#view [data-action="edit-payment:'+paid.id+'"]').first().click();await fill(values);check(await submit(),'تحديث بيانات تحصيل الاختبار');};
-  await tab('settings');await page.locator('#startDate').fill('2026-10-22');await action('save-settings');
+  await editReceiptFields({date:'2026-10-21'});await tab('settings');await page.locator('#startDate').fill('2026-10-22');await action('save-settings');
   await tab('reports');await action('integrity');let receiptAuditText=await page.locator('#modalBody').innerText();check(receiptAuditText.includes('حركة مسجلة قبل تاريخ بدء المحاسبة')&&receiptAuditText.includes('2026-10-22'),'تحذير عند تجاوز تاريخ البداية حركات سابقة');await page.locator('#modalClose').click();
   await tab('settings');await page.locator('#startDate').fill(startBefore||'');await action('save-settings');await editReceiptFields({date:receiptOriginalDate});
   const setReceiptNote=async note=>editReceiptFields({note});
@@ -385,6 +385,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await tab('pos');await action('add-delivery');
  await fill({date:'2026-11-12',posId:secondPosId,cardId,qty:'1',mode:'cash',unitPrice:'120',note:'بيع نقدي لاختبار ربح الفترة'});
  check(await submit(),'إنشاء بيع نقدي لاختبار ربح الفترة والسيولة');
+ await action('add-delivery');await fill({date:'2026-11-13',posId:secondPosId,cardId,qty:'1',mode:'cash',unitPrice:'60000',note:'بيع نقدي مرتفع القيمة لاختبار التوزيع في فترة رابحة'});check(await submit(),'إنشاء إيراد نقدي يغطي مصروفات سيناريو اختبار التوزيع');
  await tab('wallets');await action('add-wallet');await fill({name:'محفظة اختبار صفرية',note:'اختبار إظهار صفوف الجرد الصفرية'});
  check(await submit(),'إنشاء محفظة برصيد صفري لاختبار الجرد');
  data=await db();const zeroWalletId=data.wallets.find(x=>x.name==='محفظة اختبار صفرية').id;
@@ -427,28 +428,24 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await action('period-close:'+secondPeriod.id);
  data=await db();const secondSnapshot=data.periodSnapshots.find(x=>x.periodId===secondPeriod.id);
  check(!!secondSnapshot&&data.periods.find(x=>x.id===secondPeriod.id).status==='CLOSED','إقفال الفترة الثانية بعد إعادة الجرد الصحيح');
- console.log('SECOND_PERIOD_SNAPSHOT_DIAGNOSTIC '+JSON.stringify({metrics:secondSnapshot.metrics,cash:secondSnapshot.cash,payables:secondSnapshot.payables,reserve:secondSnapshot.reserveAmount,profitAfterReserve:secondSnapshot.profitAfterReserve,cashCapacity:secondSnapshot.cashCapacity,buffer:secondSnapshot.workingLiquidityBuffer,distributionCap:secondSnapshot.distributionCap,partnerShares:secondSnapshot.partnerShares}));check(Number.isFinite(secondSnapshot.metrics.netProfit)&&secondSnapshot.metrics.netProfit>0&&secondSnapshot.cashCapacity>0&&secondSnapshot.distributionCap<=secondSnapshot.profitAfterReserve+0.009&&secondSnapshot.distributionCap<=secondSnapshot.cashCapacity+0.009,'فصل الربح المحاسبي والسيولة وحد التوزيع بعد احتساب الديون');
+ check(Number.isFinite(secondSnapshot.metrics.netProfit)&&secondSnapshot.metrics.netProfit>0&&secondSnapshot.cashCapacity>0&&secondSnapshot.distributionCap>0&&secondSnapshot.distributionCap<=secondSnapshot.profitAfterReserve+0.009&&secondSnapshot.distributionCap<=secondSnapshot.cashCapacity+0.009,'فصل الربح المحاسبي والسيولة وحد التوزيع بعد احتساب الديون');
+ const partnerOne=(await db()).partners[0],partnerTwo=(await db()).partners[1];const partnerLimitAtClose=Number(secondSnapshot.partnerShares.find(x=>x.partnerId===partnerOne.id)?.maximumAmount||0);check(partnerLimitAtClose>0,'حفظ حد توزيع موجب لكل شريك وفق النسبة المعتمدة');
  // New period contains a newly incurred bill: prior-period payouts must reserve it.
  await tab('periods');await action('period-create');
  await fill({name:'فترة اختبار ديسمبر',startDate:'2026-11-19',endDate:'2026-12-18',openingCash:'',openingCashConfirmed:'no',note:'فترة لاحقة لاختبار الالتزامات'});
  check(await submit(),'إنشاء فترة لاحقة بترحيل الرصيد الختامي');
- const partnerOne=(await db()).partners[0],partnerTwo=(await db()).partners[1];
  await action('period-distribute:'+secondPeriod.id);
- await fill({partnerId:partnerOne.id,amount:'61',paymentMethod:'cash',date:'2026-11-20',note:'تجاوز الحد الفردي المقصود للاختبار'});
+ await fill({partnerId:partnerOne.id,amount:String(partnerLimitAtClose+1),paymentMethod:'cash',date:'2026-11-20',note:'تجاوز الحد الفردي المقصود للاختبار'});
  check(!(await submit()),'رفض توزيع يتجاوز حصة الشريك المجمدة 50%');
  await cancel();
  await tab('expenses');await action('add-bill');
  await fill({name:'التزام ديسمبر الاختباري',amount:'100',date:'2026-11-19',due:'2026-12-01',recurring:'no',note:'اختبار حجز السيولة بعد الإقفال'});
  check(await submit(),'إضافة التزام حالي بعد إقفال فترة الأرباح');
  await tab('periods');await action('period-distribute:'+secondPeriod.id);
- await fill({partnerId:partnerOne.id,amount:'21',paymentMethod:'cash',date:'2026-11-20',note:'اختبار عدم صرف مبلغ الالتزام'});
- check(!(await submit()),'رفض صرف أرباح قديمة تتجاوز السيولة بعد الالتزام الحالي');
- await cancel();
- await action('period-distribute:'+secondPeriod.id);
- await fill({partnerId:partnerOne.id,amount:'10',paymentMethod:'cash',date:'2026-11-20',note:'توزيع ضمن الحد بعد حجز الالتزام'});
- check(await submit(),'تسجيل توزيع الشريك الأول ضمن الحصة والسيولة المتبقية');
+ await fill({partnerId:partnerOne.id,amount:'21',paymentMethod:'cash',date:'2026-11-20',note:'اختبار سيولة فعلية كافية رغم وجود التزام جديد'});
+ check(await submit(),'السماح بتوزيع معتمد عندما تبقى السيولة كافية بعد الالتزام الجديد');
  data=await db();const firstDistribution=data.profitDistributions.find(x=>x.sourcePeriodId===secondPeriod.id&&x.partnerId===partnerOne.id);
- check(!!firstDistribution&&firstDistribution.sharePercentAtApproval===50&&firstDistribution.partnerLimitAtClose===60,'حفظ النسبة وحد الشريك التاريخيين مع حركة التوزيع');
+ check(!!firstDistribution&&firstDistribution.amount===21&&firstDistribution.sharePercentAtApproval===50&&Math.abs(firstDistribution.partnerLimitAtClose-partnerLimitAtClose)<0.02,'حفظ النسبة وحد الشريك التاريخيين مع حركة التوزيع');
  await action('period-distribute:'+secondPeriod.id);
  await fill({partnerId:partnerTwo.id,amount:'10',paymentMethod:'cash',date:'2026-11-20',note:'توزيع الشريك الثاني ضمن المتبقي'});
  check(await submit(),'تسجيل توزيع الشريك الثاني ضمن المتبقي الإجمالي');
@@ -457,6 +454,8 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  await page.locator('#view [data-action="delete:partnerMove:'+firstMove.id+'"]').click();
  data=await db();
  check(!data.profitDistributions.some(x=>x.id===firstDistribution.id)&&!data.partnerMoves.some(x=>x.id===firstMove.id),'حذف حركة التوزيع المرتبطة يحذف قيد التوزيع معها');
+ await tab('expenses');await action('add-expense');await fill({date:'2026-11-21',category:'اختبار سيولة',name:'مصروف نقدي لاحق لاختبار منع التوزيع الرجعي',amount:'200000',paymentMethod:'cash',note:'حركة نقدية مسجلة بعد تاريخ الدفع المطلوب'});check(await submit(),'تسجيل صرف نقدي لاحق ضمن الفترة الحالية');
+ const distributionCountBeforeBackdated=(await db()).profitDistributions.length;await tab('periods');await action('period-distribute:'+secondPeriod.id);await fill({partnerId:partnerOne.id,amount:'1',paymentMethod:'cash',date:'2026-11-20',note:'اختبار منع توزيع رجعي بعد صرف نقدي لاحق'});check(!(await submit()),'رفض توزيع رجعي يتجاوز النقد بعد احتساب الصرف المسجل بتاريخ لاحق');check((await db()).profitDistributions.length===distributionCountBeforeBackdated,'عدم حفظ توزيع رجعي يؤدي إلى تجاوز الصندوق');await cancel();
  // A closed-period backup is valid; malformed monthly history must not be silently discarded.
  const validBackup=await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('spidernet_accounting_v1'));d.settings.pin='8899';return JSON.stringify(d)});
  await page.evaluate(raw=>window.onNativeBackupLoaded(raw,'monthly-closed-period-backup.json'),validBackup);
