@@ -617,7 +617,7 @@ body{background:var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-
 .icon-button:hover{color:var(--accent);background:var(--soft-green);border-color:var(--line)}
 .layout{grid-template-columns:254px minmax(0,1fr);gap:17px;align-items:stretch}
 .sidebar{
- grid-column:1;grid-row:1;position:relative;top:auto;min-height:calc(100vh - 105px);
+ grid-column:1;grid-row:1 / span 2;position:relative;top:auto;min-height:calc(100vh - 105px);
  padding:15px 12px;border:1px solid #173e4a;border-radius:20px;
  color:#eef8f3;background:linear-gradient(165deg,#102f3e 0%,#0b2634 58%,#0b202c 100%);
  box-shadow:0 14px 34px rgba(7,36,43,.16)
@@ -645,7 +645,7 @@ body{background:var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-
 .theme-switch{background:#ffffff0b;border:1px solid #ffffff1c;color:#e6f4ee;border-radius:12px}
 .switch-dot{background:#2e5b56}
 .sidebar-version{color:#87a99e;font-size:9px}
-.main{grid-column:2;grid-row:1;min-width:0;padding:23px 5px 26px}
+.main{grid-column:2;grid-row:2;min-width:0;padding:23px 5px 26px}
 .dashboard-page{max-width:1260px}
 .dashboard-head{margin-bottom:19px;align-items:center}
 .dashboard-head h2{font-size:25px;letter-spacing:-.3px;font-weight:900}
@@ -833,6 +833,15 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
 .simple-reminder h3{color:var(--warn)}
 .simple-reminder.neutral,.simple-reminder.settled{background:var(--soft-green);border-color:color-mix(in srgb,var(--accent) 30%,var(--line));color:var(--text)}
 .simple-reminder.neutral h3,.simple-reminder.settled h3{color:var(--accent)}
+
+
+@media(max-width:900px){
+ .app{display:flex;flex-direction:column;gap:0;padding:0 10px}
+ .layout{display:block;min-height:calc(100vh - 146px);margin:0}
+ .sidebar{position:fixed;z-index:70;top:0;right:0;bottom:0;width:min(300px,86vw);height:100dvh;min-height:100dvh;border-radius:0 0 0 20px;transform:translateX(110%);transition:transform .22s ease;overflow-y:auto}
+ body.nav-open .sidebar{transform:translateX(0)}
+ .main{grid-column:auto;grid-row:auto;padding:17px 1px 20px}
+}
 
 </style></head>
 <body>
