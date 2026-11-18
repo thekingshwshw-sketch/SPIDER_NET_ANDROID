@@ -806,7 +806,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
  body.printing-bill #billPrintSheet.spider-invoice .invoice-accent{display:block!important}
  body.printing-bill #billPrintSheet.spider-invoice .invoice-party,body.printing-bill #billPrintSheet.spider-invoice .invoice-number-box,body.printing-bill #billPrintSheet.spider-invoice .invoice-note,body.printing-bill #billPrintSheet.spider-invoice .invoice-total-card{break-inside:avoid}
  body.printing-bill #billPrintSheet.spider-invoice .invoice-table tr{break-inside:avoid}
- body.printing-bill #billPrintSheet.spider-invoice .invoice-footer{position:absolute;bottom:12mm;right:14mm;left:14mm}
+ body.printing-bill #billPrintSheet.spider-invoice .invoice-footer{position:static;margin-top:30px}
  body.printing-pos .print-receipt{font-family:Tahoma,Arial,sans-serif;background:#fff!important;color:#183744!important;border:0!important;border-radius:0!important;padding:0!important}
  body.printing-pos .receipt-head{border-bottom:3px solid #0b9869!important;padding-bottom:10px!important}
  body.printing-pos .receipt-brand{color:#123b47!important}
@@ -2070,6 +2070,7 @@ function printDeliveryBatchInvoice(batchId){
  const statusText=first.mode==='cash'?'مدفوعة نقدياً':first.mode==='credit'?'مستحق التحصيل':'أمانة / تسوية لاحقة';
  const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
  const totalQty=lines.reduce((n,x)=>n+num(x.qty),0);
+ const quantityText=new Intl.NumberFormat('ar-YE',{maximumFractionDigits:2}).format(totalQty);
  const totalLabel=first.mode==='consignment'?'القيمة المرجعية للبضاعة':'الإجمالي المستحق';
  const rows=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(cardLabel(x.cardId))+'</strong></td><td class="numeric">'+esc(x.qty)+'</td><td class="numeric">'+money(x.unitPrice)+'</td><td class="numeric">'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
  const html='<section id="billPrintSheet" class="spider-invoice" dir="rtl">'+
@@ -2084,7 +2085,7 @@ function printDeliveryBatchInvoice(batchId){
  '</div>'+
  '<div class="invoice-parties">'+
  '<section class="invoice-party"><span class="eyebrow">الفاتورة إلى</span><h3>'+esc(p.name||'نقطة بيع')+'</h3><p>المالك: '+esc(p.owner||'غير محدد')+'</p><p>الهاتف: '+esc(p.phone||'غير محدد')+'</p><p>المنطقة: '+esc(p.area||'—')+'</p></section>'+
- '<section class="invoice-party"><span class="eyebrow">تفاصيل العملية</span><h3>'+movement+'</h3><p>حالة العملية: '+statusText+'</p><p>طريقة التسوية: '+paymentNote+'</p><p>عدد الأصناف: '+lines.length+' • إجمالي الكمية: '+money(totalQty)+'</p></section>'+
+ '<section class="invoice-party"><span class="eyebrow">تفاصيل العملية</span><h3>'+movement+'</h3><p>حالة العملية: '+statusText+'</p><p>طريقة التسوية: '+paymentNote+'</p><p>عدد الأصناف: '+lines.length+' • إجمالي الكمية: '+quantityText+'</p></section>'+
  '</div>'+
  '<table class="invoice-table"><thead><tr><th style="width:7%">م</th><th>فئة الكرت</th><th style="width:15%">الكمية</th><th style="width:19%">سعر الوحدة</th><th style="width:22%">الإجمالي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
  '<div class="invoice-bottom">'+
