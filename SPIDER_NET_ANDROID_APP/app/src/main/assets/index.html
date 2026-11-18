@@ -849,6 +849,18 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
  body.nav-open .sidebar{right:0!important;transform:none!important;visibility:visible!important;pointer-events:auto!important}
 }
 
+
+/* Dark-mode tables: both the table canvas and every stripe must keep readable contrast. */
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table){background:var(--panel)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(odd){background:var(--panel)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(even){background:var(--panel2)!important;color:var(--text)!important}
+html[data-theme="dark"] .simple-statement .receipt-lines th{background:#163b46!important;color:#f1faf5!important}
+@media print{
+ body.printing-pos .simple-statement table:not(.simple-contact-table){background:#fff!important;color:#111!important}
+ body.printing-pos .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(odd){background:#fff!important;color:#111!important}
+ body.printing-pos .simple-statement table:not(.simple-contact-table) tbody tr:nth-child(even){background:#f4f7f5!important;color:#111!important}
+}
+
 </style></head>
 <body>
 <div class="app" id="app">
