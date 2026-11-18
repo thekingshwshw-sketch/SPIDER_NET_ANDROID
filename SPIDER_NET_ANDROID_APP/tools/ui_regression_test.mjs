@@ -130,7 +130,7 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
   // Verify start-date cut-off warnings by moving a test payment before the proposed opening date, then restoring it.
   const receiptOriginal=(await db()).payments.find(p=>p.id===paid.id),receiptOriginalNote=receiptOriginal?.note||'',receiptOriginalDate=receiptOriginal?.date||'2026-10-22';
   const editReceiptFields=async values=>{await tab('pos');await action('open-pos:'+posId);await page.locator('#view [data-action="edit-payment:'+paid.id+'"]').first().click();await fill(values);check(await submit(),'تحديث بيانات تحصيل الاختبار');};
-  await editReceiptFields({date:'2026-10-10'});await tab('settings');await page.locator('#startDate').fill('2026-10-11');await action('save-settings');
+  await tab('settings');await page.locator('#startDate').fill('2026-10-22');await action('save-settings');
   await tab('reports');await action('integrity');let receiptAuditText=await page.locator('#modalBody').innerText();check(receiptAuditText.includes('حركة مسجلة قبل تاريخ بدء المحاسبة')&&receiptAuditText.includes('2026-10-11'),'تحذير عند تجاوز تاريخ البداية حركات سابقة');await page.locator('#modalClose').click();
   await tab('settings');await page.locator('#startDate').fill(startBefore||'');await action('save-settings');await editReceiptFields({date:receiptOriginalDate});
   const setReceiptNote=async note=>editReceiptFields({note});
