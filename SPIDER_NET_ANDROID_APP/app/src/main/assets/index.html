@@ -1299,7 +1299,7 @@ function editPayment(id){
     }
    }
    if(budget>0.009||Math.abs(updatedAllocations.reduce((n,x)=>n+x.amount,0)-amount)>0.02)return alert('تعذر الحفاظ على توزيع التحصيل على الفواتير دون تجاوز الأرصدة المتبقية. لم يتم تعديل العملية.'),false;
-  }else if(old.allocationMode!=='unallocated'){
+  }else if(old.allocationMode==='fifo'){
    let budget=amount;updatedAllocations=[];
    for(const due of currentOpen){
     if(budget<=0.009)break;
@@ -2273,17 +2273,23 @@ function recordMonthlyDistribution(periodId){
   if(!share)return alert('الشريك غير موجود في لقطة حصص الإقفال. لا يمكن توزيع أرباحه دون اعتماد حصة.'),false;
   const partnerMaximum=Number.isFinite(Number(share.maximumAmount))?Number(share.maximumAmount):Math.round(Number(snapshot.distributionCap||0)*Number(share.share||0)/100*100)/100;
   const partnerRemaining=Math.max(0,partnerMaximum-paidForPartner(d.partnerId));
-  const currentBills=monthlyUnpaidBillsAsOf(d.date);
-  const currentPartnerDue=Math.max(0,monthlyPartnerPayablesAsOf(d.date));
+  const availabilityDate=d.date>dateNow()?d.date:dateNow();
+  const currentBills=monthlyUnpaidBillsAsOf(availabilityDate);
+  const currentPartnerDue=Math.max(0,monthlyPartnerPayablesAsOf(availabilityDate));
   const currentBuffer=Math.max(0,Number(payPeriod.review?.workingLiquidityBuffer)||0);
-  const closingReserve=Math.max(0,Number(snapshot.payables?.unpaidBills)||0)+Math.max(0,Number(snapshot.payables?.partnerPayables)||0)+Math.max(0,Number(snapshot.workingLiquidityBuffer)||0);
-  const currentReserve=currentBills+currentPartnerDue+currentBuffer;
-  const additionalReserve=Math.max(0,currentReserve-closingReserve);
-  const overallRemaining=Math.max(0,Number(snapshot.distributionCap||0)-totalAlready()-additionalReserve);
-  const currentCashAvailable=Math.max(0,cashBalanceAsOf(d.date)-currentBills-currentPartnerDue-currentBuffer);
+  // New obligations reduce spendable liquidity, not the accounting-profit entitlement itself.
+  const overallRemaining=Math.max(0,Number(snapshot.distributionCap||0)-totalAlready());
+  // Subtract all later cash outflows already entered in the receiving period before accepting a backdated payout.
+  const laterCashOutflows=
+   sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&validDateValue(x.paidDate)&&x.paidDate>d.date&&x.paidDate<=payPeriod.endDate),x=>x.amount)
+   +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
+   +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
+   +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount);
+  const currentCashAvailable=Math.max(0,cashBalanceAsOf(d.date)-laterCashOutflows-currentBills-currentPartnerDue-currentBuffer);
   const allowed=Math.min(partnerRemaining,overallRemaining);
   if(amount>allowed+0.009)return alert('المبلغ يتجاوز الحد المتاح لهذا الشريك بعد احتساب حصته والتوزيعات السابقة والالتزامات الحالية. حصة الشريك المتبقية: '+money(partnerRemaining)+'، والمتاح إجمالًا الآن: '+money(overallRemaining)+'.'),false;
-  if(d.paymentMethod==='cash'&&amount>currentCashAvailable+0.009)return alert('المبلغ يتجاوز النقد القابل للصرف بعد الالتزامات الحالية والسيولة التشغيلية المحمية ('+money(currentCashAvailable)+').'),false;
+  if(d.paymentMethod==='cash'&&amount>currentCashAvailable+0.009)return alert('المبلغ يتجاوز النقد القابل للصرف بعد الالتزامات الحالية والسيولة التشغيلية المحمية، وبعد خصم الحركات النقدية المسجلة بتاريخ لاحق ('+money(currentCashAvailable)+').'),false;
   if(d.paymentMethod==='transfer'&&!confirm('أكدت وجود المبلغ فعليًا في حساب التحويل/المحفظة، وأنه غير محسوب ضمن الصندوق النقدي. كما أعاد النظام احتساب الالتزامات الحالية وحد التوزيع قبل التسجيل. هل تؤكد الدفع؟'))return false;
   const row={
    id:uid(),sourcePeriodId:periodId,periodId:payPeriod.id,partnerId:d.partnerId,date:d.date,
@@ -2393,21 +2399,25 @@ function monthlyPrepareWrite(){
     continue;
    }
    if(JSON.stringify(oldRow)!==JSON.stringify(current)){
-    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){
-     if(sourcePeriod.status!=='REVIEW'&&table==='bills'&&isBillSettlementOnly(oldRow,current)){
-      const paymentPeriod=monthlyPeriodForDate(current.paidDate);
-      if(!paymentPeriod||paymentPeriod.status!=='OPEN')return reject('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مالية مفتوحة.');
-      current.paidPeriodId=paymentPeriod.id;
+    // A bill's expense/origin date is immutable; only its actual settlement date belongs to the receiving period.
+    if(table==='bills'&&isBillSettlementOnly(oldRow,current)){
+     const paymentPeriod=monthlyPeriodForDate(current.paidDate);
+     if(!paymentPeriod||paymentPeriod.status!=='OPEN')return reject('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مالية مفتوحة.');
+     current.paidPeriodId=paymentPeriod.id;
+     if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){
+      if(sourcePeriod.status==='REVIEW')return reject('لا يمكن سداد التزام أثناء مراجعة الفترة. أعد فتحها أو أكمل الإقفال أولًا.');
       continue;
      }
-     return reject('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. لا يمكن نقل العملية إلى تاريخ فترة أخرى بتعديلها؛ استخدم تصحيحًا موثقًا في فترة مفتوحة.');
+     if(!sourcePeriod)continue; // Preserve an unassigned legacy origin; record only the settlement period.
     }
+    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status))
+     return reject('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. لا يمكن نقل العملية إلى تاريخ فترة أخرى بتعديلها؛ استخدم تصحيحًا موثقًا في فترة مفتوحة.');
     const target=destinationFor(table,current);
     if(validDateValue(target.date)){
      if(!target.period)return reject('تاريخ العملية المعدّلة لا يقع داخل أي فترة مالية معرفة. أنشئ الفترة المناسبة أو صحح التاريخ قبل الحفظ.');
      if(target.period.status!=='OPEN')return reject('لا يمكن نقل أو تعديل حركة إلى فترة ليست مفتوحة ('+monthlyPeriodLabel(target.period)+').');
      if(table==='payments')current.collectionPeriodId=target.period.id;
-     else current.periodId=target.period.id;
+     else if(table!=='bills')current.periodId=target.period.id;
     }
    }
   }
