@@ -81,10 +81,20 @@ jobs:
           node --check /tmp/spider-net-app.js
         working-directory: SPIDER_NET_ANDROID_APP
 
+      - name: Install Playwright test dependency
+        run: npm install --no-save playwright@1.55.0
+        working-directory: SPIDER_NET_ANDROID_APP
+
+      - name: Cache Playwright Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-1.55.0-chromium-v1
+
       - name: Install Playwright browser for UI regression tests
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
         working-directory: SPIDER_NET_ANDROID_APP
 
       - name: Run UI regression tests
