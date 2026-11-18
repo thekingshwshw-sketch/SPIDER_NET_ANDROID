@@ -1613,6 +1613,8 @@ function applyBackupText(text,fileName){
  alert('تمت الاستعادة بنجاح. راجع الأرصدة واختبر سلامة البيانات.');
  return true;
 }
+window.onNativeBackupLoaded=function(text,fileName){applyBackupText(text,fileName||'ملف مستعاد')};
+window.onNativeBackupLoadError=function(message){alert(message||'تعذر فتح ملف النسخة الاحتياطية')};
 function saveSettings(){
  const s=$('#startDate').value,p=$('#newPin').value,opening=Number($('#cashOpeningBalance').value),openingDate=$('#cashOpeningDate').value,confirmed=$('#cashOpeningConfirmed').value==='yes';
  if(s&&!validDateValue(s))return alert('تاريخ بدء النظام غير صحيح. اتركه فارغًا إذا لم تحدده.');
@@ -2075,49 +2077,82 @@ function closeMonthlyPeriod(id){
  if(!p||p.status!=='REVIEW'||!p.review)return alert('احفظ الجرد والمراجعة أولًا قبل اعتماد الإقفال.');
  if(!confirm('اعتماد إقفال '+monthlyPeriodLabel(p)+'؟ بعد الاعتماد ستُحمى عمليات الفترة من التعديل المباشر.'))return;
  const review=p.review;
- // Apply each approved stock-count variance once, at the period end date.
- for(const count of review.stockCounts||[]){
-  if(!count.variance)continue;
-  const marker=p.id+'|'+count.key;
-  if((db.stockAdjustments||[]).some(x=>x.periodCountKey===marker))continue;
-  db.stockAdjustments.push({id:uid(),date:p.endDate,periodId:p.id,periodCountKey:marker,cardId:count.cardId,locationType:count.locationType,locationId:count.locationId,delta:count.variance,note:'فرق جرد معتمد: '+count.reason+' / '+count.label+' / '+count.cardName});
+ const shares=(db.partners||[]).map(x=>({partnerId:x.id,name:x.name,share:Number(x.share)||0}));
+ const shareTotal=shares.reduce((n,x)=>n+x.share,0);
+ if(!shares.length||shares.some(x=>!x.partnerId||!Number.isFinite(x.share)||x.share<0)||Math.abs(shareTotal-100)>0.001){
+  return alert('لا يمكن إقفال الفترة قبل اعتماد حصص الشركاء بحيث يكون مجموعها 100%.');
  }
+ const stockKeys=new Set((review.stockCounts||[]).map(x=>p.id+'|'+x.key));
  const cashMarker=p.id+'|cash';
- if(Math.abs(review.cashVariance)>0.009&&!(db.cashMovements||[]).some(x=>x.periodCashCountKey===cashMarker)){
-  db.cashMovements.push({id:uid(),date:p.endDate,periodId:p.id,periodCashCountKey:cashMarker,kind:review.cashVariance>0?'in':'out',category:'تسوية فرق جرد نقدي',amount:Math.abs(review.cashVariance),adjustmentType:review.cashVariance>0?'cash-count-surplus':'cash-count-shortage',note:review.cashReason});
- }
- // Save count adjustments while the period remains in REVIEW; this makes retry idempotent.
- if(!persist())return;
+ const oldStock=db.stockAdjustments||[],oldCash=db.cashMovements||[];
+ const plannedStock=(review.stockCounts||[]).filter(x=>Number(x.variance)!==0).map(count=>({
+  id:uid(),date:p.endDate,periodId:p.id,periodCountKey:p.id+'|'+count.key,
+  cardId:count.cardId,locationType:count.locationType,locationId:count.locationId,
+  delta:count.variance,
+  note:'فرق جرد معتمد: '+count.reason+' / '+count.label+' / '+count.cardName
+ }));
+ const plannedCash=Math.abs(Number(review.cashVariance)||0)>0.009?[{
+  id:uid(),date:p.endDate,periodId:p.id,periodCashCountKey:cashMarker,
+  kind:review.cashVariance>0?'in':'out',category:'تسوية فرق جرد نقدي',
+  amount:Math.abs(review.cashVariance),
+  adjustmentType:review.cashVariance>0?'cash-count-surplus':'cash-count-shortage',
+  note:review.cashReason
+ }]:[];
+ // Build the close in memory first. Re-counts replace old generated markers; a rejected close writes nothing.
+ db.stockAdjustments=oldStock.filter(x=>!stockKeys.has(x.periodCountKey)).concat(plannedStock);
+ db.cashMovements=oldCash.filter(x=>x.periodCashCountKey!==cashMarker).concat(plannedCash);
+ const rollbackPlanned=()=>{db.stockAdjustments=oldStock;db.cashMovements=oldCash};
  const metrics=monthlyPeriodMetrics(p);
  const debt=monthlyDebtAnalysis(p.endDate);
  const unpaid=monthlyUnpaidBillsAsOf(p.endDate);
  const partnerDue=Math.max(0,monthlyPartnerPayablesAsOf(p.endDate));
  const reserve=Number(review.reserveAmount)||0;
- if(reserve>Math.max(0,metrics.netProfit)+0.009)return alert('الاحتياطي أكبر من صافي الربح المحاسبي. أعد فتح المراجعة وعدّل الاحتياطي.');
+ if(reserve>Math.max(0,metrics.netProfit)+0.009){
+  rollbackPlanned();
+  return alert('الاحتياطي أكبر من صافي الربح المحاسبي بعد احتساب فروقات الجرد. لم تُرحّل أي تسويات. عدّل الاحتياطي أو راجع الجرد ثم أعد المحاولة.');
+ }
  const profitAfterReserve=Math.max(0,metrics.netProfit-reserve);
  const cashCapacity=Math.max(0,Number(review.actualCash)-unpaid-partnerDue-(Number(review.workingLiquidityBuffer)||0));
  const distributionCap=Math.min(profitAfterReserve,cashCapacity);
+ const partnerShares=shares.map(x=>({
+  partnerId:x.partnerId,name:x.name,share:x.share,
+  maximumAmount:Math.round(distributionCap*x.share/100*100)/100
+ }));
  const stockSnapshot=(review.stockCounts||[]).map(x=>({...x,closingQuantity:x.physicalQuantity}));
  const snapshot={
   id:uid(),periodId:p.id,createdAt:new Date().toISOString(),
-  metrics:{revenue:metrics.revenue,expenses:metrics.expenses,netProfit:metrics.netProfit,cashMovement:metrics.cashMovement,transferMovement:metrics.transferMovement,oldDebtCollections:metrics.oldDebtCollections,collectionsThisPeriod:metrics.collectionsThisPeriod,receivablesTotal:debt.outstanding,currentOriginReceivables:debt.items.filter(x=>x.originPeriodId===p.id).reduce((n,x)=>n+x.remaining,0),priorOriginReceivables:debt.items.filter(x=>x.originPeriodId&&x.originPeriodId!==p.id).reduce((n,x)=>n+x.remaining,0),unassignedOriginReceivables:debt.items.filter(x=>!x.originPeriodId).reduce((n,x)=>n+x.remaining,0),legacyAllocationWarnings:debt.allocationWarnings},
+  metrics:{
+   revenue:metrics.revenue,expenses:metrics.expenses,netProfit:metrics.netProfit,
+   cashMovement:metrics.cashMovement,transferMovement:metrics.transferMovement,
+   oldDebtCollections:metrics.oldDebtCollections,collectionsThisPeriod:metrics.collectionsThisPeriod,
+   receivablesTotal:debt.outstanding,
+   currentOriginReceivables:debt.items.filter(x=>x.originPeriodId===p.id).reduce((n,x)=>n+x.remaining,0),
+   priorOriginReceivables:debt.items.filter(x=>x.originPeriodId&&x.originPeriodId!==p.id).reduce((n,x)=>n+x.remaining,0),
+   unassignedOriginReceivables:debt.items.filter(x=>!x.originPeriodId).reduce((n,x)=>n+x.remaining,0),
+   legacyAllocationWarnings:debt.allocationWarnings
+  },
   cash:{opening:p.openingCash,expectedBeforeCount:review.cashExpected,variance:review.cashVariance,closing:review.actualCash,transferMovement:metrics.transferMovement},
   receivables:{total:debt.outstanding,items:debt.items.map(x=>({...x})),legacyUnappliedCollections:debt.legacyUnapplied,allocationWarnings:debt.allocationWarnings},
   payables:{unpaidBills:unpaid,partnerPayables:partnerDue,total:unpaid+partnerDue},
   inventory:stockSnapshot,
-  reserveAmount:reserve,profitAfterReserve,cashCapacity,workingLiquidityBuffer:Number(review.workingLiquidityBuffer)||0,distributionCap,
+  reserveAmount:reserve,profitAfterReserve,cashCapacity,workingLiquidityBuffer:Number(review.workingLiquidityBuffer)||0,
+  distributionCap,partnerShares,
   reviewNote:review.note||'',exceptions:[]
  };
  if(metrics.unassignedOriginReceivables>0)snapshot.exceptions.push('توجد ذمم قديمة غير مرتبطة بفترة أصلية مؤكدة.');
  if(!p.previousPeriodId)snapshot.exceptions.push('هذه أول فترة في نظام الفترات. رصيد المخزون الافتتاحي مستمد من قاعدة النسخة القديمة ولم يُثبت جرد افتتاحي مستقل؛ راجع الكميات والتكاليف قبل الاعتماد النهائي للأرباح.');
- if((db.cards||[]).some(c=>num(c.cost)<=0))snapshot.exceptions.push('توجد فئات بتكلفة صفرية أو غير مدخلة؛ الربح وتقييم المخزون قد يكونان ناقصين.');
+ if((db.cards||[]).some(x=>num(x.cost)<=0))snapshot.exceptions.push('توجد فئات بتكلفة صفرية أو غير مدخلة؛ الربح وتقييم المخزون قد يكونان ناقصين.');
  if(metrics.legacyAllocationWarnings>0)snapshot.exceptions.push('توجد تحصيلات تاريخية غير مخصصة لفواتير محددة؛ بعض التوزيع التاريخي تقديري حسب الأقدم.');
  if(monthlyUnassignedTransactionsCount()>0)snapshot.exceptions.push('توجد حركات خارج نطاق الفترات المسجلة.');
- if(!db.periodSnapshots.some(s=>s.periodId===p.id))db.periodSnapshots.push(snapshot);
+ if(!db.periodSnapshots.some(x=>x.periodId===p.id))db.periodSnapshots.push(snapshot);
+ else db.periodSnapshots=db.periodSnapshots.map(x=>x.periodId===p.id?snapshot:x);
  p.status='CLOSED';p.closedAt=new Date().toISOString();p.snapshotId=snapshot.id;p.review.approved=true;
  db.settings.currentPeriodId=null;db.settings.lastClose=p.endDate;
  addAudit('اعتماد إقفال فترة مالية',monthlyPeriodLabel(p)+' / ربح '+money(metrics.netProfit)+' / احتياطي '+money(reserve)+' / حد توزيع '+money(distributionCap));
- if(!persist())return;
+ let saved=false;
+ authorizedCloseCommit=true;
+ try{saved=persist()}finally{authorizedCloseCommit=false}
+ if(!saved)return;
  render();
 }
 function recordMonthlyDistribution(periodId){
