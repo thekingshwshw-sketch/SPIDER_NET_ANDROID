@@ -24,6 +24,18 @@ try{
  await page.addInitScript(()=>{if(!sessionStorage.getItem('__spider_test_init')){localStorage.removeItem('spidernet_accounting_v1');localStorage.removeItem('spidernet_theme');localStorage.removeItem('spidernet_visual_theme');sessionStorage.setItem('__spider_test_init','1')}window.__testDialogs=[];window.__promptQueue=[];window.__printCount=0;window.alert=m=>window.__testDialogs.push({type:'alert',message:String(m)});window.__confirmAnswer=true;window.confirm=m=>{window.__testDialogs.push({type:'confirm',message:String(m)});return window.__confirmAnswer};window.prompt=(m,f)=>{window.__testDialogs.push({type:'prompt',message:String(m)});return window.__promptQueue.length?window.__promptQueue.shift():(f||'')};window.print=()=>{window.__printCount++;window.__lastPrintText=document.getElementById('billPrintSheet')?.innerText||document.getElementById('posStatementPrint')?.innerText||''}});
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html',{waitUntil:'load'});
  check((await page.title()).includes('SPIDER NET')|| (await page.locator('#view').innerText()).includes('SPIDER NET'),'فتح التطبيق');
+
+ const desktopLayout=await page.evaluate(()=>({headerBottom:document.querySelector('#topbar').getBoundingClientRect().bottom,mainTop:document.querySelector('#view').getBoundingClientRect().top}));
+ check(desktopLayout.mainTop>=desktopLayout.headerBottom-1,'محتوى سطح المكتب يبدأ أسفل الشريط العلوي دون تداخل');
+ await page.setViewportSize({width:820,height:1000});
+ const tabletClosed=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),r=e.getBoundingClientRect();return {position:getComputedStyle(e).position,left:r.left}});
+ check(tabletClosed.position==='fixed'&&tabletClosed.left>=819,'قائمة الجهاز اللوحي مخفية كدرج ولا تحجز مساحة في الصفحة');
+ await page.locator('#menuToggle').click();
+ const tabletOpen=await page.evaluate(()=>{const e=document.querySelector('#sidebar'),r=e.getBoundingClientRect();return {right:r.right,left:r.left,width:r.width,open:document.body.classList.contains('nav-open')}});
+ check(tabletOpen.open&&tabletOpen.width>240&&Math.abs(tabletOpen.right-820)<2,'فتح قائمة الجهاز اللوحي كدرج مثبت بمحاذاة الشاشة');
+ await page.locator('#closeMenu').click();
+ await page.setViewportSize({width:1440,height:1000});
+
  check(html.includes('SPIDER NET — Visual Identity 2026.11')&&html.includes('--accent:#0c9b6b')&&html.includes('spider-invoice'),'وجود نظام الهوية المرئية الجديد وقالب الفاتورة المنفصل');
  check((await page.locator('html').getAttribute('data-theme'))==='light','الوضع الفاتح هو المظهر الافتراضي للهوية الجديدة');
   check(html.includes('SPIDER NET v2.2.0')&&!html.includes('SPIDER NET v2.1.4'),'إصدار القائمة الجانبية يطابق إصدار Android 2.2.0');
