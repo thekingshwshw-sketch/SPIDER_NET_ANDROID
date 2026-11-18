@@ -845,8 +845,8 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
 
 
 @media(max-width:900px){
- .sidebar{visibility:hidden!important;pointer-events:none!important}
- body.nav-open .sidebar{visibility:visible!important;pointer-events:auto!important}
+ .sidebar{position:fixed!important;right:calc(-1 * min(300px,86vw))!important;left:auto!important;transform:none!important;visibility:hidden!important;pointer-events:none!important}
+ body.nav-open .sidebar{right:0!important;transform:none!important;visibility:visible!important;pointer-events:auto!important}
 }
 
 </style></head>
