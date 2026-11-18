@@ -24,6 +24,8 @@ try{
  await page.addInitScript(()=>{if(!sessionStorage.getItem('__spider_test_init')){localStorage.removeItem('spidernet_accounting_v1');localStorage.removeItem('spidernet_theme');sessionStorage.setItem('__spider_test_init','1')}window.__testDialogs=[];window.__promptQueue=[];window.__printCount=0;window.alert=m=>window.__testDialogs.push({type:'alert',message:String(m)});window.__confirmAnswer=true;window.confirm=m=>{window.__testDialogs.push({type:'confirm',message:String(m)});return window.__confirmAnswer};window.prompt=(m,f)=>{window.__testDialogs.push({type:'prompt',message:String(m)});return window.__promptQueue.length?window.__promptQueue.shift():(f||'')};window.print=()=>{window.__printCount++;window.__lastPrintText=document.getElementById('billPrintSheet')?.innerText||document.getElementById('posStatementPrint')?.innerText||''}});
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html',{waitUntil:'load'});
  check((await page.title()).includes('SPIDER NET')|| (await page.locator('#view').innerText()).includes('SPIDER NET'),'فتح التطبيق');
+ check(html.includes('SPIDER NET — Visual Identity 2026.11')&&html.includes('--accent:#0c9b6b')&&html.includes('spider-invoice'),'وجود نظام الهوية المرئية الجديد وقالب الفاتورة المنفصل');
+ check((await page.locator('html').getAttribute('data-theme'))==='light','الوضع الفاتح هو المظهر الافتراضي للهوية الجديدة');
   check(html.includes('SPIDER NET v2.2.0')&&!html.includes('SPIDER NET v2.1.4'),'إصدار القائمة الجانبية يطابق إصدار Android 2.2.0');
  check(await page.locator('#nav [data-tab="home"]').count()===1,'واجهة التنقل الأساسية جاهزة');
  check(activity.includes('import android.webkit.WebChromeClient')&&activity.includes('webView.webChromeClient = WebChromeClient()'),'معالجة نوافذ التنبيه والتأكيد والإدخال داخل Android');
@@ -252,8 +254,8 @@ await tab('settings');await page.locator('#startDate').fill(startBefore);await p
  check(batchRows.length===2&&batchRows.reduce((n,x)=>n+Number(x.amount||0),0)===370&&batchRows.every(x=>x.batchId===batchId),'حفظ فئتي 200 و500 ضمن مرجع فاتورة واحد وإجمالي 370');
  await action('open-pos:'+posId);const printsBeforeBatch=await page.evaluate(()=>window.__printCount);await action('print-batch-invoice:'+batchId);
  const invoicePrint=await page.evaluate(()=>({count:window.__printCount,text:window.__lastPrintText||'',sheetCount:document.querySelectorAll('#billPrintSheet').length}));
- if(!(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي')))console.log('BATCH_INVOICE_DIAGNOSTIC '+JSON.stringify({printsBeforeBatch,invoicePrint,batchId,batchRows,alerts:await dialogs()}));
- check(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي الكلي'),'طباعة فاتورة واحدة تشمل الفئتين المسجلتين والإجمالي الكلي');
+ if(!(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي المستحق')&&invoicePrint.text.includes('حالة العملية')))console.log('BATCH_INVOICE_DIAGNOSTIC '+JSON.stringify({printsBeforeBatch,invoicePrint,batchId,batchRows,alerts:await dialogs()}));
+ check(invoicePrint.count===printsBeforeBatch+1&&firstCardName&&invoicePrint.text.includes(firstCardName)&&invoicePrint.text.includes('كرت اختبار 500')&&invoicePrint.text.includes('الإجمالي المستحق')&&invoicePrint.text.includes('حالة العملية'),'طباعة الفاتورة الجديدة تعرض الفئتين والحالة والإجمالي');
  // Monthly-period regression: two consecutive custom periods, actual stock count and historical debt allocation.
  await tab('periods');
  check((await page.locator('#view').innerText()).includes('الإدارة المالية الشهرية'),'عرض لوحة الإدارة المالية الشهرية');
