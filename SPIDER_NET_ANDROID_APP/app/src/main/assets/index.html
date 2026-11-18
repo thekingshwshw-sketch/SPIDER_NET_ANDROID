@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#061426">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b14">
 <title>SPIDER NET | Smart Accounting System</title>
 <style>
 /* SPIDER NET — consolidated foundation styles; old experimental themes removed */
@@ -241,89 +241,321 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent2);box-shadow:0
  #billPrintSheet .operation-lines th,#billPrintSheet .operation-lines td{border:1px solid #aaa;padding:8px;text-align:right;color:#111;font-size:11px}
 }
 
-/* SPIDER NET — premium navy / cyan / silver identity; presentation only */
-:root{--bg:#061426;--panel:#0b2038;--panel2:#102b49;--line:#1d4b70;--text:#edf7ff;--muted:#a7c0d7;--accent:#079fe8;--accent2:#24d5ed;--danger:#ff758e;--warn:#f4bd5b;--shadow:0 12px 34px rgba(0,0,0,.34);--navy:#061a31;--navy2:#0a2c50;--cyan:#29d8f2;--soft-blue:#103b60;--soft-green:#103d3e;--soft-red:#482638;--soft-purple:#302b55;color-scheme:dark}
-html[data-theme="dark"]{--bg:#041326;--panel:#0a1d34;--panel2:#102b49;--line:#1a4b72;--text:#eef8ff;--muted:#a9c3d9;--accent:#08a6ee;--accent2:#24d8ef;--danger:#ff7892;--warn:#f5c36b;--shadow:0 12px 34px #0008;--soft-blue:#123c60;--soft-green:#10403e;--soft-red:#482638;--soft-purple:#302b55;color-scheme:dark}
-html[data-theme="light"]{--bg:#edf5fc;--panel:#fff;--panel2:#f4f9ff;--line:#cbddec;--text:#102d49;--muted:#637f98;--accent:#087fc4;--accent2:#11aebd;--danger:#d84c68;--warn:#b77a1d;--shadow:0 8px 25px rgba(15,49,82,.10);color-scheme:light}
-body{background:radial-gradient(ellipse at 75% -15%,#0e4972 0,transparent 38%),radial-gradient(ellipse at 8% 35%,#082e50 0,transparent 35%),var(--bg)!important}
-.app{background:transparent}
-.topbar{background:linear-gradient(115deg,#06182d 0%,#0b2c4d 52%,#071a30 100%);border:1px solid #1c5b83;border-top:0;border-radius:0 0 18px 18px;box-shadow:0 8px 28px #0006,inset 0 -1px #36c9ed55}
-.brand-emblem{background:linear-gradient(145deg,#06182c,#0c4b76);border:1px solid #2ab9e8;box-shadow:0 0 18px #13bdf055,inset 0 0 14px #32bce833}
-.brand-emblem svg{stroke:#b9f4ff;filter:drop-shadow(0 0 3px #26cfff)}
-.brand-copy strong,.sidebar-brand b{color:#f2fbff;text-shadow:0 0 12px #20bce955;letter-spacing:1px}
-.brand-copy small,.sidebar-brand small{color:#9bc6e1}
-.global-search{background:#061a30;border-color:#286087;box-shadow:inset 0 0 12px #0005}
-.global-search input{color:var(--text)}
-.sidebar{background:linear-gradient(180deg,#071b31 0%,#0a2947 48%,#06182d 100%);border:1px solid #1d547a;box-shadow:0 12px 32px #0006,inset 0 0 25px #0c6da022}
-.sidebar-brand{border-bottom-color:#2b668a}
-.nav{border:1px solid transparent;border-radius:12px;color:#c7e2f4}
-.nav:hover{background:#0f3b5e;border-color:#247aa2}
-.nav.active{background:linear-gradient(100deg,#0879c5,#0bb6df);border-color:#55dafa;color:#fff;box-shadow:0 5px 18px #008edb55,inset 0 1px #ffffff55}
-.nav.active .nav-svg{color:#fff}
-.nav-caption{color:#75b4d4}
-.theme-switch{background:#0a2b49;border-color:#245c7d;color:#d8f1ff}
-.main{min-width:0}
-.dashboard-page{max-width:1400px}
-.dashboard-head{padding:14px 16px;border:1px solid #1c5278;border-radius:18px;background:linear-gradient(110deg,#081b31dd,#0b3151dd);box-shadow:inset 0 1px #ffffff12,0 10px 28px #0003}
-.dashboard-head h2{color:#f3fbff}
-.dashboard-head p,.dashboard-welcome{color:#b6d5e9}
-.breadcrumb{color:#8eb7d3}
-.soft-tool{background:#0b2946;border-color:#235a7f;color:#dff5ff}
-.soft-tool:hover{background:#10436a;border-color:#29bfe9}
-.dashboard-quick{margin:10px 0 14px}
-.dashboard-quick button,.actions button.primary,button.primary{background:linear-gradient(115deg,#087bc5,#08b6df);border-color:#39c8ee;color:#fff;box-shadow:0 5px 17px #008bd955,inset 0 1px #ffffff55}
-.panel,.dash-metric,.lower-card{background:linear-gradient(145deg,#0d2742,#091b30);border:1px solid #1c4e72;box-shadow:0 9px 24px #0004,inset 0 1px #ffffff0b}
-.panel h3,.section-title h2{color:#eaf7ff}
-.panel p,.muted,.small.muted{color:var(--muted)}
-.cashbox-panel{background:linear-gradient(110deg,#09233d,#0b3853 65%,#0a263f);border-color:#26749b}
-.cashbox-grid>div{background:#061a2d;border:1px solid #1c5479;border-radius:12px;padding:12px}
-.cashbox-grid strong{color:#45dafa}
-.dashboard-metrics{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.dash-metric{min-height:116px;border-radius:16px;position:relative;overflow:hidden}
-.dash-metric:after{content:"";position:absolute;inset:auto -18px -38px auto;width:110px;height:110px;border:1px solid #2bc9ef22;border-radius:50%;box-shadow:0 0 0 12px #2bc9ef0a,0 0 0 26px #2bc9ef07}
-.metric-icon{background:linear-gradient(145deg,#0b4970,#0b2946);border:1px solid #2b9cc5;color:#4edafa;box-shadow:0 0 15px #08a8df22}
-.dash-metric .label{color:#a9c8dd}
-.dash-metric .value{color:#f1fbff;text-shadow:0 0 12px #28c5e922}
-.dash-metric .hint{color:#90b2cb}
-.dashboard-section-head{border-color:#1d4b6b}
-.dashboard-table th{background:#102e4c;color:#a9d6ee;border-bottom:1px solid #28658a}
-.dashboard-table td{border-bottom-color:#1b405d;color:#dcecf8}
-.dashboard-table tbody tr:hover{background:#123653}
-.mobile-pos-card,.recent-mobile-card,.stock-mini,.partner-mini{background:#0b2946;border:1px solid #205578;color:#eaf7ff}
-.status-pill{border:1px solid #276184}
-.type-pill{background:#123b5d;color:#9fe9fa}
-input,select,textarea{background:#071b30!important;border-color:#285574!important;color:#eaf7ff!important}
-input::placeholder,textarea::placeholder{color:#789bb4}
-button{border-color:#285a7b;color:#dff4ff}
-button:not(.primary):not(.danger):hover{background:#123b5d;border-color:#35bfe7}
-.table-wrap{border-color:#1e4e70}
-.accounting-note{background:#0a2944;border-color:#28759b;color:#c8e9f8}
-#billPrintSheet{border:1px solid #c6d6e3;border-radius:14px}
-#billPrintSheet h1{color:#0b3153!important;letter-spacing:2px;border-bottom:3px solid #087ebc;padding-bottom:10px}
-#billPrintSheet h2{color:#153d5d;border-bottom-color:#18a9ce}
-#billPrintSheet .print-item{border-color:#b9cad8;background:#f7fbff}
-#billPrintSheet .print-total{background:#eaf7fc;border:2px solid #087ebc;color:#082e4c;border-radius:10px}
-#billPrintSheet .print-note{background:#f7fbff;border-color:#c5d7e4}
-.receipt-head{border-bottom-color:#078bc6}
-.receipt-brand{color:#0a3152}
-.receipt-brand svg{stroke:#078fc8}
-.receipt-brand b{letter-spacing:1.5px}
-.receipt-lines th{background:#e8f6fc}
-.simple-statement{border-color:#b9d5e8;box-shadow:0 8px 30px #0002}
-.simple-statement-head{border-bottom-color:#079bd0}
-.simple-brand-mark{background:linear-gradient(145deg,#062849,#0879ad);color:#a9f3ff;box-shadow:0 0 12px #12bde955}
-@media(max-width:1100px){.dashboard-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:720px){.app{padding:0 8px}.topbar{border-radius:0 0 14px 14px;margin-bottom:8px;padding:0 10px}.dashboard-head{padding:12px}.dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dash-metric{min-height:102px;padding:12px 10px}.dash-metric .value{font-size:18px}.sidebar{border-radius:0 0 15px 15px}}
-@media print{
- body{background:#fff!important}
- body.printing-bill #billPrintSheet{border:0;border-radius:0;box-shadow:none}
- #billPrintSheet h1{color:#102f4c!important}
- #billPrintSheet .print-total{break-inside:avoid}
+/* SPIDER NET PREMIUM REDESIGN — 2026-10-27
+   Presentation-only overrides. Keep all existing accounting logic and action hooks intact. */
+:root{--bg:#061323;--panel:#0a1d32;--panel2:#0d2741;--line:#174565;--text:#edf7ff;--muted:#91aec6;--accent:#08a9ef;--accent2:#00c98d;--danger:#ff647d;--warn:#ffc45c;--shadow:0 12px 34px rgba(0,0,0,.23);--navy:#061b30;--navy2:#0b2d4a;--cyan:#29c9ff;--soft-blue:#102e49;--soft-green:#083d36;--soft-red:#402336;--soft-purple:#28234b;color-scheme:dark}
+html[data-theme="dark"]{--bg:#061323;--panel:#0a1d32;--panel2:#0d2741;--line:#174565;--text:#edf7ff;--muted:#91aec6;--accent:#08a9ef;--accent2:#00c98d;--danger:#ff647d;--warn:#ffc45c;--shadow:0 12px 34px rgba(0,0,0,.23);--soft-blue:#102e49;--soft-green:#083d36;--soft-red:#402336;--soft-purple:#28234b;color-scheme:dark}
+html[data-theme="light"]{--bg:#eef5fb;--panel:#fff;--panel2:#f4f9fd;--line:#d6e5f0;--text:#102b45;--muted:#647e94;--accent:#078bd1;--accent2:#009f72;--danger:#d94d69;--warn:#a86a06;--shadow:0 10px 26px rgba(20,63,93,.08);--soft-blue:#e5f4ff;--soft-green:#e2f8ef;--soft-red:#fff0f2;--soft-purple:#f0edff;color-scheme:light}
+body{background:radial-gradient(ellipse at 12% 0%,rgba(0,144,220,.12),transparent 32%),var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.app{width:min(1600px,100%);padding:0 16px}
+.topbar{position:sticky;top:0;z-index:30;height:74px;min-height:74px;background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(18px);border:1px solid var(--line);border-top:0;border-radius:0 0 18px 18px;box-shadow:0 8px 30px rgba(0,0,0,.16);margin-bottom:18px}
+.brand-emblem{border:1px solid #17658d;border-radius:14px;background:linear-gradient(145deg,#0b2c4a,#071629);box-shadow:inset 0 0 20px #08a9ef15,0 0 18px #08a9ef12}
+.brand-emblem svg{stroke:#2dc9ff}
+.brand-copy strong,.sidebar-brand b{font-weight:850;letter-spacing:.65px}
+.brand-copy small,.sidebar-brand small{letter-spacing:.5px}
+.global-search{border-radius:13px;background:var(--panel2);border-color:var(--line);height:42px}
+.global-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px #08a9ef18}
+.layout{gap:16px;align-items:stretch}
+.sidebar{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 87%,#07182a));box-shadow:var(--shadow);overflow:hidden}
+.sidebar-brand{padding:20px 16px;border-bottom:1px solid var(--line)}
+.sidebar-brand .brand-emblem{width:44px;height:44px}
+.nav-caption{font-size:10px;letter-spacing:.7px;color:var(--muted);padding:17px 14px 8px}
+.nav-list{gap:5px;padding:0 9px}
+button.nav{min-height:49px;border:1px solid transparent;border-radius:13px;background:transparent;padding:8px 10px;transition:all .18s ease}
+button.nav:hover{background:var(--panel2);border-color:var(--line);transform:translateX(-1px)}
+button.nav.active{background:linear-gradient(100deg,#087ebc2b,#00c98d12);border-color:#1488b7;color:var(--text);box-shadow:inset -3px 0 0 var(--accent),0 6px 18px #0002}
+.nav.active .nav-svg{color:#37ceff}
+.nav-copy b{font-weight:750}
+.nav-copy small{font-size:10px}
+.sidebar-bottom{border-top:1px solid var(--line);padding:12px}
+.sidebar-version{font-size:10px;line-height:1.8;color:var(--muted)}
+.main{padding-bottom:20px}
+.panel{border-radius:19px;border-color:var(--line);background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 98%,#0b3a5a),var(--panel));box-shadow:var(--shadow);padding:18px;position:relative;overflow:hidden}
+.panel:after{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,transparent,#08a9ef38,transparent);pointer-events:none}
+.panel h3{font-weight:800}
+.section-title h2{font-weight:850;letter-spacing:-.25px}
+.dashboard-page{display:flex;flex-direction:column;gap:15px}
+.dashboard-head{border:1px solid #17618a;border-radius:22px;padding:22px 22px 19px;background:radial-gradient(ellipse at 0% 100%,#00c98d19,transparent 45%),radial-gradient(ellipse at 100% 0%,#08a9ef2a,transparent 46%),linear-gradient(120deg,#07172a,#0a2944 62%,#071a2d);box-shadow:0 16px 38px #0003;position:relative;overflow:hidden}
+.dashboard-head:after{content:"SPIDER NET";position:absolute;left:18px;bottom:-13px;font-size:clamp(32px,5vw,72px);font-weight:900;letter-spacing:3px;color:#d8f3ff06;direction:ltr;pointer-events:none}
+.dashboard-head h2{font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-.6px;margin:6px 0}
+.dashboard-welcome{color:#7edcff;font-weight:750}
+.dashboard-head p{color:#b2cde0;margin:6px 0 0}
+.breadcrumb{color:#7eabc6;font-size:11px}
+.dashboard-tools{gap:7px}
+.soft-tool{border-radius:11px;background:#0b2a44;border-color:#1b5273;color:#c7e8f8;font-size:11px;padding:8px 10px}
+.soft-tool:hover{background:#103b5d;border-color:#2198c9}
+.dashboard-quick{display:flex;gap:9px;flex-wrap:wrap}
+.dashboard-quick button{min-height:44px;border-radius:13px;padding-inline:18px}
+button.primary{background:linear-gradient(105deg,#00a96e,#00c98d);border-color:#00c98d;color:#031d1a;font-weight:850;box-shadow:0 6px 18px #00c98d20}
+button.primary:hover{filter:brightness(1.07);box-shadow:0 8px 22px #00c98d30}
+button:not(.nav):not(.mobile-nav-item):not(.theme-switch):not(.text-link):not(.soft-tool):not(.mini-more){border-radius:12px}
+.dashboard-metrics{gap:12px}
+.metric,.dash-metric{border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,var(--panel2),var(--panel));box-shadow:0 8px 22px #0002;position:relative;overflow:hidden}
+.dash-metric{padding:16px 15px;min-height:124px}
+.dash-metric:after{content:"";position:absolute;left:0;bottom:0;width:58%;height:2px;background:linear-gradient(90deg,transparent,var(--metric-accent,#08a9ef));opacity:.8}
+.dash-metric.tone-green{--metric-accent:#00c98d}.dash-metric.tone-red{--metric-accent:#ff647d}.dash-metric.tone-blue{--metric-accent:#08a9ef}.dash-metric.tone-purple{--metric-accent:#9a8bff}
+.metric-icon{border:1px solid color-mix(in srgb,var(--metric-accent,#08a9ef) 40%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--metric-accent,#08a9ef) 13%,var(--panel));color:var(--metric-accent,#08a9ef)}
+.metric-copy .label,.metric .label{color:var(--muted);font-weight:650}
+.metric .value,.dash-metric .value{font-size:clamp(19px,2vw,27px);font-weight:900;letter-spacing:-.5px;line-height:1.35;color:var(--text);overflow-wrap:anywhere}
+.metric .hint,.dash-metric .hint{font-size:10px;color:var(--muted);line-height:1.6}
+.dashboard-section-head{gap:12px;margin-bottom:13px}
+.dashboard-section-head h3{font-size:16px;font-weight:850;margin-bottom:3px}
+.dashboard-section-head small{color:var(--muted);font-size:11px}
+.text-link{border:1px solid #1b6489;background:#0b2b45;color:#54ccff;border-radius:10px;padding:7px 11px;font-size:11px;font-weight:750}
+.text-link:hover{background:#0e3b5d}
+.table-wrap{border-color:var(--line);border-radius:13px;background:var(--panel);box-shadow:inset 0 1px 0 #ffffff04}
+table{min-width:620px}
+th{background:var(--panel2);color:#91b5ce;font-size:11px;border-color:var(--line)}
+td{border-color:var(--line);font-size:12px}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,var(--panel))}
+.dashboard-table td{padding:12px 11px}
+.table-primary{color:var(--text)}
+.status-pill{border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:10px;font-weight:750}
+.status-pill.is-active{background:#00c98d15;border-color:#00c98d55;color:#35dca8}
+.status-pill.is-warning{background:#ffc45c12;border-color:#ffc45c55;color:#ffd17a}
+.status-pill.is-unknown{background:var(--panel2);color:var(--muted)}
+.open-button{background:#0c3552;border-color:#1c668c;color:#7bdcff;padding:6px 12px}
+.cashbox-panel{border-color:#17618a;background:radial-gradient(ellipse at 0 0,#08a9ef13,transparent 45%),var(--panel)}
+.cashbox-grid{gap:10px}
+.cashbox-grid>div{border:1px solid var(--line);border-radius:13px;background:var(--panel2);padding:12px}
+.cashbox-grid small{color:var(--muted)}
+.cashbox-grid strong{display:block;color:#55d9ff;font-size:clamp(16px,2vw,23px);font-weight:900;overflow-wrap:anywhere;margin-top:5px}
+.accounting-note{border:1px solid #82652d;border-radius:13px;background:#2b2619;color:#ffda8b;padding:13px}
+.lower-card{min-width:0}
+.stock-mini,.partner-mini{border-color:var(--line);background:var(--panel2);border-radius:12px}
+.pos-card{background:linear-gradient(145deg,var(--panel2),var(--panel));border-color:var(--line);border-radius:16px}
+.pos-card:hover{border-color:var(--accent);box-shadow:0 10px 25px #0003}
+input,select,textarea{border-color:var(--line);border-radius:12px;background:var(--panel2)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #08a9ef1a}
+.modal-back{background:#020b16bd;backdrop-filter:blur(9px)}
+.modal{border-color:#1b5a7b;border-radius:20px;background:var(--panel);box-shadow:0 24px 70px #0007}
+.footer{color:#6e8da6;padding:18px 12px}
+.mobile-nav{border:1px solid #1b5273;background:#07192beF;backdrop-filter:blur(18px);box-shadow:0 -8px 28px #0004;border-radius:18px 18px 0 0}
+.mobile-nav-item{border-radius:12px;color:#87a9c1}
+.mobile-nav-item.active{background:#08a9ef1b;color:#4bcaff}
+.nav-scrim{background:#020a14b8;backdrop-filter:blur(4px)}
+#lockScreen{background:radial-gradient(ellipse at top,#0b3c5b,var(--bg) 62%)}
+.lockbox{border-color:#1b5a7b;border-radius:22px;background:var(--panel)}
+.lockbox h2{letter-spacing:1px;color:#52cfff}
+@media(max-width:900px){
+ .app{padding:0 10px}
+ .topbar{height:62px;min-height:62px;padding:0 10px;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:12px;border-radius:0 0 15px 15px}
+ .topbar-brand{grid-column:2}
+ .topbar .global-search{grid-column:1;grid-row:1}
+ .topbar .topbar-actions{gap:4px}
+ .brand-emblem{width:36px;height:36px}
+ .brand-copy strong{font-size:12px}
+ .brand-copy small{font-size:8px}
+ .dashboard-head{padding:17px 15px;border-radius:18px}
+ .dashboard-head p{font-size:12px}
+ .dashboard-tools{position:relative;z-index:1}
+ .soft-tool{font-size:10px;padding:7px 8px}
+ .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dash-metric{padding:12px;min-height:112px}
+ .metric-icon{width:35px;height:35px}
+ .metric-copy .label{font-size:10px}
+ .metric-copy .value{font-size:19px}
+ .panel{padding:13px;border-radius:16px}
+ .cashbox-grid{grid-template-columns:1fr}
+ .dashboard-section-head{align-items:flex-start}
+ .dashboard-section-head h3{font-size:14px}
+ .dashboard-pos-mobile,.recent-mobile{gap:8px}
+ .mobile-pos-card,.recent-mobile-card{border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
+ .mobile-pos-card{padding:11px}
+ .recent-mobile-card{padding:12px}
+ .table-wrap{border-radius:11px}
+ .modal{padding:15px;border-radius:17px}
+ .footer{padding-bottom:90px}
+}
+@media(max-width:420px){
+ .app{padding:0 7px}
+ .dashboard-head{padding:14px 12px}
+ .dashboard-head h2{font-size:22px}
+ .dashboard-quick button{flex:1;min-width:0;padding:10px 8px;font-size:11px}
+ .dash-metric{padding:10px;min-height:104px}
+ .metric-copy .value{font-size:17px}
+ .dashboard-tools .soft-tool{flex:1;justify-content:center}
+ .cashbox-grid strong{font-size:18px}
+}
+@media(prefers-reduced-motion:no-preference){
+ .dash-metric,.panel,.pos-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+ .dash-metric:hover{transform:translateY(-2px);border-color:#2379a1;box-shadow:0 13px 27px #0003}
 }
 
 
-.invoice-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 auto 8px;color:#0b3153;direction:ltr}.invoice-brand svg{width:58px;height:58px;padding:5px;border-radius:12px;background:#071d33;border:1px solid #178fbd}.invoice-brand b{display:block;font-size:24px;letter-spacing:1.5px}.invoice-brand small{display:block;font-size:9px;letter-spacing:2px;color:#54718a}.invoice-brand+h1{margin-top:8px!important}
-@media print{.invoice-brand{break-inside:avoid}}
+/* SPIDER NET — reference-led identity layer, isolated from accounting logic */
+:root{
+ --bg:#050b14;--panel:#081729;--panel2:#0b2037;--line:#153e5d;
+ --text:#f2f8ff;--muted:#8ca9c3;--accent:#4DB8E8;--accent2:#00A651;
+ --danger:#ff6478;--warn:#f4bc58;--shadow:0 16px 38px rgba(0,0,0,.24);
+ --navy:#07172a;--navy2:#0b2742;--cyan:#4DB8E8;
+ --soft-blue:#0b2a42;--soft-green:#073a2e;--soft-red:#351923;--soft-purple:#251c43;color-scheme:dark
+}
+html[data-theme="dark"]{
+ --bg:#050b14;--panel:#07182b;--panel2:#0b2239;--line:#164564;
+ --text:#f2f8ff;--muted:#93aec6;--accent:#4DB8E8;--accent2:#00A651;
+ --danger:#ff6578;--warn:#ffbe55;--shadow:0 16px 38px rgba(0,0,0,.27);
+ --navy:#06162a;--navy2:#0b2c49;--cyan:#4DB8E8;
+ --soft-blue:#102b44;--soft-green:#0a392e;--soft-red:#391b25;--soft-purple:#251c43;color-scheme:dark
+}
+html[data-theme="light"]{
+ --bg:#f5f9fc;--panel:#ffffff;--panel2:#eef5fb;--line:#d2e4f0;
+ --text:#102d48;--muted:#657f95;--accent:#178fc7;--accent2:#008d49;
+ --danger:#cb3e57;--warn:#9e6714;--shadow:0 12px 32px rgba(15,50,78,.08);
+ --navy:#0b2e4f;--navy2:#14446a;--cyan:#168dbb;
+ --soft-blue:#e7f4fb;--soft-green:#e1f5eb;--soft-red:#fff0f2;--soft-purple:#f2ecff;color-scheme:light
+}
+body{
+ background:
+  radial-gradient(ellipse at 12% 0%,rgba(20,105,157,.20),transparent 34rem),
+  radial-gradient(ellipse at 95% 25%,rgba(0,166,81,.07),transparent 30rem),
+  linear-gradient(145deg,#040a12 0%,var(--bg) 48%,#071526 100%);
+ background-attachment:fixed;color:var(--text)
+}
+html[data-theme="light"] body{background:linear-gradient(145deg,#f5f9fc,#eaf3fa 55%,#f7fbff)}
+.app{width:min(1760px,100%);padding:0 16px}
+.topbar{
+ background:linear-gradient(115deg,#071528 0%,#0a2138 70%,#092b42 100%);
+ border:1px solid #174361;border-top:0;border-radius:0 0 18px 18px;
+ box-shadow:0 12px 32px rgba(0,0,0,.24);position:relative;isolation:isolate
+}
+.topbar:after{content:"";position:absolute;inset:auto 16px 0;height:1px;background:linear-gradient(90deg,transparent,#4DB8E8,#00A651,transparent);opacity:.75;pointer-events:none}
+html[data-theme="light"] .topbar{background:linear-gradient(115deg,#0b2e4f,#10456d);border-color:#23628a}
+.brand-emblem{
+ width:44px;height:44px;border:1px solid #1d5c7c;border-radius:14px;
+ background:radial-gradient(circle at 50% 35%,#133d5a,#06162a 72%);
+ box-shadow:inset 0 0 14px #2b9dd02a,0 0 18px #119bd014
+}
+.brand-emblem svg{width:34px;height:34px;fill:none;stroke:#4DB8E8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px #4db8e855)}
+.brand-copy strong,.sidebar-brand b{font-size:15px;letter-spacing:.9px;color:#f4f9ff}
+.brand-copy small,.sidebar-brand small{color:#91b9d1;letter-spacing:.3px}
+.profile-chip,.icon-button,.global-search{background:#071a2d;border-color:#174562;color:#e8f5ff}
+.avatar{background:linear-gradient(145deg,#0c7599,#0b3151);color:white;border:1px solid #2d7396}
+.global-search{border-radius:13px;box-shadow:inset 0 0 0 1px #0b2b43}
+.global-search input{background:transparent;color:var(--text)}
+.global-search kbd{background:#102b43;border-color:#245270;color:#9ac7df}
+.layout{gap:15px}
+.sidebar{
+ background:linear-gradient(180deg,#07182a 0%,#061322 70%,#071a2b 100%);
+ border:1px solid #163f5b;border-radius:18px;box-shadow:0 16px 38px #0003
+}
+.sidebar-brand{border-bottom-color:#194763;padding:8px 7px 17px}
+.sidebar-brand .brand-emblem{background:radial-gradient(circle,#0e3a56,#061425 75%)}
+.nav-caption{color:#6f9cb9;letter-spacing:.8px;text-transform:uppercase}
+.sidebar .nav{border:1px solid transparent;border-radius:11px;margin:2px 5px;padding:10px 11px;color:#9fb9ce;transition:background .18s,border-color .18s,color .18s}
+.sidebar .nav:hover{background:#0a2942;color:#eaf7ff;border-color:#164764}
+.sidebar .nav.active{color:#f3fbff;background:linear-gradient(105deg,#0c314b,#0b243b);border-color:#1d6285;box-shadow:inset -3px 0 #4DB8E8,0 5px 18px #0002}
+.sidebar .nav.active .nav-svg{color:#4DB8E8}
+.sidebar-bottom{border-top:1px solid #19415a}
+.sidebar-version{color:#6e95b0}
+.main{padding-top:18px}
+.dashboard-page{max-width:1320px}
+.dashboard-head{align-items:center;padding:4px 3px 14px}
+.dashboard-head h2,.section-title h2{color:var(--text);letter-spacing:-.25px}
+.dashboard-head h2{font-size:24px;font-weight:800}
+.dashboard-head p,.breadcrumb{color:var(--muted)}
+.crumb-current{color:#4DB8E8}
+.dashboard-welcome{color:#d9f0ff}
+.dashboard-tools .soft-tool{background:#081d31;border-color:#194760;color:#b8d8e9;border-radius:11px}
+.dashboard-tools .soft-tool:hover{border-color:#4DB8E8;color:#fff}
+.dashboard-quick .primary,button.primary,.actions .primary{
+ background:linear-gradient(105deg,#009f57,#00bd7b)!important;border-color:#00b874!important;color:#fff!important;
+ box-shadow:0 6px 19px rgba(0,166,81,.18)
+}
+button.primary:hover,.dashboard-quick .primary:hover{filter:brightness(1.08);box-shadow:0 8px 24px rgba(0,166,81,.27)}
+button{border-color:var(--line);border-radius:11px}
+button:not(.primary):not(.danger):hover{border-color:#277ba2}
+input,select,textarea{background:#061527;border-color:#204763;color:#f0f7ff;border-radius:11px}
+input::placeholder,textarea::placeholder{color:#66859e}
+input:focus,select:focus,textarea:focus{border-color:#4DB8E8;box-shadow:0 0 0 3px #4db8e822}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#fff;color:#102d48;border-color:#c7dce9}
+.panel,.dashboard-section,.lower-card,.pos-card,.cashbox-panel,.accounting-filter-panel{
+ background:linear-gradient(145deg,rgba(9,30,50,.98),rgba(6,21,37,.98));
+ border:1px solid #163f5b;border-radius:15px;box-shadow:0 10px 28px rgba(0,0,0,.18)
+}
+html[data-theme="light"] .panel,html[data-theme="light"] .dashboard-section,html[data-theme="light"] .lower-card,html[data-theme="light"] .pos-card,html[data-theme="light"] .cashbox-panel,html[data-theme="light"] .accounting-filter-panel{background:#fff;border-color:#d5e5ef}
+.panel h3,.dashboard-section-head h3{color:#eaf6ff}
+.dashboard-section-head{border-bottom:1px solid #163b54}
+.dashboard-section-head small{color:#7da5bf}
+.dashboard-metrics{gap:12px}
+.dash-metric{
+ background:linear-gradient(145deg,#0b243b,#07192b);border:1px solid #17445f;
+ border-radius:14px;box-shadow:0 10px 24px #0002;min-height:116px
+}
+.dash-metric:after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,#4DB8E8,transparent);opacity:.7;border-radius:14px 14px 0 0}
+.dash-metric .label{color:#8cb1c9}
+.dash-metric .value{color:#f6fbff;font-variant-numeric:tabular-nums}
+.dash-metric .hint{color:#7a9bb4}
+.tone-green .metric-icon{background:#063a2c;color:#20d99a;border:1px solid #146b50}
+.tone-red .metric-icon{background:#3a1a25;color:#ff7c8c;border:1px solid #762e41}
+.tone-blue .metric-icon{background:#0b3049;color:#62c4f0;border:1px solid #1d6385}
+.tone-purple .metric-icon{background:#241e43;color:#b7a7ff;border:1px solid #55468e}
+.dashboard-table-wrap,.table-wrap{border-color:#153b55;background:#061526;border-radius:13px}
+table{color:var(--text)}
+th{background:#0d2942!important;color:#9bc3dc!important;border-color:#19435e!important}
+td{border-color:#142f46!important}
+tbody tr:hover{background:#0a2a42!important}
+.table-primary{color:#72c9f4}
+.status-pill,.type-pill{border:1px solid #1b4d65;border-radius:20px}
+.badge{border:1px solid #24536a;border-radius:20px}
+.badge.good{background:#08392b;color:#5be0ad}
+.badge.warn{background:#3b2a10;color:#ffd075}
+.badge.bad{background:#3f1b27;color:#ff9cac}
+.amount{font-variant-numeric:tabular-nums}
+.pos-card,.mobile-pos-card,.recent-mobile-card{background:linear-gradient(145deg,#0a233a,#071729);border:1px solid #17435d;border-radius:13px}
+.pos-card:hover,.mobile-pos-card:hover,.recent-mobile-card:hover{border-color:#4DB8E8}
+.note,.warning,.accounting-note{border-radius:12px}
+.modal-back{background:rgba(0,7,15,.78);backdrop-filter:blur(8px)}
+.modal{background:#081a2e;border:1px solid #1e5a79;border-radius:18px;box-shadow:0 24px 70px #0008}
+.modal-head{border-bottom:1px solid #19435b}
+.lock{background:radial-gradient(ellipse at 50% 0%,#103753,#040a12 62%)}
+.lockbox{background:linear-gradient(150deg,#0a2138,#061526);border:1px solid #1b5b7b;border-radius:22px;box-shadow:0 24px 70px #0007}
+.lockbox h2{letter-spacing:1.4px;color:#f5fbff}
+.receipt-brand svg,.simple-brand-mark svg{stroke:#4DB8E8}
+.mobile-nav{
+ background:rgba(5,18,31,.96)!important;border-top:1px solid #1b4a68!important;
+ box-shadow:0 -12px 32px #0006!important;backdrop-filter:blur(18px)
+}
+.mobile-nav-item{color:#7797b2;border-radius:10px}
+.mobile-nav-item.active{color:#4DB8E8;background:#0b2c45}
+.footer{color:#7394ad}
+@media(max-width:900px){
+ .app{padding:0 9px}
+ .topbar{border-radius:0 0 14px 14px;margin-bottom:10px}
+ .topbar-brand .brand-emblem{width:38px;height:38px}
+ .brand-emblem svg{width:29px;height:29px}
+ .sidebar{border-radius:0 16px 16px 0}
+ .main{padding:8px 0 14px}
+ .dashboard-head{padding:2px 1px 10px}
+ .dashboard-head h2{font-size:20px}
+ .dashboard-section,.panel{border-radius:13px}
+ .dash-metric{min-height:88px;padding:11px 9px}
+ .dash-metric .value{font-size:16px}
+ .mobile-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:380px){
+ .app{padding:0 6px}
+ .brand-copy strong{font-size:13px}
+ .brand-copy small{font-size:8px}
+ .dashboard-metrics{gap:6px}
+ .dash-metric .value{font-size:14px}
+}
+@media(prefers-reduced-motion:no-preference){
+ .panel,.dash-metric,.pos-card,.mobile-pos-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+ .panel:hover,.pos-card:hover{border-color:#267da4;box-shadow:0 14px 35px #0004}
+}
+@media print{
+ body{background:#fff!important;color:#111!important}
+ .panel,.dashboard-section,.lower-card,.pos-card,.dash-metric{background:#fff!important;color:#111!important;border-color:#ddd!important;box-shadow:none!important}
+ th{background:#f0f3f6!important;color:#111!important}
+ td{color:#111!important;border-color:#ddd!important}
+}
+
+
+@media(max-width:900px){.mobile-nav{grid-template-columns:repeat(4,minmax(0,1fr))}.mobile-nav-item{min-width:0;font-size:8px;padding:4px 2px}}
+.simple-brand-mark{background:radial-gradient(circle at 50% 35%,#164767,#061629 76%);border:1px solid #286a8b;box-shadow:inset 0 0 12px #4db8e822}
+.simple-brand-mark svg{width:30px;height:30px;fill:none;stroke:#4DB8E8;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+@media print{.simple-brand-mark{background:#153b60!important}.simple-brand-mark svg{stroke:#4DB8E8!important}}
 
 /* Monthly accounting workspace and dedicated period-report print surface. */
 .period-card{margin:14px 0;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel);box-shadow:var(--shadow)}
@@ -336,13 +568,13 @@ button:not(.primary):not(.danger):hover{background:#123b5d;border-color:#35bfe7}
 <body>
 <div class="app" id="app">
 <header class="topbar" id="topbar">
-  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M21 17C17 12 13 9 8 9L5 5M18 21C12 18 8 18 3 20M18 25C12 28 8 32 5 37M21 29C17 34 15 39 15 44M27 17C31 12 35 9 40 9L43 5M30 21C36 18 40 18 45 20M30 25C36 28 40 32 43 37M27 29C31 34 33 39 33 44"/><path d="M24 9c-3 0-5 2-5 5v4c0 3 2 5 5 5s5-2 5-5v-4c0-3-2-5-5-5Z"/><path d="M24 22c-5 0-8 4-8 9 0 6 4 11 8 14 4-3 8-8 8-14 0-5-3-9-8-9Z"/></g></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
+  <div class="topbar-brand"><button class="icon-button menu-toggle" id="menuToggle" aria-label="فتح القائمة">☰</button><div class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div class="brand-copy"><strong>SPIDER NET</strong><small>Smart Accounting System</small></div></div>
   <div class="global-search"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" placeholder="ابحث عن نقطة بيع أو فئة كروت..." aria-label="بحث في نقاط البيع وفئات الكروت"><kbd>↵</kbd></div>
   <div class="top-user"><button class="profile-chip" id="profileBtn" title="مدير النظام"><span class="avatar">م</span><span><b>مدير النظام</b><small>حساب محلي</small></span><span class="chevron">⌄</span></button><span class="top-divider"></span><button class="icon-button notification-button" id="notificationBtn" aria-label="التنبيهات" title="التنبيهات">♧<span id="notificationCount" class="notification-count">0</span></button><button class="icon-button" id="themeBtn" title="تبديل المظهر" aria-label="تبديل المظهر"><span class="theme-icon">☾</span></button><button class="icon-button" id="settingsBtn" title="الإعدادات" aria-label="الإعدادات">⚙</button><button class="icon-button" id="lockBtn" title="قفل النظام" aria-label="قفل النظام">▣</button><button class="icon-button desktop-action" id="backupBtn" title="نسخة احتياطية" aria-label="نسخة احتياطية">⇩</button><button class="icon-button desktop-action" id="restoreBtn" title="استعادة نسخة" aria-label="استعادة نسخة">⤴</button><button class="icon-button desktop-action" id="printBtn" title="طباعة / PDF" aria-label="طباعة / PDF">▤</button><input id="restoreFile" type="file" accept="application/json,.json" class="hidden"></div>
 </header>
-<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 48 48" role="img" aria-label="SPIDER NET"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M21 17C17 12 13 9 8 9L5 5M18 21C12 18 8 18 3 20M18 25C12 28 8 32 5 37M21 29C17 34 15 39 15 44M27 17C31 12 35 9 40 9L43 5M30 21C36 18 40 18 45 20M30 25C36 28 40 32 43 37M27 29C31 34 33 39 33 44"/><path d="M24 9c-3 0-5 2-5 5v4c0 3 2 5 5 5s5-2 5-5v-4c0-3-2-5-5-5Z"/><path d="M24 22c-5 0-8 4-8 9 0 6 4 11 8 14 4-3 8-8 8-14 0-5-3-9-8-9Z"/></g></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.1.4<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
+<div class="layout"><aside class="sidebar" id="sidebar"><div class="sidebar-brand"><div class="brand-emblem"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><div><b>SPIDER NET</b><small>Smart Accounting System</small></div><button class="icon-button close-menu" id="closeMenu" aria-label="إغلاق القائمة">×</button></div><div class="nav-caption">القائمة الرئيسية</div><div id="nav" class="nav-list"></div><div class="sidebar-bottom"><button class="theme-switch" id="sidebarTheme"><span class="theme-icon">☼</span><span class="theme-copy">تبديل الوضع</span><span class="switch-dot"></span></button><div class="sidebar-version">SPIDER NET v2.1.4<br>البيانات محفوظة على هذا الجهاز</div></div></aside><button id="navScrim" class="nav-scrim" aria-label="إغلاق القائمة"></button><main class="main" id="view"></main></div><nav id="mobileNav" class="mobile-nav" aria-label="التنقل السريع"></nav><div class="footer">نسخة محلية · لا تتصل بالإنترنت ولا ترسل بياناتك إلى خادم خارجي · راجع الأرصدة قبل اعتماد أي إقفال</div></div>
 <div class="modal-back" id="modalBack"><div class="modal"><div class="modal-head"><h3 id="modalTitle"></h3><button id="modalClose">إغلاق</button></div><div id="modalBody"></div></div></div>
-<div class="lock" id="lockScreen"><div class="lockbox"><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
+<div class="lock" id="lockScreen"><div class="lockbox"><div class="brand-emblem" style="margin:0 auto 12px;width:64px;height:64px;border-radius:18px"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></div><h2>SPIDER NET</h2><p class="muted">أدخل الرقم السري لفتح النظام</p><div class="field"><label>الرقم السري</label><input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password"></div><button class="primary" id="unlockBtn" style="width:100%">فتح النظام</button><p class="small muted" id="unlockMsg"></p></div></div>
 <script>
 (()=>{'use strict';
 const KEY='spidernet_accounting_v1';
@@ -424,9 +656,9 @@ function obligations(){return sum(db.bills.filter(x=>!x.paid),x=>x.amount)}funct
 function walletSalesRevenue(){return sum(db.walletSales,x=>x.amount)}function posRevenue(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>x.amount)+sum(db.consignmentSettlements,x=>x.soldQty*x.unitPrice)}function operatingExpenses(){return sum(db.expenses,x=>x.amount)+sum(db.bills,x=>x.amount)}function soldCardCost(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>num(x.qty)*cCost(card(x.cardId)))+sum(db.consignmentSettlements,x=>num(x.soldQty)*cCost(card(x.cardId)))+sum(db.walletSales,x=>num(x.qty)*cCost(card(x.cardId)))}function profitEstimate(){return posRevenue()+walletSalesRevenue()-soldCardCost()-operatingExpenses()}
 function alerts(){let a=[];db.pos.forEach(p=>{let d=posDebt(p.id);if(d>0)a.push({type:'warn',text:`على نقطة البيع ${p.name} مبلغ مستحق ${money(d)}`})});db.cards.forEach(c=>{let threshold=num(c.alertAt);if(threshold>0&&stockMain(c.id)<=threshold)a.push({type:'warn',text:`مخزون ${c.name} منخفض: ${stockMain(c.id)} كرت`});if(stockMain(c.id)<0)a.push({type:'bad',text:`مخزون ${c.name} سالب؛ راجع الحركات`})});db.bills.filter(b=>!b.paid).forEach(b=>a.push({type:'warn',text:`التزام غير مسدد: ${b.name} — ${money(b.amount)}، موعد ${b.due||'غير محدد'}`}));if(cashBalance()<0)a.push({type:'bad',text:'رصيد الصندوق المحسوب سالب؛ راجع تسجيل العمليات والأرصدة الافتتاحية'});return a}
 const navItems=[['home','الرئيسية','لوحة التحكم','home'],['pos','نقاط البيع','الحسابات والتحصيل','store'],['cards','المخزون والكروت','الجرد والحركة','box'],['wallets','المحافظ','التحميل والمبيعات','wallet'],['expenses','المصروفات والالتزامات','المصروفات والفواتير','receipt'],['partners','الشركاء','الحسابات والتسويات','users'],['accounting','المحاسبة المزدوجة','اليومية والأستاذ والميزان','book'],['reports','التقارير والإحصائيات','النتائج والمراجعة','chart'],['settings','الإعدادات','الحماية والبيانات','settings'],['audit','سجل التدقيق','العمليات المسجلة','cloud'],['periods','الإدارة الشهرية','الفترات والديون والإقفال','calendar']];
-const navSvg={home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',pos:'<path d="M3 9h18l-2-5H5L3 9Z"/><path d="M4 9v11h16V9M8 20v-6h8v6M3 9c0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0"/>',box:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Z"/><path d="m3.5 8.2 8.5 5 8.5-5M12 13v8M8 5.3l8.5 5"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/>',receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>',users:'<path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11a4 4 0 1 0-1-7.9M21 20v-1.5a4.5 4.5 0 0 0-3.5-4.4"/>',chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M17 6h3v3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"/>',cloud:'<path d="M6 18h12a4 4 0 0 0 .4-8A6.5 6.5 0 0 0 6 9.5 4.2 4.2 0 0 0 6 18Z"/><path d="M12 16V9m-3 3 3-3 3 3"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3M8 17h7"/>'};
+const navSvg={home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',pos:'<path d="M3 9h18l-2-5H5L3 9Z"/><path d="M4 9v11h16V9M8 20v-6h8v6M3 9c0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0"/>',box:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Z"/><path d="m3.5 8.2 8.5 5 8.5-5M12 13v8M8 5.3l8.5 5"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/>',receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>',users:'<path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11a4 4 0 1 0-1-7.9M21 20v-1.5a4.5 4.5 0 0 0-3.5-4.4"/>',chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M17 6h3v3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"/>',cloud:'<path d="M6 18h12a4 4 0 0 0 .4-8A6.5 6.5 0 0 0 6 9.5 4.2 4.2 0 0 0 6 18Z"/><path d="M12 16V9m-3 3 3-3 3 3"/>'};
 function navIcon(key){return `<svg class="nav-svg" viewBox="0 0 24 24" aria-hidden="true">${navSvg[key]||navSvg.home}</svg>`}
-function renderNav(){const current=tab==='pos-detail'?'pos':tab;const items=navItems.map(([id,label,sub,icon])=>`<button class="nav ${current===id?'active':''}" data-tab="${id}" aria-current="${current===id?'page':'false'}">${navIcon(icon)}<span class="nav-copy"><b>${label}</b><small>${sub}</small></span><span class="nav-chevron">›</span></button>`).join('');$('#nav').innerHTML=items;$('#nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;closeMobileNav();render()});const mobile=[['home','الرئيسية','home'],['pos','نقاط البيع','pos'],['settings','المزيد','settings']];$('#mobileNav').innerHTML=mobile.map(([id,label,icon])=>`<button class="mobile-nav-item ${current===id?'active':''}" data-mobile-tab="${id}">${navIcon(icon)}<span>${label}</span></button>`).join('');$('#mobileNav').querySelectorAll('[data-mobile-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.mobileTab;closeMobileNav();render()});$('#notificationCount').textContent=alerts().length}
+function renderNav(){const current=tab==='pos-detail'?'pos':tab;const items=navItems.map(([id,label,sub,icon])=>`<button class="nav ${current===id?'active':''}" data-tab="${id}" aria-current="${current===id?'page':'false'}">${navIcon(icon)}<span class="nav-copy"><b>${label}</b><small>${sub}</small></span><span class="nav-chevron">›</span></button>`).join('');$('#nav').innerHTML=items;$('#nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;closeMobileNav();render()});const mobile=[['home','الرئيسية','home'],['pos','نقاط البيع','pos'],['periods','الفترات','calendar'],['reports','التقارير','chart'],['settings','الإعدادات','settings']];$('#mobileNav').innerHTML=mobile.map(([id,label,icon])=>`<button class="mobile-nav-item ${current===id?'active':''}" data-mobile-tab="${id}">${navIcon(icon)}<span>${label}</span></button>`).join('');$('#mobileNav').querySelectorAll('[data-mobile-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.mobileTab;closeMobileNav();render()});$('#notificationCount').textContent=alerts().length}
 function closeMobileNav(){document.body.classList.remove('nav-open')}
 function recoveryBanner(){const blocked=!!recoveryInfo.blocked;return `<div class="note ${blocked?'danger-note':'warning'}"><strong>${blocked?'تنبيه حماية البيانات':'نسخة استرداد خام محفوظة'}</strong><p>${esc(recoveryInfo.reason||'توجد نسخة بيانات معزولة.')}</p><p>${blocked?'احتفظ بالنسخة الخام خارج التطبيق، ثم استعد نسخة JSON سليمة قبل متابعة التسجيل. تنزيل النسخة الخام وحده لا يعيد تفعيل الحفظ.':'يمكن تنزيل النسخة الخام للرجوع إليها. لا تحذفها حتى تتأكد من سلامة البيانات الحالية.'}</p>${btn('تنزيل نسخة البيانات المعزولة','recovery-backup','primary')}</div>`}
 function exportRecoveryCopy(){const raw=recoveryInfo.raw||localStorage.getItem(KEY+'_recovery_latest')||localStorage.getItem(KEY+'_recovery');if(!raw)return alert('لا توجد نسخة معزولة متاحة للتصدير.');const name='spider-net-recovery-'+dateNow()+'.json';if(window.AndroidBackup&&typeof window.AndroidBackup.saveBackup==='function'){recoveryExportPending=true;window.AndroidBackup.saveBackup(raw,name);return;}const blob=new Blob([raw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
@@ -441,7 +673,6 @@ function home(){
  const expenses=hasExpenses?money(operatingExpenses()):'غير محدد';
  const due=db.bills.length?money(obligations()):'غير محدد';
  const cash=money(cashBalance());
- const totalPosDebt=sum(db.pos.filter(p=>posHasMovements(p.id)),p=>Math.max(0,posDebt(p.id)));
  const posRows=db.pos.map((p,i)=>{const has=posHasMovements(p.id),debt=has?money(Math.max(0,posDebt(p.id))):'غير محدد';return `<tr><td class="row-number">${i+1}</td><td><b class="table-primary">${esc(p.name)}</b><small>${esc(p.phone||'')}</small></td><td>${esc(p.owner||'غير محدد')}</td><td>${esc(p.area||'—')}</td><td>${debt}</td><td><span class="status-pill ${has?'is-active':'is-unknown'}">${has?'نشطة':'لا توجد حركات'}</span></td><td><button class="open-button" data-action="open-pos:${p.id}">فتح</button></td></tr>`}).join('');
  const posMobile=db.pos.map(p=>{const has=posHasMovements(p.id);return `<button class="mobile-pos-card" data-action="open-pos:${p.id}"><span class="pos-store-icon">${navIcon('pos')}</span><span class="mobile-pos-copy"><b>${esc(p.name)}</b><small>${esc(p.area||'المنطقة غير محددة')} · ${esc(p.owner||'المالك غير محدد')}</small><em class="status-pill ${has?'is-active':'is-unknown'}">${has?'نشطة':'لا توجد حركات'}</em></span><span class="mobile-pos-arrow">‹</span></button>`}).join('');
  let recent=[];
@@ -460,7 +691,7 @@ function home(){
  const stockRows=db.cards.slice(0,2).map(c=>`<div class="stock-mini"><span class="stock-icon">${navIcon('box')}</span><div><b>${esc(c.name)}</b><small>الكمية المسجلة: ${stockMain(c.id)}</small></div><button data-action="adjust-stock:${c.id}" class="mini-more" aria-label="تسوية المخزون">⋮</button></div>`).join('');
  return `<section class="dashboard-page"><div class="dashboard-head"><div><div class="breadcrumb"><span>الرئيسية</span>${navIcon('home')}<span class="crumb-current">لوحة التحكم</span></div><h2>لوحة التحكم</h2><div class="dashboard-welcome">مرحبًا بك في نظام سبايدر نت المحاسبي</div><p>متابعة أعمالك المالية ونقاط البيع بكل سهولة وأمان</p></div><div class="dashboard-tools"><button class="soft-tool" id="backupShortcut"><span>◉</span>نسخة احتياطية</button><button class="soft-tool" id="themeShortcut"><span class="theme-icon">☾</span><span class="theme-label">الوضع الداكن</span></button><button class="soft-tool" data-action="print-report"><span>▤</span>وضع الطباعة</button><span class="soft-tool language-tool" title="الواجهة العربية هي اللغة المتاحة في هذه النسخة" aria-label="الواجهة العربية هي اللغة المتاحة في هذه النسخة"><span>◎</span>واجهة عربية</span></div></div>
  <div class="dashboard-quick">${btn('+ تسجيل حركة جديدة','quick','primary')} ${btn('+ حركة صندوق نقدية','add-cash-movement')}</div><section class="panel cashbox-panel"><div class="dashboard-section-head"><div><h3>الصندوق النقدي</h3><small>المقبوضات النقدية فقط، منفصلة عن التحويلات والديون</small></div><span class="status-pill ${db.settings.cashOpeningConfirmed?'is-active':'is-warning'}">${db.settings.cashOpeningConfirmed?'رصيد افتتاحي معتمد':'يحتاج جردًا'}</span></div><div class="cashbox-grid"><div><small>إجمالي المقبوض نقدًا منذ تاريخ الجرد</small><strong>${money(cashReceiptsTotal())}</strong></div><div><small>إجمالي المدفوع نقدًا منذ تاريخ الجرد</small><strong>${money(cashOutflowsTotal())}</strong></div><div><small>المتوقع وجوده في الصندوق</small><strong>${money(cashBalance())}</strong></div></div><p class="small muted">${db.settings.cashOpeningDate?'حركات الصندوق المحتسبة تبدأ من '+esc(db.settings.cashOpeningDate)+'.':'لم يُحدد تاريخ جرد افتتاحي؛ الرصيد تراكمي من الحركات المسجلة وقد لا يطابق النقد الفعلي.'} لا تسجّل تحصيل نقطة البيع مرتين؛ استخدم حركة الصندوق للمبالغ الأخرى فقط.</p></section>
- <section class="dashboard-metrics">${dashboardMetric('إجمالي الإيرادات المسجلة',revenue,'من أول التعامل حتى الآن','users','green')} ${dashboardMetric('المصروفات المسجلة',expenses,'من أول التعامل حتى الآن','receipt','red')} ${dashboardMetric('إجمالي ديون نقاط البيع',money(totalPosDebt),'البيع الآجل والأمانة المباعة غير المسددين','receipt','red')} ${dashboardMetric('الالتزامات المستحقة',due,'المستحقات الحالية المسجلة','box','blue')} ${dashboardMetric('الرصيد المتوقع بالصندوق',cash,db.settings.cashOpeningConfirmed?'رصيد جرد معتمد والحركات النقدية بعده':'غير معتمد: أدخل رصيد الجرد وتاريخه في الإعدادات','wallet','purple')}</section>
+ <section class="dashboard-metrics">${dashboardMetric('إجمالي الإيرادات المسجلة',revenue,'من أول التعامل حتى الآن','users','green')} ${dashboardMetric('المصروفات المسجلة',expenses,'من أول التعامل حتى الآن','receipt','red')} ${dashboardMetric('الالتزامات المستحقة',due,'المستحقات الحالية المسجلة','box','blue')} ${dashboardMetric('الرصيد المتوقع بالصندوق',cash,db.settings.cashOpeningConfirmed?'رصيد جرد معتمد والحركات النقدية بعده':'غير معتمد: أدخل رصيد الجرد وتاريخه في الإعدادات','wallet','purple')}</section>
  <section class="panel dashboard-section" id="dashboardPos"><div class="dashboard-section-head"><div><h3>نقاط البيع</h3><small>الحسابات المسجلة وأرصدتها الناتجة عن الحركات</small></div><button class="text-link" data-tab="pos">عرض الكل ←</button></div><div class="dashboard-pos-desktop"><div class="table-wrap dashboard-table-wrap"><table class="dashboard-table"><thead><tr><th>#</th><th>اسم نقطة البيع</th><th>صاحب النقطة</th><th>المنطقة</th><th>الرصيد الحالي</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>${posRows||`<tr><td colspan="7" class="empty">لا توجد نقاط بيع مسجلة بعد</td></tr>`}</tbody></table></div></div><div class="dashboard-pos-mobile">${posMobile||'<div class="empty">لا توجد نقاط بيع مسجلة بعد</div>'}</div></section>
  <section class="panel dashboard-section recent-section"><div class="dashboard-section-head"><div><h3>آخر الحركات المسجلة</h3><small>سجل العمليات الفعلية فقط</small></div><button class="text-link" data-tab="reports">عرض الكل ←</button></div><div class="recent-desktop table-wrap"><table class="dashboard-table recent-table"><thead><tr><th>التاريخ</th><th>النوع</th><th>الوصف</th><th>النقطة / الحساب</th><th>المبلغ</th><th>المستخدم</th></tr></thead><tbody>${recentRows||'<tr><td colspan="6" class="empty">لا توجد حركات مسجلة بعد</td></tr>'}</tbody></table></div><div class="recent-mobile">${recentMobile||'<div class="empty">لا توجد حركات مسجلة بعد</div>'}</div></section>
  <div class="dashboard-bottom"><section class="panel lower-card"><div class="dashboard-section-head"><div><h3>حالة النظام</h3><small>حالة البيانات على هذا الجهاز</small></div><span class="status-pill ${al.length?'is-warning':'is-active'}">${al.length?'تحتاج مراجعة':'محلي'}</span></div><p class="lower-note">${al.length?`${al.length} تنبيهًا مرتبطًا بالبيانات المدخلة`:'لا توجد تنبيهات حسب البيانات الحالية.'}</p><button class="text-link" data-tab="audit">فتح سجل التدقيق ←</button></section><section class="panel lower-card"><div class="dashboard-section-head"><div><h3>حسابات الشركاء</h3><small>حسب البيانات المسجلة</small></div><button class="text-link" data-tab="partners">عرض التفاصيل ←</button></div><div class="mini-list">${partnerRows||'<div class="empty compact-empty">لا توجد بيانات شركاء</div>'}</div></section><section class="panel lower-card"><div class="dashboard-section-head"><div><h3>المخزون والكروت</h3><small>الكميات المسجلة والحركات</small></div><button class="text-link" data-tab="cards">عرض الكل ←</button></div><div class="mini-list">${stockRows||'<div class="empty compact-empty">أدخل الفئات والجرد الفعلي لتظهر هنا</div>'}</div></section></div>
@@ -573,9 +804,9 @@ function posDetailView(id){
   '<tr class="simple-total"><td>مجموع التحصيلات</td><td class="simple-numeric">'+money(sum(filtered.filter(x=>x.group==='payment'),x=>x.amount))+'</td><td>النقد والمحفظة معًا</td></tr>',
   '<tr class="simple-balance"><td><strong>'+(debt>0.009?'المبلغ المتبقي حتى الآن':'الرصيد الآجل الحالي')+'</strong></td><td class="simple-numeric"><strong>'+(has?money(Math.max(0,debt)):'غير محدد')+'</strong></td><td>'+(has?(debt>0.009?'محسوب من الحركات المسجلة':'لا يوجد دين مسجل؛ لا يشمل رصيدًا افتتاحيًا غير مدخل'):'لم تسجل حركات بعد')+'</td></tr>'
  ];
- return '<div class="section-title no-print"><h2>كشف حساب نقطة البيع</h2><div class="actions">'+btn('← كل نقاط البيع','back-pos')+btn('تعديل بيانات النقطة','edit-pos:'+id)+(db.deliveries.some(x=>x.posId===id&&x.mode==='consignment')?btn('تسوية الأمانة','consign-to:'+id):'')+btn('طباعة كشف الحساب كامل','print-pos','primary')+btn('حفظ الكشف كصورة','image-pos')+'</div></div>'+
+ return '<div class="section-title no-print"><h2>كشف حساب نقطة البيع</h2><div class="actions">'+btn('← كل نقاط البيع','back-pos')+btn('تعديل بيانات النقطة','edit-pos:'+id)+(db.deliveries.some(x=>x.posId===id&&x.mode==='consignment')?btn('تسوية الأمانة','consign-to:'+id):'')+btn('طباعة / حفظ PDF','print-pos','primary')+btn('حفظ الكشف كصورة','image-pos')+'</div></div>'+
  '<section class="panel no-print simple-filter"><h3>فترة الكشف</h3><div class="form-grid"><div class="field"><label for="posFrom">من تاريخ</label><input type="date" id="posFrom" value="'+esc(posFrom)+'"></div><div class="field"><label for="posTo">إلى تاريخ</label><input type="date" id="posTo" value="'+esc(posTo)+'"></div></div><div class="actions"><button class="primary" id="applyPosFilter">تطبيق الفترة</button><button id="clearPosFilter">عرض كل التاريخ</button></div></section>'+
- '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 48 48" aria-label="شعار سبايدر نت"><path d="M8 24c6-9 11-13 16-13s10 4 16 13c-6 9-11 13-16 13S14 33 8 24Z"/><path d="M4 24h40M24 5v38M10 10l28 28M38 10 10 38M16 24c3-4 5-6 8-6s5 2 8 6c-3 4-5 6-8 6s-5-2-8-6Z"/></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark">SN</span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
+ '<div id="posStatementPrint" class="simple-statement"><section class="print-receipt"><header class="receipt-head"><div class="receipt-brand"><svg viewBox="0 0 64 64" role="img" aria-label="شعار SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg><div><b>SPIDER NET</b><small>سند حساب نقطة بيع</small></div></div><div class="receipt-number">تاريخ السند: '+dateNow()+'</div></header><h1>سند حساب / إشعار بالمستحقات</h1><div class="receipt-owner"><div><small>نقطة البيع</small><strong>'+esc(p.name)+'</strong></div><div><small>صاحب النقطة</small><strong>'+esc(p.owner||'غير مسجل')+'</strong></div><div><small>الهاتف</small><strong dir="ltr">'+esc(p.phone||'—')+'</strong></div><div><small>المنطقة</small><strong>'+esc(p.area||'—')+'</strong></div></div><table class="receipt-lines"><thead><tr><th>التاريخ</th><th>فئة الكرت</th><th>نوع الحركة</th><th>الكمية</th><th>سعر الكرت</th><th>الإجمالي</th></tr></thead><tbody>'+(receiptItems||'<tr><td colspan="6">لا توجد حركات مسجلة</td></tr>')+'</tbody></table><table class="receipt-summary"><tbody><tr><th>مبيعات نقدية مدفوعة عند الاستلام</th><td>'+money(receiptCashSales)+'</td></tr><tr><th>المبيعات الآجلة والأمانة المباعة</th><td>'+money(receiptCreditSales)+'</td></tr><tr><th>التحصيلات النقدية المسجلة</th><td>'+money(receiptCashPaid)+'</td></tr><tr><th>التحصيلات عبر التحويل / المحفظة</th><td>'+money(receiptTransferPaid)+'</td></tr><tr class="receipt-due"><th>المبلغ المتبقي على النقطة حتى الآن</th><td>'+money(Math.max(0,debt))+'</td></tr></tbody></table><p class="receipt-note">هذا السند يوضح العمليات المسجلة في النظام حتى تاريخ إصداره. يرجى مراجعة المبلغ المتبقي وإبلاغ الإدارة بأي إيصال غير مسجل أو اختلاف في الكميات.</p><div class="receipt-signatures"><span>توقيع صاحب نقطة البيع: __________________</span><span>توقيع مسؤول الشبكة: __________________</span></div></section><header class="simple-statement-head"><div class="simple-statement-brand"><span class="simple-brand-mark" aria-label="شعار سبايدر نت"><svg viewBox="0 0 64 64" role="img" aria-label="SPIDER NET"><path d="M32 7 26 17l6 9 6-9-6-10Z" fill="#4DB8E8" stroke="#4DB8E8"/><path d="M26 19 17 13 20 27 9 32 22 36 17 49 29 41M38 19 47 13 44 27 55 32 42 36 47 49 35 41M26 27 17 23 22 32 15 41 27 38M38 27 47 23 42 32 49 41 37 38M29 24 25 36 32 47 39 36 35 24 32 19Z"/><path d="M32 47 26 57M32 47 38 57M22 35 9 46M42 35 55 46M20 27 6 23M44 27 58 23M26 18 20 7M38 18 44 7"/></svg></span><span><b>SPIDER NET</b><small>كشف حساب نقطة بيع</small></span></div><h1>كشف حساب نقطة '+esc(p.name)+'</h1><p class="simple-owner-line">صاحب النقطة: <strong>'+esc(p.owner||p.name)+'</strong>'+(p.phone?' — رقم الجوال: <strong dir="ltr">'+esc(p.phone)+'</strong>':'')+'</p><table class="simple-contact-table"><tbody><tr><th>اسم نقطة البيع</th><td>'+esc(p.name)+'</td><th>اسم صاحب النقطة</th><td>'+esc(p.owner||'غير مسجل')+'</td></tr><tr><th>رقم الجوال</th><td dir="ltr">'+esc(p.phone||'غير مسجل')+'</td><th>المنطقة</th><td>'+esc(p.area||'غير مسجلة')+'</td></tr><tr><th>العنوان</th><td>'+esc(p.address||'غير مسجل')+'</td><th>تاريخ الكشف</th><td>'+dateNow()+'</td></tr><tr><th>الفترة</th><td colspan="3">'+esc(posFrom||'من أول تعامل')+' إلى '+esc(posTo||'حتى اليوم')+'</td></tr>'+(p.note?'<tr><th>ملاحظات</th><td colspan="3">'+esc(p.note)+'</td></tr>':'')+'</tbody></table></header><section class="simple-statement-section"><h2>سجل العمليات التفصيلي</h2>'+opsTable+'<p class="simple-footnote">«أمانة» تعني أن الحساب يُحتسب على الكروت التي بيعت فقط، أما الكروت المرتجعة فتظهر كإرجاع للمخزون. إجمالي التحصيل هو المبلغ المستلم وليس سعر كروت جديدة.</p></section><section class="simple-statement-section"><h2>ملخص المبالغ</h2>'+table(['البيان','المبلغ','التوضيح'],summary)+'</section><section class="simple-statement-section">'+reminder+'</section><footer class="simple-statement-footer">هذا الكشف خاص بنقطة البيع المذكورة أعلاه فقط. راجع التاريخ وفئة الكرت والكمية إذا ظهر اختلاف في أي مبلغ.</footer></div>';
 }
 function wirePosDetail(){const search=$('#posSearch');if(search)search.addEventListener('input',()=>{posSearch=search.value;const start=search.selectionStart;const v=$('#view');v.innerHTML=posView();bindActions(v);const n=$('#posSearch');n.focus();n.setSelectionRange(start,start)});const apply=$('#applyPosFilter');if(apply)apply.onclick=()=>{const from=$('#posFrom').value,to=$('#posTo').value;if(from&&to&&from>to)return alert('تاريخ البداية يجب أن يكون قبل تاريخ النهاية.');posFrom=from;posTo=to;render()};const clear=$('#clearPosFilter');if(clear)clear.onclick=()=>{posFrom='';posTo='';render()}}
 function walletsView(){
@@ -1163,7 +1394,7 @@ function integrity(){
  (db.periodSnapshots||[]).forEach(s=>{if(!db.periods.some(p=>p.id===s.periodId))issues.push('لقطة إقفال مرتبطة بفترة غير موجودة: '+s.id);if(s.metrics&&(!Number.isFinite(Number(s.metrics.netProfit))||!Number.isFinite(Number(s.cash?.closing))))issues.push('بيانات لقطة الإقفال غير مكتملة: '+s.id);});
  const unique=[...new Set(issues)];showModal('اختبار سلامة البيانات','<p>عدد الملاحظات: <b>'+unique.length+'</b></p>'+(unique.length?'<ul>'+unique.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<div class="note">اجتازت البيانات الفحوص الأساسية المحلية. هذا لا يغني عن مطابقة الأرصدة مع الجرد الفعلي وكشوف المحافظ.</div>')+'<p class="small muted">الاختبار لا يعدّل البيانات تلقائيًا. راجع كل تنبيه قبل اعتماد الحسابات.</p>');
 }
-function closePeriod(){tab='periods';render();}
+function closePeriod(){tab='periods';render();return;let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='فترة المراجعة: '+period+'\nتاريخ لقطة الأرصدة: '+dateNow()+'\nصافي الحركات النقدية المسجلة حتى اللقطة: '+money(cashBalance())+'\nديون نقاط البيع الحالية: '+money(posReceivables())+'\nالالتزامات غير المسددة الحالية: '+money(obligations())+'\nتقدير الربح التراكمي: '+money(profitEstimate())+'\n\nتنبيه: الأرقام لقطة حالية/تراكمية وليست حساب حركة الشهر وحده أو قيد إقفال مزدوج. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,status:'review_snapshot',approved:false});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist();render()}
 function quick(){showModal('تسجيل عملية',`<div class="actions">${btn('تسليم كروت','add-delivery','primary')}${btn('تحصيل دين','add-payment')}${btn('مصروف','add-expense')}${btn('تحميل محفظة','add-load')}${btn('بيع محفظة','add-wallet-sale')}${btn('حركة شريك','add-partner-move')}</div><p class="small muted">اختر نوع العملية. ستُفتح نافذة منفصلة لإدخال التفاصيل.</p>`);$('#modalBody').querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.stopPropagation();closeModal();runAction(b.dataset.action)})}
 function restoreCommittedState(){
  let snapshot;
@@ -1249,7 +1480,7 @@ function requestPrint(jobName){
  }
  try{window.print();return true}catch(e){alert('تعذر فتح واجهة الطباعة: '+(e&&e.message?e.message:'خطأ غير معروف'));return false}
 }
-window.onNativePrintResult=function(ok,message){document.body.classList.remove('printing-pos','printing-accounting','printing-bill','printing-monthly-period');['billPrintSheet','monthlyPeriodPrintSheet'].forEach(id=>{const sheet=document.getElementById(id);if(sheet)sheet.remove()});if(!ok)alert(message||'تعذر فتح واجهة الطباعة.')};
+window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove();alert(message||'تعذر فتح واجهة الطباعة.')}};
 window.onNativeImageResult=function(ok,message){alert(message||(ok?'تم حفظ صورة الكشف.':'تعذر حفظ صورة الكشف.'))};
 window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم تصدير سجل التدقيق.':'تعذر تصدير سجل التدقيق.'))};
 
@@ -1278,6 +1509,8 @@ function applyBackupText(text,fileName){
  try{
   const x=JSON.parse(text);
   const requiredArrays=['cards','pos','wallets','deliveries','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','audit','closures'];
+  // Monthly fields are optional for older backups; initialize them without rejecting legacy files.
+  if(!Array.isArray(x.periods))x.periods=[];if(!Array.isArray(x.periodSnapshots))x.periodSnapshots=[];if(!Array.isArray(x.profitDistributions))x.profitDistributions=[];if(x.settings.currentPeriodId===undefined)x.settings.currentPeriodId=null;
   if(!x||x.version!==1||!x.settings||typeof x.settings!=='object'||Array.isArray(x.settings)||!requiredArrays.every(k=>Array.isArray(x[k]))||(x.consignmentSettlements!==undefined&&!Array.isArray(x.consignmentSettlements)))throw Error('format');
   if(!Array.isArray(x.consignmentSettlements))x.consignmentSettlements=[];
   if(!confirm('ستُستبدل بيانات هذا الجهاز بالنسخة المختارة. تأكد من الاحتفاظ بنسخة من البيانات الحالية. هل تريد المتابعة؟'))return false;
@@ -1419,7 +1652,7 @@ function printDeliveryBatchInvoice(batchId){
  const items=lines.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(cardLabel(x.cardId))+'</td><td>'+esc(x.qty)+'</td><td>'+money(x.unitPrice)+'</td><td>'+money(num(x.amount??num(x.qty)*num(x.unitPrice)))+'</td></tr>').join('');
  const total=lines.reduce((n,x)=>n+num(x.amount??num(x.qty)*num(x.unitPrice)),0);
  const paymentNote=first.mode==='cash'?'تحصيل نقدي عند التسليم':first.mode==='credit'?'مبلغ آجل — يُتابع ضمن مديونية نقطة البيع':'أمانة — لا تُثبت كدين إلا بعد تسوية الكروت المباعة';
- const html='<section id="billPrintSheet" dir="rtl"><div class="invoice-brand"><svg viewBox="0 0 48 48" aria-label="شعار SPIDER NET"><g fill="none" stroke="#078fc8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 17C17 12 13 9 8 9L5 5M18 21C12 18 8 18 3 20M18 25C12 28 8 32 5 37M21 29C17 34 15 39 15 44M27 17C31 12 35 9 40 9L43 5M30 21C36 18 40 18 45 20M30 25C36 28 40 32 43 37M27 29C31 34 33 39 33 44"/><path d="M24 9c-3 0-5 2-5 5v4c0 3 2 5 5 5s5-2 5-5v-4c0-3-2-5-5-5Z"/><path d="M24 22c-5 0-8 4-8 9 0 6 4 11 8 14 4-3 8-8 8-14 0-5-3-9-8-9Z"/></g></svg><span><b>SPIDER NET</b><small>SMART ACCOUNTING SYSTEM</small></span></div><h1>فاتورة تسليم كروت</h1><h2>سند رسمي لحركة نقطة البيع</h2><div class="print-grid"><div class="print-item"><span class="print-label">رقم الفاتورة / مرجع العملية</span><span class="print-value">'+esc(first.batchId||first.id)+'</span></div><div class="print-item"><span class="print-label">تاريخ العملية</span><span class="print-value">'+esc(first.date||'—')+'</span></div><div class="print-item"><span class="print-label">نقطة البيع</span><span class="print-value">'+esc(p.name||'—')+'</span></div><div class="print-item"><span class="print-label">المالك / الهاتف</span><span class="print-value">'+esc(p.owner||'—')+' / '+esc(p.phone||'—')+'</span></div><div class="print-item"><span class="print-label">نوع الحركة</span><span class="print-value">'+movement+'</span></div><div class="print-item"><span class="print-label">حالة التحصيل</span><span class="print-value">'+paymentNote+'</span></div></div><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#e8f0f7"><th style="border:1px solid #999;padding:9px">م</th><th style="border:1px solid #999;padding:9px">فئة الكرت</th><th style="border:1px solid #999;padding:9px">الكمية</th><th style="border:1px solid #999;padding:9px">سعر الوحدة</th><th style="border:1px solid #999;padding:9px">الإجمالي</th></tr></thead><tbody>'+items+'</tbody></table><div class="print-total">الإجمالي الكلي: '+money(total)+'</div><div class="print-note"><b>ملاحظات:</b> '+esc(first.note||'—')+'</div><div class="print-signatures"><div>توقيع مسؤول الشبكة</div><div>توقيع مستلم نقطة البيع</div></div><p style="text-align:center;font-size:10px;margin-top:22px">يرجى مراجعة الكميات والفئات والإجمالي قبل التوقيع.</p></section>';
+ const html='<section id="billPrintSheet" dir="rtl"><h1>SPIDER NET</h1><h2>فاتورة تسليم كروت</h2><div class="print-grid"><div class="print-item"><span class="print-label">رقم الفاتورة / مرجع العملية</span><span class="print-value">'+esc(first.batchId||first.id)+'</span></div><div class="print-item"><span class="print-label">تاريخ العملية</span><span class="print-value">'+esc(first.date||'—')+'</span></div><div class="print-item"><span class="print-label">نقطة البيع</span><span class="print-value">'+esc(p.name||'—')+'</span></div><div class="print-item"><span class="print-label">المالك / الهاتف</span><span class="print-value">'+esc(p.owner||'—')+' / '+esc(p.phone||'—')+'</span></div><div class="print-item"><span class="print-label">نوع الحركة</span><span class="print-value">'+movement+'</span></div><div class="print-item"><span class="print-label">حالة التحصيل</span><span class="print-value">'+paymentNote+'</span></div></div><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#e8f0f7"><th style="border:1px solid #999;padding:9px">م</th><th style="border:1px solid #999;padding:9px">فئة الكرت</th><th style="border:1px solid #999;padding:9px">الكمية</th><th style="border:1px solid #999;padding:9px">سعر الوحدة</th><th style="border:1px solid #999;padding:9px">الإجمالي</th></tr></thead><tbody>'+items+'</tbody></table><div class="print-total">الإجمالي الكلي: '+money(total)+'</div><div class="print-note"><b>ملاحظات:</b> '+esc(first.note||'—')+'</div><div class="print-signatures"><div>توقيع مسؤول الشبكة</div><div>توقيع مستلم نقطة البيع</div></div><p style="text-align:center;font-size:10px;margin-top:22px">يرجى مراجعة الكميات والفئات والإجمالي قبل التوقيع.</p></section>';
  const old=document.getElementById('billPrintSheet');if(old)old.remove();$('#app').insertAdjacentHTML('beforeend',html);document.body.classList.add('printing-bill');
  if(window.AndroidBackup&&typeof window.AndroidBackup.printPage==='function'){requestPrint('فاتورة تسليم SPIDER NET');return}
  try{window.print()}finally{document.body.classList.remove('printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove()}
@@ -1487,11 +1720,6 @@ window.onAndroidBackPressed=function(){
  if(tab!=='home'){tab='home';render();return true}
  return false;
 };
-
-/* -------------------------------------------------------------------------
-   SPIDER NET — Custom monthly accounting periods
-   Additive module: keeps source transactions as the system of record.
-   ------------------------------------------------------------------------- */
 function monthlyPeriodForDate(date){
  const d=String(date||'').slice(0,10);if(!validDateValue(d))return null;
  return (db.periods||[]).find(p=>p.startDate<=d&&d<=p.endDate)||null;
