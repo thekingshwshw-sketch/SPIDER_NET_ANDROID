@@ -1927,11 +1927,16 @@ function monthlyPrepareWrite(){
    const date=String(row.date||row.createdAt||row.due||'').slice(0,10);
    if(!validDateValue(date))continue;
    const matched=monthlyPeriodForDate(date);
-   if(matched&&['REVIEW','CLOSED','LOCKED'].includes(matched.status)&&!row.periodCountKey&&!row.periodCashCountKey){
+   if(matched&&['CLOSED','LOCKED'].includes(matched.status)){
     alert('لا يمكن إضافة حركة بتاريخ داخل فترة مغلقة ('+monthlyPeriodLabel(matched)+'). سجّلها في تاريخها الفعلي ضمن فترة مفتوحة أو استخدم تصحيحًا موثقًا.');
     restoreCommittedState();return false;
    }
+   if(matched&&matched.status==='REVIEW'&&!row.periodCountKey&&!row.periodCashCountKey){
+    alert('الفترة قيد مراجعة الإقفال. أعد فتح المراجعة قبل تسجيل عمليات جديدة.');
+    restoreCommittedState();return false;
+   }
    
+   if(!matched){const latest=(db.periods||[]).slice().sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0];if(latest&&date>latest.endDate){alert('لا توجد فترة مالية مفتوحة تغطي هذا التاريخ. أنشئ الفترة التالية قبل تسجيل الحركات الجديدة.');restoreCommittedState();return false;}}
    if(matched){
     if(table==='payments')row.collectionPeriodId=matched.id;
     else if(table==='bills')row.periodId=matched.id;
