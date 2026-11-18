@@ -103,6 +103,12 @@ try{
  await action('add-delivery');await fill({date:'2026-10-22',posId,cardId,qty:'5',mode:'cash',unitPrice:'120',note:'نقدي'});check(await submit(),'تسجيل بيع نقدي');data=await db();check(debt(data)===900,'البيع النقدي لا يزيد الدين');
  await action('add-delivery');await fill({date:'2026-10-22',posId,cardId,qty:'20',mode:'consignment',unitPrice:'120',note:'أمانة'});check(await submit(),'تسليم أمانة');data=await db();const consignmentDeliveryId=data.deliveries.find(x=>x.mode==='consignment').id;
  await action('open-pos:'+posId);check((await page.locator('#view').innerText()).includes('سجل العمليات التفصيلي'),'عرض كشف الحساب التفصيلي');check(await page.locator('#view .simple-operations-table').count()===1,'جدول نقاط البيع التفصيلي');
+
+ await page.locator('#sidebarTheme').click();
+ const statementTheme=await page.evaluate(()=>{const table=document.querySelector('.simple-statement .receipt-lines'),row=table?.querySelector('tbody tr:first-child'),cell=row?.querySelector('td');return {theme:document.documentElement.dataset.theme,tableBg:table?getComputedStyle(table).backgroundColor:'',rowBg:row?getComputedStyle(row).backgroundColor:'',text:cell?getComputedStyle(cell).color:''}});
+ check(statementTheme.theme==='dark'&&statementTheme.tableBg!=='rgb(255, 255, 255)'&&statementTheme.rowBg!=='rgb(255, 255, 255)','كشف نقطة البيع يحافظ على تباين الصفوف في الوضع الداكن');
+ await page.locator('#sidebarTheme').click();
+
  await action('consign-to:'+posId);await fill({date:'2026-10-22',posId,cardId,soldQty:'10',returnQty:'2',unitPrice:'120',note:'تسوية'});check(await submit(),'تسوية الأمانة');data=await db();check(debt(data)===2100&&stock(data)===68,'الأمانة تزيد الدين بالمباع فقط وتعيد المرتجع للمخزون');
 await action('edit-delivery:'+consignmentDeliveryId);await fill({mode:'credit'});check(!(await submit()),'منع تحويل تسليم أمانة إلى بيع آجل بعد تسويته');data=await db();check(data.deliveries.find(x=>x.id===consignmentDeliveryId).mode==='consignment'&&debt(data)===2100,'حماية نوع الأمانة والدين بعد رفض التعديل');await cancel();
  await page.locator('#view [data-action="pay-debt-delivery:'+deliveryId+'"]').first().click();await fill({date:'2026-10-22',amount:'400',method:'cash',note:'سداد محدد'});check(await submit(),'سداد دين محدد');data=await db();const paid=data.payments.filter(x=>Array.isArray(x.allocations)&&x.allocations.some(a=>String(a.sourceId)===String(deliveryId))).at(-1);check(!!paid&&paid.allocations[0].sourceId===deliveryId&&debt(data)===1700,'ربط السداد بالدين المقصود');
