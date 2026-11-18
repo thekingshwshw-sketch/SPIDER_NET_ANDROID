@@ -341,7 +341,7 @@ const KEY='spidernet_accounting_v1';
 const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const num=v=>Number(v)||0;const money=v=>new Intl.NumberFormat('ar-YE',{maximumFractionDigits:2}).format(num(v))+' ر.ي';const dateNow=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};function validDateValue(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')))return false;let [y,m,d]=String(v).split('-').map(Number);let x=new Date(Date.UTC(y,m-1,d));return x.getUTCFullYear()===y&&x.getUTCMonth()===m-1&&x.getUTCDate()===d}function dateFieldValue(v,fallback=dateNow()){let s=String(v??'').trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m){let d=m[1]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[3])).padStart(2,'0');if(validDateValue(d))return d}m=s.match(/^(\d{1,2})[\/. -](\d{1,2})[\/. -](\d{4})$/);if(m){let d=m[3]+'-'+String(Number(m[2])).padStart(2,'0')+'-'+String(Number(m[1])).padStart(2,'0');if(validDateValue(d))return d}return validDateValue(fallback)?fallback:dateNow()}const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 let recoveryInfo={available:false,reason:'',raw:null,blocked:false};
 let recoveryExportPending=false;
-const empty=()=>({version:1,settings:{startDate:'',startDateConfirmed:false,cashOpeningBalance:0,cashOpeningDate:'',cashOpeningConfirmed:false,pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],cashMovements:[],audit:[],closures:[],journalEntries:[]});
+const empty=()=>({version:1,settings:{startDate:'',startDateConfirmed:false,cashOpeningBalance:0,cashOpeningDate:'',cashOpeningConfirmed:false,currentPeriodId:null,pin:'',lastBackup:'',lastClose:''},cards:[],pos:[],wallets:[],deliveries:[],consignmentSettlements:[],payments:[],walletLoads:[],walletSales:[],expenses:[],bills:[],partners:[{id:'p1',name:'الشريك الأول',share:50},{id:'p2',name:'الشريك الثاني',share:50}],partnerMoves:[],stockAdjustments:[],cashMovements:[],audit:[],closures:[],journalEntries:[],periods:[],periodSnapshots:[],profitDistributions:[]});
 let db=load(),tab='home',selectedPosId=null,posSearch='',posFrom='',posTo='',ledgerFrom='',ledgerTo='',ledgerAccount='';
 let lastCommittedState=JSON.stringify(db);function preserveRecovery(raw,reason){
  if(!raw)return;
@@ -366,7 +366,7 @@ function load(){
   if(!x||x.version!==1||typeof x!=='object'||Array.isArray(x)){if(raw)preserveRecovery(raw,'تنسيق بيانات التطبيق غير متوافق؛ لم تُحذف النسخة الخام.');return empty()}
   const defaults=empty();
   let changed=false,damaged=false;
-  const arrays=['cards','pos','wallets','deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','cashMovements','audit','closures','journalEntries'];
+  const arrays=['cards','pos','wallets','deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partners','partnerMoves','stockAdjustments','cashMovements','audit','closures','journalEntries','periods','periodSnapshots','profitDistributions'];
   for(const key of arrays){
    if(Array.isArray(x[key]))continue;
    if(x[key]!==undefined&&x[key]!==null)damaged=true;
@@ -394,12 +394,12 @@ function load(){
 function save(action,detail=''){if(action)addAudit(action,detail,false);if(!persist())return false;render();return true}function addAudit(action,detail,doSave=false){db.audit.unshift({id:uid(),date:dateNow(),time:new Date().toLocaleTimeString('ar-YE'),action,detail});db.audit=db.audit.slice(0,1000);return doSave?persist():true}
 function sum(arr,fn){return arr.reduce((s,x)=>s+num(fn(x)),0)}function card(id){return db.cards.find(x=>x.id===id)}function pos(id){return db.pos.find(x=>x.id===id)}function wallet(id){return db.wallets.find(x=>x.id===id)}function cCost(c){return num(c?.cost)}function cardLabel(id){let c=card(id);return c?`${c.name} (${money(c.face)})`:'فئة محذوفة'}
 function posDebt(id){return sum(db.deliveries.filter(x=>x.posId===id&&x.mode==='credit'),x=>x.amount)+sum(db.consignmentSettlements.filter(x=>x.posId===id),x=>x.soldQty*x.unitPrice)-sum(db.payments.filter(x=>x.posId===id),x=>x.amount)-sum(db.deliveries.filter(x=>x.posId===id&&x.mode==='credit'),x=>x.returnAmount||0)}function posHasMovements(id){return db.deliveries.some(x=>x.posId===id)||db.consignmentSettlements.some(x=>x.posId===id)||db.payments.some(x=>x.posId===id)}
-function stockMain(cardId){let opening=num(card(cardId)?.opening);let delivered=sum(db.deliveries.filter(x=>x.cardId===cardId),x=>x.qty);let loaded=sum(db.walletLoads.filter(x=>x.cardId===cardId),x=>x.qty);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId),x=>x.delta);let consignmentReturns=sum(db.consignmentSettlements.filter(x=>x.cardId===cardId),x=>x.returnQty);return opening-delivered-loaded+adjustments+consignmentReturns}
-function stockWallet(walletId,cardId){let opening=sum(db.wallets.filter(x=>x.id===walletId),w=>(w.opening||{})[cardId]||0);return opening+sum(db.walletLoads.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)-sum(db.walletSales.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)}
+function stockMain(cardId){let opening=num(card(cardId)?.opening);let delivered=sum(db.deliveries.filter(x=>x.cardId===cardId),x=>x.qty);let loaded=sum(db.walletLoads.filter(x=>x.cardId===cardId),x=>x.qty);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId&&(!x.locationType||x.locationType==='main')),x=>x.delta);let consignmentReturns=sum(db.consignmentSettlements.filter(x=>x.cardId===cardId),x=>x.returnQty);return opening-delivered-loaded+adjustments+consignmentReturns}
+function stockWallet(walletId,cardId){let opening=sum(db.wallets.filter(x=>x.id===walletId),w=>(w.opening||{})[cardId]||0);let adjustments=sum(db.stockAdjustments.filter(x=>x.cardId===cardId&&x.locationType==='wallet'&&x.locationId===walletId),x=>x.delta);return opening+sum(db.walletLoads.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)-sum(db.walletSales.filter(x=>x.walletId===walletId&&x.cardId===cardId),x=>x.qty)+adjustments}
 function walletCash(){return sum(db.walletSales,x=>x.amount)}
 function cashIsInBaseline(x){const d=String(x?.date||x?.paidDate||'');return !db.settings.cashOpeningDate||d>=db.settings.cashOpeningDate}
 function cashReceiptsTotal(){return sum(db.deliveries.filter(x=>x.mode==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.payments.filter(x=>x.method==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.walletSales.filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='in'&&cashIsInBaseline(x)),x=>x.amount)}
-function cashOutflowsTotal(){return sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&cashIsInBaseline({...x,date:x.paidDate||x.date})),x=>x.amount)+sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='partner_repayment'&&(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&cashIsInBaseline(x)),x=>x.amount)}
+function cashOutflowsTotal(){return sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&cashIsInBaseline({...x,date:x.paidDate||x.date})),x=>x.amount)+sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&cashIsInBaseline(x)),x=>x.amount)+sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&cashIsInBaseline(x)),x=>x.amount)+sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&cashIsInBaseline(x)),x=>x.amount)}
 function cashBalance(){return num(db.settings.cashOpeningBalance)+cashReceiptsTotal()-cashOutflowsTotal()}
 function posUnitPrice(posId,cardId){const p=pos(posId),c=card(cardId),v=p?.prices?.[cardId];return v!==undefined&&v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):num(c?.pricePos)}
 
@@ -415,15 +415,15 @@ function partnerTransferRepayments(){return sum(db.partnerMoves.filter(x=>x.kind
 function obligations(){return sum(db.bills.filter(x=>!x.paid),x=>x.amount)}function posReceivables(){return sum(db.pos,x=>Math.max(0,posDebt(x.id)))}function mainStockValue(){return sum(db.cards,c=>Math.max(0,stockMain(c.id))*cCost(c))}function walletStockValue(){return sum(db.cards,c=>sum(db.wallets,w=>Math.max(0,stockWallet(w.id,c.id)))*cCost(c))}
 function walletSalesRevenue(){return sum(db.walletSales,x=>x.amount)}function posRevenue(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>x.amount)+sum(db.consignmentSettlements,x=>x.soldQty*x.unitPrice)}function operatingExpenses(){return sum(db.expenses,x=>x.amount)+sum(db.bills,x=>x.amount)}function soldCardCost(){return sum(db.deliveries.filter(x=>x.mode!=='consignment'),x=>num(x.qty)*cCost(card(x.cardId)))+sum(db.consignmentSettlements,x=>num(x.soldQty)*cCost(card(x.cardId)))+sum(db.walletSales,x=>num(x.qty)*cCost(card(x.cardId)))}function profitEstimate(){return posRevenue()+walletSalesRevenue()-soldCardCost()-operatingExpenses()}
 function alerts(){let a=[];db.pos.forEach(p=>{let d=posDebt(p.id);if(d>0)a.push({type:'warn',text:`على نقطة البيع ${p.name} مبلغ مستحق ${money(d)}`})});db.cards.forEach(c=>{let threshold=num(c.alertAt);if(threshold>0&&stockMain(c.id)<=threshold)a.push({type:'warn',text:`مخزون ${c.name} منخفض: ${stockMain(c.id)} كرت`});if(stockMain(c.id)<0)a.push({type:'bad',text:`مخزون ${c.name} سالب؛ راجع الحركات`})});db.bills.filter(b=>!b.paid).forEach(b=>a.push({type:'warn',text:`التزام غير مسدد: ${b.name} — ${money(b.amount)}، موعد ${b.due||'غير محدد'}`}));if(cashBalance()<0)a.push({type:'bad',text:'رصيد الصندوق المحسوب سالب؛ راجع تسجيل العمليات والأرصدة الافتتاحية'});return a}
-const navItems=[['home','الرئيسية','لوحة التحكم','home'],['pos','نقاط البيع','الحسابات والتحصيل','store'],['cards','المخزون والكروت','الجرد والحركة','box'],['wallets','المحافظ','التحميل والمبيعات','wallet'],['expenses','المصروفات والالتزامات','المصروفات والفواتير','receipt'],['partners','الشركاء','الحسابات والتسويات','users'],['accounting','المحاسبة المزدوجة','اليومية والأستاذ والميزان','book'],['reports','التقارير والإحصائيات','النتائج والمراجعة','chart'],['settings','الإعدادات','الحماية والبيانات','settings'],['audit','سجل التدقيق','العمليات المسجلة','cloud']];
-const navSvg={home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',pos:'<path d="M3 9h18l-2-5H5L3 9Z"/><path d="M4 9v11h16V9M8 20v-6h8v6M3 9c0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0"/>',box:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Z"/><path d="m3.5 8.2 8.5 5 8.5-5M12 13v8M8 5.3l8.5 5"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/>',receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>',users:'<path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11a4 4 0 1 0-1-7.9M21 20v-1.5a4.5 4.5 0 0 0-3.5-4.4"/>',chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M17 6h3v3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"/>',cloud:'<path d="M6 18h12a4 4 0 0 0 .4-8A6.5 6.5 0 0 0 6 9.5 4.2 4.2 0 0 0 6 18Z"/><path d="M12 16V9m-3 3 3-3 3 3"/>'};
+const navItems=[['home','الرئيسية','لوحة التحكم','home'],['pos','نقاط البيع','الحسابات والتحصيل','store'],['cards','المخزون والكروت','الجرد والحركة','box'],['wallets','المحافظ','التحميل والمبيعات','wallet'],['expenses','المصروفات والالتزامات','المصروفات والفواتير','receipt'],['partners','الشركاء','الحسابات والتسويات','users'],['accounting','المحاسبة المزدوجة','اليومية والأستاذ والميزان','book'],['reports','التقارير والإحصائيات','النتائج والمراجعة','chart'],['settings','الإعدادات','الحماية والبيانات','settings'],['audit','سجل التدقيق','العمليات المسجلة','cloud'],['periods','الإدارة الشهرية','الفترات والديون والإقفال','calendar']];
+const navSvg={home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',pos:'<path d="M3 9h18l-2-5H5L3 9Z"/><path d="M4 9v11h16V9M8 20v-6h8v6M3 9c0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0 0 2 3 2 3 0"/>',box:'<path d="m12 3 9 5v8l-9 5-9-5V8l9-5Z"/><path d="m3.5 8.2 8.5 5 8.5-5M12 13v8M8 5.3l8.5 5"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/>',receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>',users:'<path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11a4 4 0 1 0-1-7.9M21 20v-1.5a4.5 4.5 0 0 0-3.5-4.4"/>',chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M17 6h3v3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"/>',cloud:'<path d="M6 18h12a4 4 0 0 0 .4-8A6.5 6.5 0 0 0 6 9.5 4.2 4.2 0 0 0 6 18Z"/><path d="M12 16V9m-3 3 3-3 3 3"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3M8 17h7"/>'};
 function navIcon(key){return `<svg class="nav-svg" viewBox="0 0 24 24" aria-hidden="true">${navSvg[key]||navSvg.home}</svg>`}
 function renderNav(){const current=tab==='pos-detail'?'pos':tab;const items=navItems.map(([id,label,sub,icon])=>`<button class="nav ${current===id?'active':''}" data-tab="${id}" aria-current="${current===id?'page':'false'}">${navIcon(icon)}<span class="nav-copy"><b>${label}</b><small>${sub}</small></span><span class="nav-chevron">›</span></button>`).join('');$('#nav').innerHTML=items;$('#nav').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;closeMobileNav();render()});const mobile=[['home','الرئيسية','home'],['pos','نقاط البيع','pos'],['settings','المزيد','settings']];$('#mobileNav').innerHTML=mobile.map(([id,label,icon])=>`<button class="mobile-nav-item ${current===id?'active':''}" data-mobile-tab="${id}">${navIcon(icon)}<span>${label}</span></button>`).join('');$('#mobileNav').querySelectorAll('[data-mobile-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.mobileTab;closeMobileNav();render()});$('#notificationCount').textContent=alerts().length}
 function closeMobileNav(){document.body.classList.remove('nav-open')}
 function recoveryBanner(){const blocked=!!recoveryInfo.blocked;return `<div class="note ${blocked?'danger-note':'warning'}"><strong>${blocked?'تنبيه حماية البيانات':'نسخة استرداد خام محفوظة'}</strong><p>${esc(recoveryInfo.reason||'توجد نسخة بيانات معزولة.')}</p><p>${blocked?'احتفظ بالنسخة الخام خارج التطبيق، ثم استعد نسخة JSON سليمة قبل متابعة التسجيل. تنزيل النسخة الخام وحده لا يعيد تفعيل الحفظ.':'يمكن تنزيل النسخة الخام للرجوع إليها. لا تحذفها حتى تتأكد من سلامة البيانات الحالية.'}</p>${btn('تنزيل نسخة البيانات المعزولة','recovery-backup','primary')}</div>`}
 function exportRecoveryCopy(){const raw=recoveryInfo.raw||localStorage.getItem(KEY+'_recovery_latest')||localStorage.getItem(KEY+'_recovery');if(!raw)return alert('لا توجد نسخة معزولة متاحة للتصدير.');const name='spider-net-recovery-'+dateNow()+'.json';if(window.AndroidBackup&&typeof window.AndroidBackup.saveBackup==='function'){recoveryExportPending=true;window.AndroidBackup.saveBackup(raw,name);return;}const blob=new Blob([raw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
 function metric(label,value,hint=''){return `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div><div class="hint">${hint}</div></div>`}function table(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات بعد</td></tr>`}</tbody></table></div>`}function sectionTitle(title,buttons=''){return `<div class="section-title"><h2>${title}</h2><div class="actions no-print">${buttons}</div></div>`}function btn(label,fn,cls=''){return `<button class="${cls}" data-action="${fn}">${label}</button>`}
-function render(){renderNav();const v=$('#view');switch(tab){case'pos-detail':v.innerHTML=posDetailView(selectedPosId);break;case'home':v.innerHTML=home();break;case'cards':v.innerHTML=cardsView();break;case'pos':v.innerHTML=posView();break;case'wallets':v.innerHTML=walletsView();break;case'expenses':v.innerHTML=expensesView();break;case'partners':v.innerHTML=partnersView();break;case'accounting':v.innerHTML=accountingView();break;case'reports':v.innerHTML=reportsView();break;case'settings':v.innerHTML=settingsView();break;case'audit':v.innerHTML=auditView();break;default:v.innerHTML=home()}if(recoveryInfo.available)v.insertAdjacentHTML('afterbegin',recoveryBanner());bindActions(v)}
+function render(){renderNav();const v=$('#view');switch(tab){case'pos-detail':v.innerHTML=posDetailView(selectedPosId);break;case'home':v.innerHTML=home();break;case'cards':v.innerHTML=cardsView();break;case'pos':v.innerHTML=posView();break;case'wallets':v.innerHTML=walletsView();break;case'expenses':v.innerHTML=expensesView();break;case'partners':v.innerHTML=partnersView();break;case'accounting':v.innerHTML=accountingView();break;case'reports':v.innerHTML=reportsView();break;case'settings':v.innerHTML=settingsView();break;case'audit':v.innerHTML=auditView();break;case'periods':v.innerHTML=periodsView();break;default:v.innerHTML=home()}if(recoveryInfo.available)v.insertAdjacentHTML('afterbegin',recoveryBanner());bindActions(v)}
 function dashboardMetric(title,value,caption,icon,tone){return `<article class="metric dash-metric tone-${tone}"><span class="metric-icon">${navIcon(icon)}</span><div class="metric-copy"><div class="label">${title}</div><div class="value">${value}</div><div class="hint">${caption}</div></div></article>`}
 function home(){
  const al=alerts();
@@ -526,7 +526,7 @@ function paySpecificDebt(sourceType,sourceId){
   if(amount>due.remaining+0.009)return alert('المبلغ أكبر من المتبقي لهذا الدين ('+money(due.remaining)+').'),false;
   if(amount>Math.max(0,posDebt(id))+0.009)return alert('المبلغ أكبر من إجمالي الدين الحالي ('+money(Math.max(0,posDebt(id)))+').'),false;
   const label=due.card+' / تاريخ البيع '+due.date+' / كمية '+due.qty;
-  db.payments.push({id:uid(),date:d.date,posId:id,amount,method:d.method,note:d.note||('سداد دين: '+label),allocations:[{sourceType,sourceId,amount}]});
+  db.payments.push({id:uid(),date:d.date,posId:id,amount,method:d.method,note:d.note||('سداد دين: '+label),allocations:[{sourceType,sourceId,amount,originPeriodId:monthlyPeriodForDate(due.date)?.id||null}],collectionPeriodId:monthlyPeriodForDate(d.date)?.id||null});
   addAudit('تسجيل سداد دين محدد',p.name+' / '+label+' / '+money(amount)+' / '+(d.method==='transfer'?'محفظة':'نقدًا'));return persist();
  });
 }
@@ -667,7 +667,7 @@ function partnersView(){
   return `<tr><td>${esc(p.name)}</td><td>${p.share}%</td><td>${money(wd)}</td><td>${money(paid)}</td><td>${money(repaid)}</td><td><strong>${money(Math.max(0,paid-repaid))}</strong></td><td>${btn('تسجيل حركة','partner-move:'+p.id)} ${btn('تعديل الاسم','edit-partner:'+p.id)}</td></tr>`;
  });
  let moves=db.partnerMoves.slice().reverse().map(x=>{
-  const kind=x.kind==='withdrawal'?'سحب شخصي':x.kind==='paid_for_network'?'دفع للشبكة من ماله':x.kind==='partner_repayment'?'سداد مستحق للشريك':'تسوية قديمة / سجل غير مرحّل';
+  const kind=x.kind==='withdrawal'?'سحب شخصي':x.kind==='paid_for_network'?'دفع للشبكة من ماله':x.kind==='partner_repayment'?'سداد مستحق للشريك':x.kind==='profit_distribution'?'توزيع أرباح معتمد':'تسوية قديمة / سجل غير مرحّل';
   const method=x.kind==='partner_repayment'?((x.paymentMethod||'cash')==='transfer'?'تحويل/محفظة':'نقدًا'):'—';
   return `<tr><td>${esc(x.date)}</td><td>${esc(db.partners.find(p=>p.id===x.partnerId)?.name||'—')}</td><td>${kind}</td><td>${money(x.amount)}</td><td>${esc(method)}</td><td>${esc(x.note||'')}</td><td>${btn('طباعة','print-op:partnerMove:'+x.id)} ${x.expenseId||x.billId?'مرتبط بسجل أصلي':btn('حذف','delete:partnerMove:'+x.id)}</td></tr>`;
  });
@@ -690,6 +690,7 @@ const accountingChart=[
 {id:'3000',code:'3000',name:'حقوق ملكية — أرصدة افتتاحية',type:'equity'},
 {id:'3100',code:'3100',name:'رأس مال الشركاء المعتمد',type:'equity'},
 {id:'3200',code:'3200',name:'مسحوبات الشركاء',type:'equity'},
+{id:'3300',code:'3300',name:'توزيعات أرباح الشركاء المعتمدة',type:'equity'},
 {id:'4000',code:'4000',name:'إيرادات بيع الكروت لنقاط البيع',type:'revenue'},
 {id:'4010',code:'4010',name:'مردودات وخصومات المبيعات',type:'revenue'},
 {id:'4100',code:'4100',name:'إيرادات بيع الكروت عبر المحافظ',type:'revenue'},
@@ -767,16 +768,21 @@ function accountingRecords(){
   if(x.kind==='withdrawal')one('auto:partner-withdrawal:'+x.id,x.date,x.id,'مسحوبات الشريك — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'3200','1000',x.amount,'derived',x.note||'');
   else if(x.kind==='paid_for_network')one('auto:partner-funded-cost:'+x.id,x.date,x.id,'مبلغ دفعه الشريك — يحتاج تصنيف طبيعة المصروف','6200','2100',x.amount,'derived',x.note||'', ['لم يرتبط هذا الدفع بمصروف/فاتورة محددة؛ عُرض في مصروفات تحتاج تصنيفًا.']);
   else if(x.kind==='partner_repayment'){const m=x.paymentMethod;one('auto:partner-repayment:'+x.id,x.date,x.id,'سداد مستحق للشريك — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'2100',methodAccount(m,'2195'),x.amount,'derived',x.note||'',m==='cash'||m==='transfer'?[]:['طريقة السداد غير محددة.'])}
+  else if(x.kind==='profit_distribution'){const m=x.paymentMethod;one('auto:partner-profit-distribution:'+x.id,x.date,x.id,'توزيع أرباح معتمد — '+((db.partners.find(p=>p.id===x.partnerId)||{}).name||''),'3300',methodAccount(m,'2195'),x.amount,'derived',x.note||'',m==='cash'||m==='transfer'?[]:['طريقة دفع التوزيع غير محددة.'])}
   else if(x.kind==='capital_contribution')one('auto:partner-capital:'+x.id,x.date,x.id,'مساهمة رأسمالية للشريك','1000','3100',x.amount,'derived',x.note||'', ['يجب اعتماد هذه المساهمة من الشركاء قبل اعتماد رأس المال.']);
  });
  (db.cashMovements||[]).forEach(x=>{
-  if(x.kind==='in')one('auto:cash-in:'+x.id,x.date,x.id,'قبض نقدي إضافي — '+(x.category||'مصدر غير مصنف'),'1000','2190',x.amount,'derived',x.note||'', ['مصدر القبض لم يُصنّف بعد؛ لم يُسجل كإيراد لتجنب تضخيم الربح.']);
+  if(x.adjustmentType==='cash-count-shortage')one('auto:cash-count:'+x.id,x.date,x.id,'فرق جرد نقدي — عجز غير مصنف','1180','1000',x.amount,'derived',x.note||'', ['فرق جرد نقدي معلق للتسوية؛ لم يُسجل كمصروف تشغيلي.']);
+  else if(x.adjustmentType==='cash-count-surplus')one('auto:cash-count:'+x.id,x.date,x.id,'فرق جرد نقدي — زيادة غير مصنفة','1000','2190',x.amount,'derived',x.note||'', ['فرق جرد نقدي معلق للتسوية؛ لم يُسجل كإيراد تشغيلي.']);
+  else if(x.kind==='in')one('auto:cash-in:'+x.id,x.date,x.id,'قبض نقدي إضافي — '+(x.category||'مصدر غير مصنف'),'1000','2190',x.amount,'derived',x.note||'', ['مصدر القبض لم يُصنّف بعد؛ لم يُسجل كإيراد لتجنب تضخيم الربح.']);
   else one('auto:cash-out:'+x.id,x.date,x.id,'صرف نقدي إضافي — '+(x.category||'مصروف غير مصنف'),'6100','1000',x.amount,'derived',x.note||'', ['سبب الصرف يحتاج ربطًا بحساب مصروف محدد.']);
  });
  (db.stockAdjustments||[]).forEach(x=>{
   const v=cost(x.cardId,Math.abs(num(x.delta)));
-  if(num(x.delta)>0)one('auto:stock-adjust:'+x.id,x.date,x.id,'زيادة مخزون — '+((card(x.cardId)||{}).name||''),'1200','4190',v,'derived',x.note||'');
-  else if(num(x.delta)<0)one('auto:stock-adjust:'+x.id,x.date,x.id,'نقص/تسوية مخزون — '+((card(x.cardId)||{}).name||''),'5100','1200',v,'derived',x.note||'');
+  const inventoryAccount=x.locationType==='wallet'?'1210':x.locationType==='pos'?'1220':'1200';
+  const locationLabel=x.locationType==='wallet'?' — مخزون محفظة':x.locationType==='pos'?' — عهدة نقطة بيع':'';
+  if(num(x.delta)>0)one('auto:stock-adjust:'+x.id,x.date,x.id,'زيادة مخزون'+locationLabel+' — '+((card(x.cardId)||{}).name||''),inventoryAccount,'4190',v,'derived',x.note||'');
+  else if(num(x.delta)<0)one('auto:stock-adjust:'+x.id,x.date,x.id,'نقص/تسوية مخزون'+locationLabel+' — '+((card(x.cardId)||{}).name||''),'5100',inventoryAccount,v,'derived',x.note||'');
  });
  (db.journalEntries||[]).forEach(x=>{if(Array.isArray(x.lines))add(x.id,x.date,x.reference||x.id,x.description||'قيد يومية يدوي',x.lines,'manual',x.note||'',x.reversalOf?['قيد عكسي لقيد سابق.']:[])});
  // A verified physical cash count is reconciled against the recorded cash ledger before its date.
@@ -891,7 +897,7 @@ function reportsView(){
  let hasReceivableMoves=db.deliveries.some(x=>x.mode==='credit')||db.consignmentSettlements.length>0||db.payments.length>0;
  let hasProfitInputs=db.deliveries.length>0||db.consignmentSettlements.length>0||db.walletSales.length>0||db.expenses.length>0||db.bills.length>0;
  let closeRows=db.closures.slice().reverse().map(c=>`<tr><td>${esc(c.date)}</td><td>${esc(c.period)}</td><td>${esc(c.status==='review_snapshot'?'ملخص مراجعة — غير معتمد':c.status==='approved'?'معتمد':'سجل قديم — الحالة تحتاج مراجعة')}</td><td>${money(c.cash)}</td><td>${money(c.debt)}</td><td>${money(c.profit)}</td><td>${esc(c.note||'')}</td></tr>`);
- return `${sectionTitle('التقارير والإقفال',btn('طباعة / حفظ PDF','print-report','primary')+' '+btn('مراجعة السلامة','integrity')+' '+btn('اقتراح إقفال الفترة','close-period'))}
+ return `${sectionTitle('التقارير والإقفال',btn('طباعة / حفظ PDF','print-report','primary')+' '+btn('مراجعة السلامة','integrity')+' '+btn('الإدارة الشهرية','close-period'))}
  <div class="grid">
   ${metric('صافي الحركات النقدية المسجلة',money(cashBalance()),'لا يشمل التحويلات أو رصيدًا افتتاحيًا')}
   ${metric('إجمالي التحصيل عبر تحويل/محفظة',money(transferReceipts()),'تحصيل غير نقدي مسجل، وليس رصيد حساب')}
@@ -1000,12 +1006,12 @@ function addConsignmentSettlement(posId=null){
   if(!Number.isFinite(sold)||!Number.isFinite(ret)||sold<0||ret<0||Math.floor(sold)!==sold||Math.floor(ret)!==ret||sold+ret<=0)return alert('الكميات يجب أن تكون أعدادًا صحيحة غير سالبة، ومجموعها أكبر من صفر.'),false;
   if(!Number.isFinite(price)||price<0||(sold>0&&price<=0))return alert('سعر التسوية غير صحيح.'),false;
   if(!Number.isFinite(sold*price))return alert('إجمالي مبيعات الأمانة يتجاوز النطاق المالي المدعوم.'),false;
-  const available=sum(db.deliveries.filter(x=>x.posId===d.posId&&x.cardId===d.cardId&&x.mode==='consignment'),x=>x.qty)-sum(db.consignmentSettlements.filter(x=>x.posId===d.posId&&x.cardId===d.cardId),x=>num(x.soldQty)+num(x.returnQty));
+  const available=sum(db.deliveries.filter(x=>x.posId===d.posId&&x.cardId===d.cardId&&x.mode==='consignment'),x=>x.qty)-sum(db.consignmentSettlements.filter(x=>x.posId===d.posId&&x.cardId===d.cardId),x=>num(x.soldQty)+num(x.returnQty))+sum(db.stockAdjustments.filter(x=>x.cardId===d.cardId&&x.locationType==='pos'&&x.locationId===d.posId),x=>x.delta);
   if(sold+ret>available)return alert('الكمية أكبر من الكروت المتاحة بالأمانة. المتاح: '+available+' كرت.'),false;
   db.consignmentSettlements.push({id:uid(),date:d.date,posId:d.posId,cardId:d.cardId,soldQty:sold,returnQty:ret,unitPrice:price,note:d.note});addAudit('تسوية أمانة',pos(d.posId).name+' / '+cardLabel(d.cardId)+' / مبيع '+sold+' / مرتجع '+ret);return persist();
  })
 }
-function addPayment(posId=null){if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');formModal('تسجيل تحصيل من نقطة بيع',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('المبلغ المحصّل','amount','number',0,null,true),field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),textArea('ملاحظات / رقم مرجع','note','')],d=>{const amount=Number(d.amount);if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;if(d.method!=='cash'&&d.method!=='transfer')return alert('اختر طريقة تحصيل صحيحة.'),false;if(amount>Math.max(0,posDebt(d.posId))+0.009)return alert('المبلغ أكبر من الدين المسجل حاليًا ('+money(Math.max(0,posDebt(d.posId)))+'). راجع الرصيد أو سجّل التسوية الصحيحة أولًا.'),false;db.payments.push({id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note});addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount));return persist()})}
+function addPayment(posId=null){if(!db.pos.length)return alert('أضف نقطة بيع أولًا.');formModal('تسجيل تحصيل من نقطة بيع — يوزّع على أقدم الديون أولًا',[field('التاريخ','date','date',dateNow(),null,true),field('نقطة البيع','posId','text',posId||db.pos[0].id,optsPos(),true),field('المبلغ المحصّل','amount','number',0,null,true),field('طريقة التحصيل','method','text','cash',[['cash','نقدًا'],['transfer','تحويل/محفظة']],true),field('طريقة تخصيص المبلغ','allocationMode','text','fifo',[['fifo','تخصيص صريح لأقدم الفواتير أولًا'],['unallocated','إبقاء المبلغ غير مخصص — يحتاج مراجعة لاحقًا']],true),textArea('ملاحظات / رقم مرجع','note','')],d=>{const amount=Number(d.amount);if(!validDateValue(d.date)||!pos(d.posId))return alert('اختر تاريخًا ونقطة بيع صحيحة.'),false;if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا أكبر من صفر.'),false;if(d.method!=='cash'&&d.method!=='transfer')return alert('اختر طريقة تحصيل صحيحة.'),false;if(!['fifo','unallocated'].includes(d.allocationMode))return alert('اختر طريقة تخصيص صحيحة.'),false;const allocations=[];if(d.allocationMode==='fifo'){const outstanding=monthlyDebtAnalysis(d.date).items.filter(x=>x.posId===d.posId&&x.remaining>0.009&&x.date<=d.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));let remaining=amount;for(const due of outstanding){if(remaining<=0.009)break;const applied=Math.min(remaining,due.remaining);allocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||null});remaining-=applied;}if(remaining>0.009)return alert('المبلغ أكبر من الديون المستحقة بتاريخ التحصيل. المتاح حتى ذلك التاريخ: '+money(amount-remaining)+'.'),false;}else if(amount>Math.max(0,posDebt(d.posId))+0.009)return alert('المبلغ أكبر من الدين المسجل حاليًا ('+money(Math.max(0,posDebt(d.posId)))+').'),false;const row={id:uid(),date:d.date,posId:d.posId,amount,method:d.method,note:d.note,allocationMode:d.allocationMode,collectionPeriodId:monthlyPeriodForDate(d.date)?.id||null};if(allocations.length)row.allocations=allocations;db.payments.push(row);addAudit('تحصيل نقطة بيع',pos(d.posId).name+' / '+money(amount)+' / '+(allocations.length?'تخصيص صريح على '+allocations.length+' فاتورة':'تحصيل غير مخصص يحتاج مراجعة'));return persist()})}
 function addLoad(walletId=null){
  if(!db.wallets.length||!db.cards.length)return alert('أضف محفظة وفئة كروت أولًا.');
  formModal('تحويل مخزون إلى محفظة',[field('التاريخ','date','date',dateNow(),null,true),field('المحفظة','walletId','text',walletId||db.wallets[0].id,optsWallets(),true),field('فئة الكرت','cardId','text',db.cards[0].id,optsCards(),true),field('الكمية','qty','number',1,null,true),textArea('ملاحظات','note','')],d=>{const q=Number(d.qty);if(!wallet(d.walletId)||!card(d.cardId))return alert('اختر محفظة وفئة موجودتين.'),false;if(!Number.isFinite(q)||q<=0||Math.floor(q)!==q||q>stockMain(d.cardId))return alert('أدخل عدد كروت صحيحًا لا يتجاوز المخزون الرئيسي المتاح.'),false;db.walletLoads.push({id:uid(),date:d.date,walletId:d.walletId,cardId:d.cardId,qty:q,note:d.note});addAudit('تحويل مخزون لمحفظة',wallet(d.walletId).name+' / '+cardLabel(d.cardId)+' / '+q);return persist()})
@@ -1139,10 +1145,10 @@ function integrity(){
  db.expenses.forEach(x=>{if(!validDateValue(x.date)||!String(x.name||'').trim()||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ مصروف غير صحيح: '+x.id);if(x.paymentMethod!==undefined&&!['cash','transfer','partner'].includes(x.paymentMethod))issues.push('طريقة دفع غير معروفة للمصروف: '+x.id);if(x.paymentMethod==='partner'&&!db.partners.some(p=>p.id===x.partnerId))issues.push('مصروف مدفوع من شريك لا يشير إلى شريك موجود: '+x.id)});
  db.bills.forEach(x=>{if(!String(x.name||'').trim()||!validDateValue(x.due)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('اسم أو موعد أو مبلغ التزام غير صحيح: '+x.id);if(x.paid&&x.paidMethod!==undefined&&!['cash','transfer','partner'].includes(x.paidMethod))issues.push('طريقة دفع غير معروفة للالتزام المسدد: '+x.id);if(x.paid&&x.paidMethod==='partner'&&!db.partners.some(p=>p.id===x.paidPartnerId))issues.push('التزام مدفوع من شريك لا يشير إلى شريك موجود: '+x.id)});
  db.cashMovements.forEach(x=>{if(!validDateValue(x.date)||!['in','out'].includes(x.kind)||!String(x.category||'').trim()||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('حركة صندوق نقدية غير صحيحة: '+x.id)});db.partners.forEach(p=>{if(num(p.share)<0)issues.push('حصة غير صحيحة للشريك '+p.name);if(!p.id||!String(p.name||'').trim())issues.push('بيانات شريك ناقصة.')});if(db.partners.length&&Math.abs(sum(db.partners,p=>num(p.share))-100)>0.001)issues.push('مجموع نسب الشركاء لا يساوي 100%. راجع النسب قبل اعتماد أي توزيع.');
- db.partnerMoves.forEach(x=>{if(!db.partners.some(p=>p.id===x.partnerId))issues.push('حركة مرتبطة بشريك غير موجودة: '+x.id);if(!validDateValue(x.date)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ حركة شريك غير صحيح: '+x.id);if(!['withdrawal','paid_for_network','partner_repayment','settlement'].includes(x.kind))issues.push('نوع حركة شريك غير معروف: '+x.id);if(x.kind==='partner_repayment'&&!['cash','transfer'].includes(x.paymentMethod||'cash'))issues.push('طريقة دفع غير معروفة لسداد مستحق الشريك: '+x.id)});db.partners.forEach(p=>{if(partnerOutstanding(p.id)<-0.009)issues.push('قيمة السداد المسجلة للشريك أكبر من المبالغ التي دفعها للشبكة: '+p.name)});
+ db.partnerMoves.forEach(x=>{if(!db.partners.some(p=>p.id===x.partnerId))issues.push('حركة مرتبطة بشريك غير موجودة: '+x.id);if(!validDateValue(x.date)||!Number.isFinite(Number(x.amount))||num(x.amount)<=0)issues.push('تاريخ أو مبلغ حركة شريك غير صحيح: '+x.id);if(!['withdrawal','paid_for_network','partner_repayment','profit_distribution','settlement'].includes(x.kind))issues.push('نوع حركة شريك غير معروف: '+x.id);if((x.kind==='partner_repayment'||x.kind==='profit_distribution')&&!['cash','transfer'].includes(x.paymentMethod||'cash'))issues.push('طريقة دفع غير معروفة لسداد/توزيع الشريك: '+x.id)});db.partners.forEach(p=>{if(partnerOutstanding(p.id)<-0.009)issues.push('قيمة السداد المسجلة للشريك أكبر من المبالغ التي دفعها للشبكة: '+p.name)});
  const unique=[...new Set(issues)];showModal('اختبار سلامة البيانات','<p>عدد الملاحظات: <b>'+unique.length+'</b></p>'+(unique.length?'<ul>'+unique.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<div class="note">اجتازت البيانات الفحوص الأساسية المحلية. هذا لا يغني عن مطابقة الأرصدة مع الجرد الفعلي وكشوف المحافظ.</div>')+'<p class="small muted">الاختبار لا يعدّل البيانات تلقائيًا. راجع كل تنبيه قبل اعتماد الحسابات.</p>');
 }
-function closePeriod(){let period=prompt('أدخل الفترة المراد مراجعتها، مثل 2026-11:');if(!period)return;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return alert('صيغة الفترة غير صحيحة. استخدم YYYY-MM، مثل 2026-10.');if(db.closures.some(c=>c.period===period))return alert('تم تسجيل مراجعة لهذه الفترة سابقًا. راجع السجل بدل تكرارها.');let msg='فترة المراجعة: '+period+'\nتاريخ لقطة الأرصدة: '+dateNow()+'\nصافي الحركات النقدية المسجلة حتى اللقطة: '+money(cashBalance())+'\nديون نقاط البيع الحالية: '+money(posReceivables())+'\nالالتزامات غير المسددة الحالية: '+money(obligations())+'\nتقدير الربح التراكمي: '+money(profitEstimate())+'\n\nتنبيه: الأرقام لقطة حالية/تراكمية وليست حساب حركة الشهر وحده أو قيد إقفال مزدوج. هل راجعت البيانات وتريد حفظ هذا الملخص؟';if(!confirm(msg))return;let note=prompt('ملاحظات المراجعة (اختياري):')||'';db.closures.push({id:uid(),date:dateNow(),period,cash:cashBalance(),debt:posReceivables(),profit:profitEstimate(),note,status:'review_snapshot',approved:false});db.settings.lastClose=period;addAudit('حفظ ملخص مراجعة الفترة',period);persist();render()}
+function closePeriod(){tab='periods';render();}
 function quick(){showModal('تسجيل عملية',`<div class="actions">${btn('تسليم كروت','add-delivery','primary')}${btn('تحصيل دين','add-payment')}${btn('مصروف','add-expense')}${btn('تحميل محفظة','add-load')}${btn('بيع محفظة','add-wallet-sale')}${btn('حركة شريك','add-partner-move')}</div><p class="small muted">اختر نوع العملية. ستُفتح نافذة منفصلة لإدخال التفاصيل.</p>`);$('#modalBody').querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.stopPropagation();closeModal();runAction(b.dataset.action)})}
 function restoreCommittedState(){
  let snapshot;
@@ -1179,6 +1185,7 @@ function restoreCommittedState(){
  }
 }
 function persist(){
+ if(typeof monthlyPrepareWrite==='function'&&!monthlyPrepareWrite())return false;
  if(recoveryInfo.blocked){
   restoreCommittedState();
   alert('تم إيقاف الحفظ لحماية البيانات المعزولة. احتفظ بالنسخة الخام خارج التطبيق ثم استعد نسخة JSON سليمة من زر الاستعادة؛ تنزيل النسخة الخام وحده لا يعيد تفعيل التسجيل.');
@@ -1385,7 +1392,7 @@ function deleteTransaction(type,id){
  if(!persist()){render();return false}
  render();return true;
 }
-function runAction(a){if(typeof a!=='string'||!a.trim())return alert('تعذر تنفيذ الزر: لم يتم تحديد الإجراء.');let [act,id]=a.split(':');switch(act){case'undo-delete':return undoDeletedTransaction(id);case'delete':{const parts=a.split(':');return deleteTransaction(parts[1],parts.slice(2).join(':'))}case'edit-delivery':return editDelivery(id);case'edit-payment':return editPayment(id);case'pay-debt-delivery':return paySpecificDebt('delivery',id);case'pay-debt-consignment':return paySpecificDebt('consignment',id);case'quick':return quick();case'add-cash-movement':return addCashMovement();case'add-journal-entry':return addJournalEntry();case'reverse-journal':return reverseJournalEntry(id);case'print-bill':return printBill(id);case'print-expense':return printExpense(id);case'print-op':{const parts=a.slice('print-op:'.length).split(':');const kind=parts.shift();return printOperation(kind,parts.join(':'));}case'accounting-filter':{const f=$('#ledgerFrom')?.value||'',t=$('#ledgerTo')?.value||'',a=$('#ledgerAccount')?.value||'';if(f&&!validDateValue(f))return alert('تاريخ البداية غير صالح.');if(t&&!validDateValue(t))return alert('تاريخ النهاية غير صالح.');if(f&&t&&f>t)return alert('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية.');ledgerFrom=f;ledgerTo=t;ledgerAccount=a;return render()}case'accounting-reset-filter':ledgerFrom='';ledgerTo='';ledgerAccount='';return render();case'print-accounting':return printAccounting();case'open-pos':selectedPosId=id;posFrom='';posTo='';tab='pos-detail';return render();case'back-pos':tab='pos';return render();case'print-pos':return printPosStatement();case'print-batch-invoice':return printDeliveryBatchInvoice(id);case'image-pos':return exportPosImage();case'add-card':return addCard();case'edit-card':return addCard(id);case'add-pos':return addPos();case'edit-pos':return addPos(id);case'add-wallet':return addWallet();case'add-delivery':return addDelivery();case'deliver-to':return addDelivery(id);case'add-payment':return addPayment();case'payment-to':return addPayment(id);case'consign-to':return addConsignmentSettlement(id);case'add-load':return addLoad();case'load-to':return addLoad(id);case'add-wallet-sale':return addWalletSale();case'sale-from':return addWalletSale(id);case'add-expense':return addExpense();case'add-bill':return addBill();case'edit-bill':return editBill(id);case'pay-bill':return payBill(id);case'add-partner-move':return addPartnerMove();case'partner-move':return addPartnerMove(id);case'statement':return statement(id);case'wallet-stock':return walletStock(id);case'backup':return backup();case'restore':return restore();case'recovery-backup':return exportRecoveryCopy();case'export-audit':return exportAudit();case'save-settings':return saveSettings();case'change-pin':return changePin();case'integrity':return integrity();case'close-period':return closePeriod();case'print-report':return requestPrint('تقرير SPIDER NET');case'adjust-stock':return adjustStock(id);case'edit-partner':return editPartner(id);default:return alert('هذا الزر مرتبط بإجراء غير معروف: '+act+'، لم تُنفذ أي تغييرات. راجع ربط الأزرار.');}}
+function runAction(a){if(typeof a!=='string'||!a.trim())return alert('تعذر تنفيذ الزر: لم يتم تحديد الإجراء.');let [act,id]=a.split(':');switch(act){case'undo-delete':return undoDeletedTransaction(id);case'delete':{const parts=a.split(':');return deleteTransaction(parts[1],parts.slice(2).join(':'))}case'edit-delivery':return editDelivery(id);case'edit-payment':return editPayment(id);case'pay-debt-delivery':return paySpecificDebt('delivery',id);case'pay-debt-consignment':return paySpecificDebt('consignment',id);case'quick':return quick();case'add-cash-movement':return addCashMovement();case'add-journal-entry':return addJournalEntry();case'reverse-journal':return reverseJournalEntry(id);case'print-bill':return printBill(id);case'print-expense':return printExpense(id);case'print-op':{const parts=a.slice('print-op:'.length).split(':');const kind=parts.shift();return printOperation(kind,parts.join(':'));}case'accounting-filter':{const f=$('#ledgerFrom')?.value||'',t=$('#ledgerTo')?.value||'',a=$('#ledgerAccount')?.value||'';if(f&&!validDateValue(f))return alert('تاريخ البداية غير صالح.');if(t&&!validDateValue(t))return alert('تاريخ النهاية غير صالح.');if(f&&t&&f>t)return alert('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية.');ledgerFrom=f;ledgerTo=t;ledgerAccount=a;return render()}case'accounting-reset-filter':ledgerFrom='';ledgerTo='';ledgerAccount='';return render();case'print-accounting':return printAccounting();case'open-pos':selectedPosId=id;posFrom='';posTo='';tab='pos-detail';return render();case'back-pos':tab='pos';return render();case'print-pos':return printPosStatement();case'print-batch-invoice':return printDeliveryBatchInvoice(id);case'image-pos':return exportPosImage();case'add-card':return addCard();case'edit-card':return addCard(id);case'add-pos':return addPos();case'edit-pos':return addPos(id);case'add-wallet':return addWallet();case'add-delivery':return addDelivery();case'deliver-to':return addDelivery(id);case'add-payment':return addPayment();case'payment-to':return addPayment(id);case'consign-to':return addConsignmentSettlement(id);case'add-load':return addLoad();case'load-to':return addLoad(id);case'add-wallet-sale':return addWalletSale();case'sale-from':return addWalletSale(id);case'add-expense':return addExpense();case'add-bill':return addBill();case'edit-bill':return editBill(id);case'pay-bill':return payBill(id);case'add-partner-move':return addPartnerMove();case'partner-move':return addPartnerMove(id);case'statement':return statement(id);case'wallet-stock':return walletStock(id);case'backup':return backup();case'restore':return restore();case'recovery-backup':return exportRecoveryCopy();case'export-audit':return exportAudit();case'save-settings':return saveSettings();case'change-pin':return changePin();case'integrity':return integrity();case'close-period':tab='periods';return render();case'period-create':return createMonthlyPeriod();case'period-review':return reviewMonthlyPeriod(id);case'period-save-review':return saveMonthlyPeriodReview(id);case'period-close':return closeMonthlyPeriod(id);case'period-reopen-review':return reopenMonthlyPeriodReview(id);case'period-distribute':return recordMonthlyDistribution(id);case'period-report':return printMonthlyPeriodReport(id);case'print-report':return requestPrint('تقرير SPIDER NET');case'adjust-stock':return adjustStock(id);case'edit-partner':return editPartner(id);default:return alert('هذا الزر مرتبط بإجراء غير معروف: '+act+'، لم تُنفذ أي تغييرات. راجع ربط الأزرار.');}}
 function adjustStock(id){let c=card(id);if(!c)return alert('فئة الكروت غير موجودة.');let delta=prompt('تسوية كمية المخزون لفئة '+c.name+'. أدخل عددًا صحيحًا: موجب للإضافة وسالب للنقص.');if(delta===null||delta.trim()===''||!Number.isFinite(Number(delta)))return;let n=Number(delta);if(!Number.isInteger(n)||n===0)return alert('يجب أن يكون التغيير عددًا صحيحًا من الكروت، وليس صفرًا.');if(stockMain(id)+n<0)return alert('لا يمكن أن يصبح المخزون سالبًا.');let note=prompt('سبب التسوية (مطلوب):');if(!note?.trim())return alert('يجب توثيق السبب.');db.stockAdjustments.push({id:uid(),date:dateNow(),cardId:id,delta:n,note:note.trim()});addAudit('تسوية مخزون',c.name+' / '+n+' / '+note.trim());persist();render()}
 function editPartner(id){let p=db.partners.find(x=>x.id===id);if(!p)return alert('لم يتم العثور على الشريك.');let n=prompt('اسم الشريك:',p.name);if(!n?.trim())return;p.name=n.trim();addAudit('تعديل اسم شريك',p.name);persist();render()}
 function printDeliveryBatchInvoice(batchId){
@@ -1465,6 +1472,467 @@ window.onAndroidBackPressed=function(){
  if(tab!=='home'){tab='home';render();return true}
  return false;
 };
+
+/* -------------------------------------------------------------------------
+   SPIDER NET — Custom monthly accounting periods
+   Additive module: keeps source transactions as the system of record.
+   ------------------------------------------------------------------------- */
+function monthlyPeriodForDate(date){
+ const d=String(date||'').slice(0,10);if(!validDateValue(d))return null;
+ return (db.periods||[]).find(p=>p.startDate<=d&&d<=p.endDate)||null;
+}
+function monthlyPreviousClosedPeriod(period){
+ return (db.periods||[]).filter(p=>p.status==='CLOSED'&&p.endDate<period.startDate)
+   .sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
+}
+function monthlySnapshotFor(periodId){return (db.periodSnapshots||[]).find(s=>s.periodId===periodId)||null}
+function monthlyValidRange(start,end){return validDateValue(start)&&validDateValue(end)&&start<=end}
+function monthlyRangeOverlaps(start,end,ignoreId=null){
+ return (db.periods||[]).some(p=>p.id!==ignoreId&&start<=p.endDate&&end>=p.startDate);
+}
+function monthlyPeriodLabel(p){return p?.name||((p?.startDate||'')+' — '+(p?.endDate||''))}
+function monthlyOriginPeriodId(date,explicit){return explicit||monthlyPeriodForDate(date)?.id||null}
+
+function monthlyDebtAnalysis(asOfDate,collectFrom='',collectTo=''){
+ const dues=[];
+ (db.deliveries||[]).filter(x=>x.mode==='credit'&&validDateValue(x.date)&&x.date<=asOfDate).forEach(x=>{
+  const amount=Math.max(0,num(x.amount)-num(x.returnAmount));
+  if(amount>0.009)dues.push({sourceType:'delivery',sourceId:x.id,posId:x.posId,date:x.date,card:cardLabel(x.cardId),amount,remaining:amount,collected:0,originPeriodId:monthlyOriginPeriodId(x.date,x.periodId),legacyAllocated:0,confirmedAllocated:0});
+ });
+ (db.consignmentSettlements||[]).filter(x=>validDateValue(x.date)&&x.date<=asOfDate&&num(x.soldQty)>0).forEach(x=>{
+  const amount=num(x.soldQty)*num(x.unitPrice);
+  if(amount>0.009)dues.push({sourceType:'consignment',sourceId:x.id,posId:x.posId,date:x.date,card:cardLabel(x.cardId),amount,remaining:amount,collected:0,originPeriodId:monthlyOriginPeriodId(x.date,x.periodId),legacyAllocated:0,confirmedAllocated:0});
+ });
+ dues.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sourceId).localeCompare(String(b.sourceId)));
+ let legacyUnapplied=0,allocationWarnings=0,collectionsTotal=0,collectionsOld=0,collectionsCurrent=0;
+ const payments=(db.payments||[]).filter(x=>validDateValue(x.date)&&x.date<=asOfDate).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
+ const collectInWindow=p=>(!collectFrom||p.date>=collectFrom)&&(!collectTo||p.date<=collectTo);
+ for(const payment of payments){
+  let budget=Math.max(0,num(payment.amount)),explicitApplied=0;
+  const apply=(due,wanted,isLegacy)=>{
+   if(!due||budget<=0.009||wanted<=0.009)return 0;
+   const applied=Math.min(budget,wanted,due.remaining);
+   if(applied<=0.009)return 0;
+   due.remaining-=applied;due.collected+=applied;budget-=applied;
+   if(isLegacy)due.legacyAllocated+=applied;else due.confirmedAllocated+=applied;
+   if(collectInWindow(payment)){
+    collectionsTotal+=applied;
+    if(due.originPeriodId&&due.originPeriodId!==monthlyPeriodForDate(payment.date)?.id)collectionsOld+=applied;
+    else collectionsCurrent+=applied;
+   }
+   return applied;
+  };
+  if(Array.isArray(payment.allocations)&&payment.allocations.length){
+   for(const allocation of payment.allocations){
+    if(budget<=0.009)break;
+    const due=dues.find(x=>x.posId===payment.posId&&x.sourceType===allocation.sourceType&&String(x.sourceId)===String(allocation.sourceId));
+    const applied=apply(due,num(allocation.amount),false);
+    explicitApplied+=applied;
+   }
+  }
+  if(budget>0.009){
+   const wasUnallocated=!Array.isArray(payment.allocations)||payment.allocations.length===0;
+   if(wasUnallocated||explicitApplied+0.009<num(payment.amount))allocationWarnings++;
+   for(const due of dues.filter(x=>x.posId===payment.posId&&x.date<=payment.date)){
+    if(budget<=0.009)break;
+    const applied=apply(due,budget,true);
+    if(applied>0&&collectInWindow(payment))legacyUnapplied+=0;
+   }
+   if(budget>0.009&&collectInWindow(payment))legacyUnapplied+=budget;
+  }
+ }
+ return {items:dues,legacyUnapplied,allocationWarnings,collectionsTotal,collectionsOld,collectionsCurrent,
+  outstanding:dues.reduce((n,x)=>n+x.remaining,0)};
+}
+
+function monthlyStockAtDate(locationType,locationId,cardId,date){
+ const before=(x)=>validDateValue(x?.date)&&x.date<=date;
+ if(locationType==='main'){
+  const opening=num(card(cardId)?.opening);
+  const delivered=sum((db.deliveries||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.qty);
+  const loaded=sum((db.walletLoads||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.qty);
+  const adjustments=sum((db.stockAdjustments||[]).filter(x=>x.cardId===cardId&&(!x.locationType||x.locationType==='main')&&before(x)),x=>x.delta);
+  const returns=sum((db.consignmentSettlements||[]).filter(x=>x.cardId===cardId&&before(x)),x=>x.returnQty);
+  return opening-delivered-loaded+adjustments+returns;
+ }
+ if(locationType==='wallet'){
+  const w=wallet(locationId);if(!w)return 0;
+  const opening=num((w.opening||{})[cardId]);
+  return opening+sum((db.walletLoads||[]).filter(x=>x.walletId===locationId&&x.cardId===cardId&&before(x)),x=>x.qty)
+   -sum((db.walletSales||[]).filter(x=>x.walletId===locationId&&x.cardId===cardId&&before(x)),x=>x.qty)
+   +sum((db.stockAdjustments||[]).filter(x=>x.locationType==='wallet'&&x.locationId===locationId&&x.cardId===cardId&&before(x)),x=>x.delta);
+ }
+ if(locationType==='pos'){
+  return sum((db.deliveries||[]).filter(x=>x.posId===locationId&&x.cardId===cardId&&x.mode==='consignment'&&before(x)),x=>x.qty)
+   -sum((db.consignmentSettlements||[]).filter(x=>x.posId===locationId&&x.cardId===cardId&&before(x)),x=>num(x.soldQty)+num(x.returnQty))
+   +sum((db.stockAdjustments||[]).filter(x=>x.locationType==='pos'&&x.locationId===locationId&&x.cardId===cardId&&before(x)),x=>x.delta);
+ }
+ return 0;
+}
+function monthlyInventoryCountRows(period){
+ const rows=[],d=period.endDate;
+ (db.cards||[]).forEach(c=>rows.push({key:'main|'+c.id,locationType:'main',locationId:'main',cardId:c.id,label:'المخزون الرئيسي',cardName:c.name,book:monthlyStockAtDate('main','main',c.id,d)}));
+ (db.wallets||[]).forEach(w=>(db.cards||[]).forEach(c=>{
+  const q=monthlyStockAtDate('wallet',w.id,c.id,d);
+  if(q>0||num((w.opening||{})[c.id])>0)rows.push({key:'wallet|'+w.id+'|'+c.id,locationType:'wallet',locationId:w.id,cardId:c.id,label:'محفظة: '+w.name,cardName:c.name,book:q});
+ }));
+ (db.pos||[]).forEach(p=>(db.cards||[]).forEach(c=>{
+  const q=monthlyStockAtDate('pos',p.id,c.id,d);
+  if(q>0)rows.push({key:'pos|'+p.id+'|'+c.id,locationType:'pos',locationId:p.id,cardId:c.id,label:'عهدة نقطة البيع: '+p.name,cardName:c.name,book:q});
+ }));
+ return rows;
+}
+function monthlyAccountMovement(entries,accountId){
+ let debit=0,credit=0;
+ entries.forEach(e=>(e.lines||[]).filter(l=>l.accountId===accountId).forEach(l=>{debit+=num(l.debit);credit+=num(l.credit)}));
+ return {debit,credit,net:debit-credit};
+}
+function monthlyUnpaidBillsAsOf(date){
+ return sum((db.bills||[]).filter(b=>{
+  const created=String(b.date||b.createdAt||b.due||'').slice(0,10);
+  if(!validDateValue(created)||created>date)return false;
+  return !b.paid||!validDateValue(b.paidDate)||b.paidDate>date;
+ }),b=>b.amount);
+}
+function monthlyPartnerPayablesAsOf(date){
+ return sum((db.partnerMoves||[]).filter(x=>x.kind==='paid_for_network'&&validDateValue(x.date)&&x.date<=date),x=>x.amount)
+  -sum((db.partnerMoves||[]).filter(x=>x.kind==='partner_repayment'&&validDateValue(x.date)&&x.date<=date),x=>x.amount);
+}
+function monthlyPeriodMetrics(period){
+ const all=(typeof accountingRecords==='function'?accountingRecords():[]);
+ const entries=all.filter(e=>validDateValue(e.date)&&e.date>=period.startDate&&e.date<=period.endDate);
+ const revAccounts=accountingChart.filter(a=>a.type==='revenue');
+ const expAccounts=accountingChart.filter(a=>a.type==='expense');
+ const revenue=revAccounts.reduce((n,a)=>{const m=monthlyAccountMovement(entries,a.id);return n+m.credit-m.debit},0);
+ const expenses=expAccounts.reduce((n,a)=>{const m=monthlyAccountMovement(entries,a.id);return n+m.debit-m.credit},0);
+ const cashEntries=entries.filter(e=>e.id!=='auto:cash-opening-reconciliation');
+ const cashMovement=monthlyAccountMovement(cashEntries,'1000').net;
+ const transferMovement=monthlyAccountMovement(cashEntries,'1010').net;
+ const opening=Number.isFinite(Number(period.openingCash))?Number(period.openingCash):null;
+ const cashExpected=opening===null?null:opening+cashMovement;
+ const debts=monthlyDebtAnalysis(period.endDate,period.startDate,period.endDate);
+ const originDebts=debts.items.filter(x=>x.originPeriodId===period.id);
+ const legacyOrigins=debts.items.filter(x=>!x.originPeriodId);
+ return {
+  entries,revenue,expenses,netProfit:revenue-expenses,cashMovement,transferMovement,openingCash:opening,cashExpected,
+  receivablesTotal:debts.outstanding,
+  currentOriginReceivables:originDebts.reduce((n,x)=>n+x.remaining,0),
+  priorOriginReceivables:debts.items.filter(x=>x.originPeriodId&&x.originPeriodId!==period.id).reduce((n,x)=>n+x.remaining,0),
+  unassignedOriginReceivables:legacyOrigins.reduce((n,x)=>n+x.remaining,0),
+  collectionsThisPeriod:debts.collectionsTotal,oldDebtCollections:debts.collectionsOld,
+  currentDebtCollections:debts.collectionsCurrent,legacyAllocationWarnings:debts.allocationWarnings,
+  legacyUnappliedCollections:debts.legacyUnapplied,debts
+ };
+}
+function monthlyPeriodStatusLabel(status){
+ return status==='OPEN'?'مفتوحة':status==='REVIEW'?'قيد المراجعة':status==='CLOSED'?'مغلقة':'مقفلة نهائيًا';
+}
+function monthlyPeriodPill(status){
+ const cls=status==='CLOSED'||status==='LOCKED'?'ok':status==='REVIEW'?'warn':'';
+ return '<span class="badge '+cls+'">'+monthlyPeriodStatusLabel(status)+'</span>';
+}
+function monthlyPeriodCard(p){
+ const snap=monthlySnapshotFor(p.id),m=snap?.metrics;
+ const buttons=p.status==='OPEN'
+  ?btn('الجرد ومراجعة الإقفال','period-review:'+p.id,'primary')
+  :p.status==='REVIEW'
+   ?btn('اعتماد الإقفال','period-close:'+p.id,'primary')+' '+btn('إلغاء المراجعة','period-reopen-review:'+p.id)
+   :btn('عرض التقرير','period-report:'+p.id,'primary')+' '+(snap?.distributionCap>0?btn('تسجيل توزيع فعلي','period-distribute:'+p.id):'');
+ return '<section class="panel period-card"><div class="section-title"><div><h3>'+esc(monthlyPeriodLabel(p))+'</h3><p class="small muted">'+esc(p.startDate)+' إلى '+esc(p.endDate)+'</p></div>'+monthlyPeriodPill(p.status)+'</div>'
+  +(m?'<div class="grid">'+metric('صافي الربح المحاسبي',money(m.netProfit),'حسب قيود الفترة')+metric('النقد الفعلي عند الإقفال',money(snap.cash.closing),'بعد مطابقة الجرد')+metric('ديون نقاط البيع المفتوحة',money(snap.receivables.total),'جميع الفترات')+metric('الربح المقترح للتوزيع',money(snap.distributionCap),'الحد الأدنى بين الربح والسيولة')+'</div>':'<p class="small muted">لم يتم اعتماد إقفال هذه الفترة بعد.</p>')+buttons+'</section>';
+}
+function periodsView(){
+ const periods=(db.periods||[]).slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));
+ const active=periods.find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ const legacy=(db.closures||[]).filter(x=>x.status==='review_snapshot');
+ const unassigned=monthlyUnassignedTransactionsCount();
+ return '<div class="dashboard-page"><div class="dashboard-head"><div><div class="breadcrumb">SPIDER NET / الإدارة المالية / الفترات</div><h2>الإدارة المالية الشهرية</h2><p>إدارة الفترات المخصصة، الديون المرحلة، الجرد، الأرباح والسيولة.</p></div><div class="dashboard-tools">'+btn('+ إنشاء فترة مالية','period-create','primary')+'</div></div>'
+  +'<div class="note warning"><b>قاعدة النظام:</b> الدين يبقى تابعًا لفترة نشوئه. التحصيل يدخل في الفترة التي استُلم فيها، ولا يعاد تسجيله كإيراد.</div>'
+  +'<div class="grid">'+metric('الفترات المسجلة',periods.length,'فترات مالية')+metric('الفترة النشطة',active?monthlyPeriodLabel(active):'لا توجد','فترة واحدة مفتوحة للمراجعة أو التسجيل')+metric('حركات غير مرتبطة بفترة',unassigned,'تحتاج تصنيفًا أو تبقى تاريخية غير معينة')+metric('ملخصات الإقفال القديمة',legacy.length,'لقطات قديمة لا تعتبر إقفالات معتمدة')+'</div>'
+  +(active?monthlyPeriodCard(active):'<section class="panel"><h3>لا توجد فترة مفتوحة</h3><p class="small muted">أنشئ فترة جديدة لتفعيل إدارة الأشهر والديون والجرد.</p></section>')
+  +'<section class="panel"><h3>سجل الفترات المالية</h3>'+(periods.length?periods.map(monthlyPeriodCard).join(''):'<div class="empty">لم تُنشأ فترات مالية حتى الآن.</div>')+'</section>'
+  +(legacy.length?'<section class="panel"><h3>ملخصات المراجعة القديمة</h3><p class="small muted">هذه سجلات تاريخية من الوظيفة السابقة. لا تحولها إلى إقفالات معتمدة تلقائيًا.</p>'+table(['الفترة','تاريخ اللقطة','الحالة','ملاحظات'],legacy.map(x=>'<tr><td>'+esc(x.period)+'</td><td>'+esc(x.date)+'</td><td>غير معتمد</td><td>'+esc(x.note||'')+'</td></tr>'))+'</section>':'')
+  +'</div>';
+}
+function monthlyUnassignedTransactionsCount(){
+ const keys=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'];
+ let n=0;
+ keys.forEach(k=>(db[k]||[]).forEach(x=>{
+  const d=String(x.date||x.createdAt||x.due||'').slice(0,10);
+  if(!validDateValue(d))return;
+  if(!(db.periods||[]).some(p=>p.startDate<=d&&d<=p.endDate))n++;
+ }));
+ return n;
+}
+function createMonthlyPeriod(){
+ const active=(db.periods||[]).find(p=>p.status==='OPEN'||p.status==='REVIEW');
+ if(active)return alert('توجد فترة نشطة بالفعل: '+monthlyPeriodLabel(active)+'. أكمل مراجعتها وإقفالها قبل إنشاء فترة جديدة.');
+ formModal('إنشاء فترة مالية مخصصة',[
+  field('اسم الفترة','name','text','',null,true),
+  field('تاريخ البداية','startDate','date',dateNow(),null,true),
+  field('تاريخ النهاية','endDate','date',dateNow(),null,true),
+  field('رصيد الصندوق الافتتاحي الفعلي (لأول فترة فقط)','openingCash','number','',null,false),
+  field('هل تم جرد الصندوق الافتتاحي فعليًا؟','openingCashConfirmed','text','no',[['no','لا — لم تتم المطابقة'],['yes','نعم — تم الجرد والتأكيد']],true),
+  textArea('ملاحظات افتتاح الفترة','note','')
+ ],d=>{
+  if(!monthlyValidRange(d.startDate,d.endDate))return alert('تحقق من تاريخ البداية والنهاية. يجب أن تكون التواريخ صحيحة والنهاية لا تسبق البداية.'),false;
+  if(monthlyRangeOverlaps(d.startDate,d.endDate))return alert('الفترة تتداخل مع فترة مالية موجودة. اختر نطاقًا غير متداخل.'),false;
+  const previous=(db.periods||[]).filter(p=>p.status==='CLOSED'&&p.endDate<d.startDate).sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0]||null;
+  if(previous&&previous.endDate>=d.startDate)return alert('الفترة السابقة تتداخل مع بداية الفترة الجديدة.'),false;
+  let openingCash=null,openingSource='غير محدد';
+  if(previous){
+   const snap=monthlySnapshotFor(previous.id);
+   if(!snap||!Number.isFinite(Number(snap.cash?.closing)))return alert('لا يوجد رصيد نقدي ختامي معتمد للفترة السابقة. راجع إقفالها قبل إنشاء الفترة التالية.'),false;
+   openingCash=Number(snap.cash.closing);openingSource='إقفال '+monthlyPeriodLabel(previous);
+  }else{
+   openingCash=Number(d.openingCash);
+   if(d.openingCash.trim()===''||!Number.isFinite(openingCash)||openingCash<0)return alert('أدخل رصيد الصندوق الافتتاحي الفعلي. يمكن أن يكون صفرًا فقط إذا كان هذا هو الرصيد الذي جردته فعلًا.'),false;
+   if(d.openingCashConfirmed!=='yes')return alert('لا تعتمد رصيدًا افتتاحيًا قبل تأكيد الجرد الفعلي.'),false;
+   openingSource='جرد افتتاحي يدوي مؤكد';
+  }
+  const p={id:uid(),name:d.name.trim()||d.startDate+' — '+d.endDate,startDate:d.startDate,endDate:d.endDate,status:'OPEN',createdAt:dateNow(),previousPeriodId:previous?.id||null,openingCash,openingCashSource:openingSource,note:d.note||''};
+  db.periods.push(p);db.settings.currentPeriodId=p.id;
+  addAudit('إنشاء فترة مالية',monthlyPeriodLabel(p)+' / رصيد افتتاحي '+money(openingCash)+' / '+openingSource);
+  return persist();
+ });
+}
+function reviewMonthlyPeriod(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p)return alert('الفترة المالية غير موجودة.');
+ if(p.status!=='OPEN')return alert('يمكن بدء مراجعة الجرد للفترة المفتوحة فقط.');
+ const rows=monthlyInventoryCountRows(p);
+ const metrics=monthlyPeriodMetrics(p);
+ if(rows.some(x=>!Number.isInteger(Number(x.book))||x.book<0))return alert('يوجد رصيد مخزون نظري سالب أو غير صحيح. عالج حركات المخزون قبل الجرد.');
+ const countRows=rows.map(r=>'<tr><td>'+esc(r.label)+'</td><td>'+esc(r.cardName)+'</td><td>'+money(r.book).replace(' ر.ي','')+'</td><td><input type="number" min="0" step="1" inputmode="numeric" data-monthly-count="'+esc(r.key)+'" placeholder="أدخل الجرد الفعلي" required></td><td><input type="text" data-monthly-reason="'+esc(r.key)+'" placeholder="سبب الفرق إذا وجد"></td></tr>').join('');
+ const html='<div class="note warning">أدخل الكميات التي جردتها فعليًا في كل موقع. لا تنسخ الرصيد النظري تلقائيًا؛ اكتب نتيجة العد الفعلية. سيتم ترحيل الجرد المعتمد إلى الفترة التالية.</div>'
+  +'<div class="form-grid"><div class="field"><label>الصندوق المتوقع حسب السجلات</label><strong>'+ (metrics.cashExpected===null?'غير محدد':money(metrics.cashExpected))+'</strong></div><div class="field"><label>رصيد الصندوق الافتتاحي</label><strong>'+money(p.openingCash)+'</strong></div></div>'
+  +'<div class="field"><label for="monthlyActualCash">النقد الموجود فعليًا عند نهاية الفترة</label><input id="monthlyActualCash" type="number" min="0" step="any" placeholder="أدخل المبلغ الذي جردته فعليًا" required></div>'
+  +'<div class="field"><label for="monthlyCashReason">سبب فرق الصندوق إذا اختلف عن السجلات</label><input id="monthlyCashReason" type="text" placeholder="مطلوب فقط عند وجود فرق"></div>'
+  +'<div class="field"><label for="monthlyReserve">احتياطي الشبكة لهذا الإقفال</label><input id="monthlyReserve" type="number" min="0" step="any" value="0" required></div>'
+  +'<div class="field"><label for="monthlyBuffer">سيولة تشغيلية تريد إبقاءها بعد الالتزامات</label><input id="monthlyBuffer" type="number" min="0" step="any" value="0"></div>'
+  +'<div class="field"><label for="monthlyReviewNote">ملاحظات الإقفال</label><textarea id="monthlyReviewNote" placeholder="ملاحظات الجرد أو التسويات"></textarea></div>'
+  +'<h3>جرد المخزون حسب الموقع والفئة</h3><div class="table-wrap"><table><thead><tr><th>الموقع</th><th>فئة الكرت</th><th>الرصيد الدفتري</th><th>الجرد الفعلي</th><th>سبب الفرق</th></tr></thead><tbody>'+(countRows||'<tr><td colspan="5">لا توجد أصناف مخزون مسجلة.</td></tr>')+'</tbody></table></div>'
+  +'<p class="small muted">يشمل الجرد المخزون الرئيسي، مخزون المحافظ، والكروت الموجودة لدى نقاط البيع بنظام الأمانة. أي فرق سيظهر في التسوية المحاسبية ضمن حسابات معلقة، ولن يُعامل تلقائيًا كإيراد أو مصروف تشغيلي.</p>'
+  +'<div class="actions"><button id="monthlyReviewSave" class="primary">حفظ نتائج الجرد للمراجعة</button><button type="button" data-cancel>إلغاء</button></div>';
+ showModal('مراجعة وإقفال '+monthlyPeriodLabel(p),html);
+ $('#monthlyReviewSave').onclick=()=>saveMonthlyPeriodReview(id);
+}
+function saveMonthlyPeriodReview(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='OPEN')return alert('الفترة لم تعد مفتوحة للمراجعة.');
+ const cashRaw=$('#monthlyActualCash')?.value??'',actualCash=Number(cashRaw);
+ const cashReason=$('#monthlyCashReason')?.value?.trim()||'';
+ const reserveRaw=$('#monthlyReserve')?.value??'',reserve=Number(reserveRaw);
+ const bufferRaw=$('#monthlyBuffer')?.value??'0',buffer=Number(bufferRaw);
+ if(cashRaw.trim()===''||!Number.isFinite(actualCash)||actualCash<0)return alert('أدخل النقد الفعلي الذي تم جرده.'),false;
+ if(reserveRaw.trim()===''||!Number.isFinite(reserve)||reserve<0)return alert('أدخل احتياطيًا صحيحًا. أدخل صفرًا إذا لم تعتمد احتياطيًا.'),false;
+ if(bufferRaw.trim()===''||!Number.isFinite(buffer)||buffer<0)return alert('أدخل سيولة تشغيلية مطلوبة صحيحة.'),false;
+ const metrics=monthlyPeriodMetrics(p);
+ if(metrics.cashExpected===null)return alert('لا يمكن احتساب النقد المتوقع. تحقق من الرصيد الافتتاحي للفترة.'),false;
+ const cashVariance=actualCash-metrics.cashExpected;
+ if(Math.abs(cashVariance)>0.009&&!cashReason)return alert('يوجد فرق في الصندوق ('+money(cashVariance)+'). اكتب سبب الفرق قبل حفظ المراجعة.'),false;
+ const inputs=[...document.querySelectorAll('[data-monthly-count]')],stockCounts=[];
+ for(const el of inputs){
+  const key=el.getAttribute('data-monthly-count'),raw=el.value.trim(),quantity=Number(raw);
+  if(raw===''||!Number.isInteger(quantity)||quantity<0)return alert('أدخل كمية جرد فعلية صحيحة لكل سطر مخزون.'),false;
+  const row=monthlyInventoryCountRows(p).find(x=>x.key===key);if(!row)return alert('تعذر مطابقة سطر الجرد: '+key),false;
+  const reason=document.querySelector('[data-monthly-reason="'+CSS.escape(key)+'"]')?.value?.trim()||'';
+  const variance=quantity-Number(row.book);
+  if(variance!==0&&!reason)return alert('اكتب سبب فرق الجرد للصنف '+row.cardName+' في '+row.label+'.'),false;
+  stockCounts.push({key,locationType:row.locationType,locationId:row.locationId,cardId:row.cardId,label:row.label,cardName:row.cardName,bookQuantity:Number(row.book),physicalQuantity:quantity,variance,reason});
+ }
+ p.review={reviewedAt:new Date().toISOString(),actualCash,cashExpected:metrics.cashExpected,cashVariance,cashReason,reserveAmount:reserve,workingLiquidityBuffer:buffer,stockCounts,note:$('#monthlyReviewNote')?.value?.trim()||''};
+ p.status='REVIEW';addAudit('حفظ جرد ومراجعة فترة',monthlyPeriodLabel(p)+' / نقد فعلي '+money(actualCash)+' / فروقات مخزون '+stockCounts.filter(x=>x.variance!==0).length);
+ if(!persist())return false;closeModal();render();return true;
+}
+function reopenMonthlyPeriodReview(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='REVIEW')return alert('لا توجد مراجعة مفتوحة لإعادتها.');
+ if(!confirm('إلغاء نتائج المراجعة الحالية وإعادة فتح الفترة للتسجيل؟ لن يتم حذف الحركات الأصلية.'))return;
+ p.status='OPEN';p.review=null;addAudit('إعادة فتح مراجعة فترة',monthlyPeriodLabel(p));if(persist())render();
+}
+function closeMonthlyPeriod(id){
+ const p=(db.periods||[]).find(x=>x.id===id);
+ if(!p||p.status!=='REVIEW'||!p.review)return alert('احفظ الجرد والمراجعة أولًا قبل اعتماد الإقفال.');
+ if(!confirm('اعتماد إقفال '+monthlyPeriodLabel(p)+'؟ بعد الاعتماد ستُحمى عمليات الفترة من التعديل المباشر.'))return;
+ const review=p.review;
+ // Apply each approved stock-count variance once, at the period end date.
+ for(const count of review.stockCounts||[]){
+  if(!count.variance)continue;
+  const marker=p.id+'|'+count.key;
+  if((db.stockAdjustments||[]).some(x=>x.periodCountKey===marker))continue;
+  db.stockAdjustments.push({id:uid(),date:p.endDate,periodId:p.id,periodCountKey:marker,cardId:count.cardId,locationType:count.locationType,locationId:count.locationId,delta:count.variance,note:'فرق جرد معتمد: '+count.reason+' / '+count.label+' / '+count.cardName});
+ }
+ const cashMarker=p.id+'|cash';
+ if(Math.abs(review.cashVariance)>0.009&&!(db.cashMovements||[]).some(x=>x.periodCashCountKey===cashMarker)){
+  db.cashMovements.push({id:uid(),date:p.endDate,periodId:p.id,periodCashCountKey:cashMarker,kind:review.cashVariance>0?'in':'out',category:'تسوية فرق جرد نقدي',amount:Math.abs(review.cashVariance),adjustmentType:review.cashVariance>0?'cash-count-surplus':'cash-count-shortage',note:review.cashReason});
+ }
+ // Save count adjustments while the period remains in REVIEW; this makes retry idempotent.
+ if(!persist())return;
+ const metrics=monthlyPeriodMetrics(p);
+ const debt=monthlyDebtAnalysis(p.endDate);
+ const unpaid=monthlyUnpaidBillsAsOf(p.endDate);
+ const partnerDue=Math.max(0,monthlyPartnerPayablesAsOf(p.endDate));
+ const reserve=Number(review.reserveAmount)||0;
+ if(reserve>Math.max(0,metrics.netProfit)+0.009)return alert('الاحتياطي أكبر من صافي الربح المحاسبي. أعد فتح المراجعة وعدّل الاحتياطي.');
+ const profitAfterReserve=Math.max(0,metrics.netProfit-reserve);
+ const cashCapacity=Math.max(0,Number(review.actualCash)-unpaid-partnerDue-(Number(review.workingLiquidityBuffer)||0));
+ const distributionCap=Math.min(profitAfterReserve,cashCapacity);
+ const stockSnapshot=(review.stockCounts||[]).map(x=>({...x,closingQuantity:x.physicalQuantity}));
+ const snapshot={
+  id:uid(),periodId:p.id,createdAt:new Date().toISOString(),
+  metrics:{revenue:metrics.revenue,expenses:metrics.expenses,netProfit:metrics.netProfit,cashMovement:metrics.cashMovement,transferMovement:metrics.transferMovement,oldDebtCollections:metrics.oldDebtCollections,collectionsThisPeriod:metrics.collectionsThisPeriod,receivablesTotal:debt.outstanding,currentOriginReceivables:debt.items.filter(x=>x.originPeriodId===p.id).reduce((n,x)=>n+x.remaining,0),priorOriginReceivables:debt.items.filter(x=>x.originPeriodId&&x.originPeriodId!==p.id).reduce((n,x)=>n+x.remaining,0),unassignedOriginReceivables:debt.items.filter(x=>!x.originPeriodId).reduce((n,x)=>n+x.remaining,0),legacyAllocationWarnings:debt.allocationWarnings},
+  cash:{opening:p.openingCash,expectedBeforeCount:review.cashExpected,variance:review.cashVariance,closing:review.actualCash,transferMovement:metrics.transferMovement},
+  receivables:{total:debt.outstanding,items:debt.items.map(x=>({...x})),legacyUnappliedCollections:debt.legacyUnapplied,allocationWarnings:debt.allocationWarnings},
+  payables:{unpaidBills:unpaid,partnerPayables:partnerDue,total:unpaid+partnerDue},
+  inventory:stockSnapshot,
+  reserveAmount:reserve,profitAfterReserve,cashCapacity,workingLiquidityBuffer:Number(review.workingLiquidityBuffer)||0,distributionCap,
+  reviewNote:review.note||'',exceptions:[]
+ };
+ if(metrics.unassignedOriginReceivables>0)snapshot.exceptions.push('توجد ذمم قديمة غير مرتبطة بفترة أصلية مؤكدة.');
+ if(metrics.legacyAllocationWarnings>0)snapshot.exceptions.push('توجد تحصيلات تاريخية غير مخصصة لفواتير محددة؛ بعض التوزيع التاريخي تقديري حسب الأقدم.');
+ if(monthlyUnassignedTransactionsCount()>0)snapshot.exceptions.push('توجد حركات خارج نطاق الفترات المسجلة.');
+ if(!db.periodSnapshots.some(s=>s.periodId===p.id))db.periodSnapshots.push(snapshot);
+ p.status='CLOSED';p.closedAt=new Date().toISOString();p.snapshotId=snapshot.id;p.review.approved=true;
+ db.settings.currentPeriodId=null;db.settings.lastClose=p.endDate;
+ addAudit('اعتماد إقفال فترة مالية',monthlyPeriodLabel(p)+' / ربح '+money(metrics.netProfit)+' / احتياطي '+money(reserve)+' / حد توزيع '+money(distributionCap));
+ if(!persist())return;
+ render();
+}
+function recordMonthlyDistribution(periodId){
+ const snapshot=monthlySnapshotFor(periodId),period=(db.periods||[]).find(p=>p.id===periodId);
+ if(!snapshot||!period||period.status!=='CLOSED')return alert('لا يوجد إقفال معتمد للفترة.');
+ const already=sum((db.profitDistributions||[]).filter(x=>x.sourcePeriodId===periodId),x=>x.amount);
+ const remaining=Math.max(0,Number(snapshot.distributionCap||0)-already);
+ if(remaining<=0.009)return alert('لا يوجد مبلغ متبقٍ للتوزيع من هذه الفترة.');
+ const open=(db.periods||[]).find(p=>p.status==='OPEN');
+ if(!open)return alert('أنشئ الفترة الحالية أولًا حتى يسجل النظام تاريخ الدفع الفعلي في الفترة الصحيحة.');
+ formModal('تسجيل توزيع فعلي من أرباح '+monthlyPeriodLabel(period),[
+  field('الشريك','partnerId','text',db.partners[0]?.id||'',optsPartners(),true),
+  field('المبلغ المدفوع فعليًا','amount','number',0,null,true),
+  field('طريقة الدفع','paymentMethod','text','cash',[['cash','نقدًا من الصندوق'],['transfer','تحويل / محفظة']],true),
+  field('تاريخ الدفع الفعلي','date','date',dateNow(),null,true),
+  textArea('مرجع / ملاحظات','note','')
+ ],d=>{
+  const amount=Number(d.amount);
+  if(!db.partners.some(x=>x.id===d.partnerId)||!validDateValue(d.date)||!Number.isFinite(amount)||amount<=0)return alert('تحقق من الشريك والمبلغ والتاريخ.'),false;
+  if(amount>remaining+0.009)return alert('المبلغ أكبر من المتبقي من حد التوزيع المعتمد ('+money(remaining)+').'),false;
+  const payPeriod=monthlyPeriodForDate(d.date);
+  if(!payPeriod||payPeriod.status!=='OPEN')return alert('تاريخ الدفع يجب أن يقع داخل فترة مالية مفتوحة. لا تسجل دفعًا فعليًا داخل فترة مغلقة.'),false;
+  if(d.paymentMethod==='cash'&&amount>cashBalance()+0.009)return alert('المبلغ أكبر من النقد المسجل حاليًا في الصندوق ('+money(cashBalance())+'). راجع الجرد قبل الدفع.'),false;
+  if(d.paymentMethod==='transfer'&&!confirm('تأكدت من توفر المبلغ فعليًا في حساب التحويل/المحفظة، وأنه غير داخل ضمن رصيد الصندوق النقدي؟'))return false;
+  const row={id:uid(),sourcePeriodId:periodId,periodId:payPeriod.id,partnerId:d.partnerId,date:d.date,amount,paymentMethod:d.paymentMethod,note:d.note||''};
+  db.profitDistributions.push(row);
+  db.partnerMoves.push({id:uid(),date:d.date,periodId:payPeriod.id,sourcePeriodId:periodId,partnerId:d.partnerId,kind:'profit_distribution',amount,paymentMethod:d.paymentMethod,distributionId:row.id,note:'توزيع فعلي من أرباح '+monthlyPeriodLabel(period)+(d.note?' / '+d.note:'')});
+  addAudit('توزيع أرباح فعلي',((db.partners.find(x=>x.id===d.partnerId)||{}).name||'')+' / مصدر الفترة '+monthlyPeriodLabel(period)+' / دفع '+money(amount)+' / '+(d.paymentMethod==='cash'?'نقدًا':'تحويل'));
+  return persist();
+ });
+}
+function monthlyPeriodReportHtml(period){
+ const snap=monthlySnapshotFor(period.id);if(!snap)return '<p>لا يوجد تقرير إقفال معتمد.</p>';
+ const distributions=(db.profitDistributions||[]).filter(x=>x.sourcePeriodId===period.id);
+ const paid=sum(distributions,x=>x.amount);
+ const rows=(db.partners||[]).map(p=>{
+  const v=sum(distributions.filter(x=>x.partnerId===p.id),x=>x.amount);
+  return '<tr><td>'+esc(p.name)+'</td><td>'+num(p.share)+'%</td><td>'+money(v)+'</td></tr>';
+ }).join('');
+ const stock=(snap.inventory||[]).map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+esc(x.cardName)+'</td><td>'+x.bookQuantity+'</td><td>'+x.physicalQuantity+'</td><td>'+x.variance+'</td></tr>').join('');
+ return '<div class="print-only"><h1>SPIDER NET — التقرير المالي</h1><h2>'+esc(monthlyPeriodLabel(period))+'</h2></div>'
+  +'<section class="panel"><h3>نتيجة الفترة</h3>'+table(['البيان','المبلغ'],[
+   '<tr><td>إجمالي الإيرادات المحاسبية</td><td>'+money(snap.metrics.revenue)+'</td></tr>',
+   '<tr><td>إجمالي المصروفات والتكاليف</td><td>'+money(snap.metrics.expenses)+'</td></tr>',
+   '<tr><th>صافي الربح المحاسبي</th><th>'+money(snap.metrics.netProfit)+'</th></tr>',
+   '<tr><td>احتياطي الشبكة</td><td>'+money(snap.reserveAmount)+'</td></tr>',
+   '<tr><td>الربح بعد الاحتياطي</td><td>'+money(snap.profitAfterReserve)+'</td></tr>',
+   '<tr><td>السيولة القابلة للتوزيع بعد الالتزامات والسيولة التشغيلية</td><td>'+money(snap.cashCapacity)+'</td></tr>',
+   '<tr><th>حد التوزيع المعتمد</th><th>'+money(snap.distributionCap)+'</th></tr>'
+  ])+'</section>'
+  +'<section class="panel"><h3>حركة النقد والديون</h3>'+table(['البيان','المبلغ'],[
+   '<tr><td>الصندوق الافتتاحي</td><td>'+money(snap.cash.opening)+'</td></tr>',
+   '<tr><td>حركة النقد المسجلة خلال الفترة بعد استبعاد قيد الجرد الافتتاحي</td><td>'+money(snap.metrics.cashMovement)+'</td></tr>',
+   '<tr><td>النقد المتوقع قبل الجرد</td><td>'+money(snap.cash.expectedBeforeCount)+'</td></tr>',
+   '<tr><td>فرق الجرد المسجل في حساب معلق</td><td>'+money(snap.cash.variance)+'</td></tr>',
+   '<tr><th>النقد الفعلي الختامي</th><th>'+money(snap.cash.closing)+'</th></tr>',
+   '<tr><td>تحصيل ديون فترات سابقة ضمن الفترة</td><td>'+money(snap.metrics.oldDebtCollections)+'</td></tr>',
+   '<tr><td>إجمالي الذمم المدينة المفتوحة عند الإقفال</td><td>'+money(snap.receivables.total)+'</td></tr>',
+   '<tr><td>التزامات فواتير غير مسددة</td><td>'+money(snap.payables.unpaidBills)+'</td></tr>',
+   '<tr><td>مستحقات الشركاء</td><td>'+money(snap.payables.partnerPayables)+'</td></tr>'
+  ])+'</section>'
+  +'<section class="panel"><h3>جرد المخزون المعتمد</h3>'+table(['الموقع','الفئة','دفترى','فعلي','فرق'],stock)+'</section>'
+  +'<section class="panel"><h3>توزيعات الشركاء</h3>'+table(['الشريك','الحصة الحالية','المبلغ المدفوع فعليًا'],rows)+'<p>المبلغ المدفوع من حد التوزيع: <b>'+money(paid)+'</b></p><p>المتبقي من حد التوزيع: <b>'+money(Math.max(0,snap.distributionCap-paid))+'</b></p></section>'
+  +(snap.exceptions?.length?'<section class="panel"><h3>استثناءات تحتاج متابعة</h3><ul>'+snap.exceptions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section>':'')
+  +'<p class="small muted">هذا التقرير مبني على القيود والسجلات المحلية المسجلة. التحصيلات القديمة غير المخصصة قد تظهر كتخصيص تقديري، ويجب مراجعتها قبل اعتبارها مطابقة نهائية.</p>';
+}
+function printMonthlyPeriodReport(id){
+ const p=(db.periods||[]).find(x=>x.id===id);if(!p)return alert('الفترة غير موجودة.');
+ const report=monthlyPeriodReportHtml(p);
+ showModal('التقرير المالي — '+monthlyPeriodLabel(p),report+'<div class="actions">'+btn('طباعة / PDF','print-report','primary')+'</div>');
+}
+function monthlyPrepareWrite(){
+ if(!Array.isArray(db.periods)||!db.periods.length)return true;
+ let previous={};try{const old=JSON.parse(lastCommittedState||'{}');for(const k of ['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'])previous[k]=Array.isArray(old[k])?old[k]:[]}catch(e){return true}
+ const tables=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'];
+ const byId=(rows)=>new Map(rows.filter(x=>x&&x.id!==undefined).map(x=>[String(x.id),x]));
+ const isBillSettlementOnly=(oldRow,newRow)=>{
+  const allowed=new Set(['paid','paidDate','paidMethod','paidPartnerId','paymentNote']);
+  const keys=new Set([...Object.keys(oldRow||{}),...Object.keys(newRow||{})]);
+  for(const k of keys)if(JSON.stringify(oldRow?.[k])!==JSON.stringify(newRow?.[k])&&!allowed.has(k))return false;
+  return !!newRow.paid&&validDateValue(newRow.paidDate);
+ };
+ const periodForRow=row=>{
+  if(row?.periodId){const byIdPeriod=db.periods.find(p=>p.id===row.periodId);if(byIdPeriod)return byIdPeriod}
+  if(row?.collectionPeriodId){const p=db.periods.find(x=>x.id===row.collectionPeriodId);if(p)return p}
+  const date=String(row?.date||row?.createdAt||row?.due||'').slice(0,10);
+  return monthlyPeriodForDate(date);
+ };
+ for(const table of tables){
+  const oldMap=byId(previous[table]),newRows=Array.isArray(db[table])?db[table]:[],newMap=byId(newRows);
+  for(const [id,oldRow] of oldMap){
+   const current=newMap.get(id),sourcePeriod=periodForRow(oldRow);
+   if(!current){
+    if(sourcePeriod&&['CLOSED','LOCKED'].includes(sourcePeriod.status)){alert('حُظر حذف سجل من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم قيد تصحيح موثق بدل الحذف.');restoreCommittedState();return false;}
+    continue;
+   }
+   if(JSON.stringify(oldRow)!==JSON.stringify(current)&&sourcePeriod&&['CLOSED','LOCKED'].includes(sourcePeriod.status)){
+    if(table==='bills'&&isBillSettlementOnly(oldRow,current)){
+     const paymentPeriod=monthlyPeriodForDate(current.paidDate);
+     if(paymentPeriod&&paymentPeriod.status==='OPEN')current.paidPeriodId=paymentPeriod.id;
+     else{alert('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مفتوحة.');restoreCommittedState();return false;}
+    }else{alert('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم إجراء تصحيح موثق في فترة مفتوحة.');restoreCommittedState();return false;}
+   }
+  }
+  for(const [id,row] of newMap){
+   if(oldMap.has(id))continue;
+   const date=String(row.date||row.createdAt||row.due||'').slice(0,10);
+   if(!validDateValue(date))continue;
+   const matched=monthlyPeriodForDate(date);
+   if(matched&&['CLOSED','LOCKED'].includes(matched.status)){
+    alert('لا يمكن إضافة حركة بتاريخ داخل فترة مغلقة ('+monthlyPeriodLabel(matched)+'). سجّلها في تاريخها الفعلي ضمن فترة مفتوحة أو استخدم تصحيحًا موثقًا.');
+    restoreCommittedState();return false;
+   }
+   if(matched&&matched.status==='REVIEW'&&!row.periodCountKey&&!row.periodCashCountKey){
+    alert('الفترة قيد مراجعة الإقفال. أعد فتح المراجعة قبل تسجيل عمليات جديدة.');restoreCommittedState();return false;
+   }
+   if(matched){
+    if(table==='payments')row.collectionPeriodId=matched.id;
+    else if(table==='bills')row.periodId=matched.id;
+    else row.periodId=matched.id;
+   }
+  }
+ }
+ // A new payment stores the period of each receipt and the origin period of every allocated debt item.
+ (db.payments||[]).forEach(p=>{
+  if(!p.collectionPeriodId)p.collectionPeriodId=monthlyPeriodForDate(p.date)?.id||null;
+  if(Array.isArray(p.allocations))p.allocations.forEach(a=>{
+   if(!a.originPeriodId){
+    const due=(a.sourceType==='delivery'?db.deliveries:db.consignmentSettlements).find(x=>String(x.id)===String(a.sourceId));
+    if(due)a.originPeriodId=monthlyPeriodForDate(due.date)?.id||null;
+   }
+  });
+ });
+ return true;
+}
+
 if(db.settings.pin){/* app starts unlocked; lock is explicit */}
 render();
 })();
