@@ -2083,8 +2083,8 @@ function monthlyPeriodReportHtml(period){
  const rows=(db.partners||[]).map(p=>{
   const v=sum(distributions.filter(x=>x.partnerId===p.id),x=>x.amount);
   return '<tr><td>'+esc(p.name)+'</td><td>'+num(p.share)+'%</td><td>'+money(v)+'</td></tr>';
- }).join('');
- const stock=(snap.inventory||[]).map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+esc(x.cardName)+'</td><td>'+x.bookQuantity+'</td><td>'+x.physicalQuantity+'</td><td>'+x.variance+'</td></tr>').join('');
+ });
+ const stock=(snap.inventory||[]).map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+esc(x.cardName)+'</td><td>'+x.bookQuantity+'</td><td>'+x.physicalQuantity+'</td><td>'+x.variance+'</td></tr>');
  return '<div class="print-only"><h1>SPIDER NET — التقرير المالي</h1><h2>'+esc(monthlyPeriodLabel(period))+'</h2></div>'
   +'<section class="panel"><h3>نتيجة الفترة</h3>'+table(['البيان','المبلغ'],[
    '<tr><td>إجمالي الإيرادات المحاسبية</td><td>'+money(snap.metrics.revenue)+'</td></tr>',
