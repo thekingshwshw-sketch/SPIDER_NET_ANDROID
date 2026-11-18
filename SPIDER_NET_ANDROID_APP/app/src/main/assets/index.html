@@ -1283,7 +1283,7 @@ function editPayment(id){
     const applied=Math.min(budget,Math.max(0,num(allocation.amount)),due.remaining);
     if(applied>0.009){
      updatedAllocations.push({sourceType:due.sourceType,sourceId:due.sourceId,amount:applied,originPeriodId:due.originPeriodId||allocation.originPeriodId||null});
-     due.remaining-=applied;budget-=applied;
+     budget-=applied;
     }
    }
    // If the amount increased, or an original invoice has been settled by another receipt,
@@ -1613,7 +1613,7 @@ function requestPrint(jobName){
  }
  try{window.print();return true}catch(e){alert('تعذر فتح واجهة الطباعة: '+(e&&e.message?e.message:'خطأ غير معروف'));return false}
 }
-window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill');const sheet=document.getElementById('billPrintSheet');if(sheet)sheet.remove();alert(message||'تعذر فتح واجهة الطباعة.')}};
+window.onNativePrintResult=function(ok,message){if(!ok){document.body.classList.remove('printing-pos','printing-accounting','printing-bill','printing-monthly-period');['billPrintSheet','monthlyPeriodPrintSheet'].forEach(id=>{const sheet=document.getElementById(id);if(sheet)sheet.remove()});alert(message||'تعذر فتح واجهة الطباعة.')}};
 window.onNativeImageResult=function(ok,message){alert(message||(ok?'تم حفظ صورة الكشف.':'تعذر حفظ صورة الكشف.'))};
 window.onNativeExportResult=function(ok,message){alert(message||(ok?'تم تصدير سجل التدقيق.':'تعذر تصدير سجل التدقيق.'))};
 
@@ -2311,9 +2311,10 @@ function monthlyPeriodReportHtml(period){
  const snap=monthlySnapshotFor(period.id);if(!snap)return '<p>لا يوجد تقرير إقفال معتمد.</p>';
  const distributions=(db.profitDistributions||[]).filter(x=>x.sourcePeriodId===period.id);
  const paid=sum(distributions,x=>x.amount);
- const rows=(db.partners||[]).map(p=>{
-  const v=sum(distributions.filter(x=>x.partnerId===p.id),x=>x.amount);
-  return '<tr><td>'+esc(p.name)+'</td><td>'+num(p.share)+'%</td><td>'+money(v)+'</td></tr>';
+ const reportShares=Array.isArray(snap.partnerShares)&&snap.partnerShares.length?snap.partnerShares:(db.partners||[]).map(p=>({partnerId:p.id,name:p.name,share:p.share}));
+ const rows=reportShares.map(p=>{
+  const v=sum(distributions.filter(x=>x.partnerId===p.partnerId),x=>x.amount);
+  return '<tr><td>'+esc(p.name||(db.partners.find(x=>x.id===p.partnerId)||{}).name||'شريك غير موجود')+'</td><td>'+num(p.share)+'%</td><td>'+money(v)+'</td><td>'+money(p.maximumAmount??(snap.distributionCap*num(p.share)/100))+'</td></tr>';
  });
  const stock=(snap.inventory||[]).map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+esc(x.cardName)+'</td><td>'+x.bookQuantity+'</td><td>'+x.physicalQuantity+'</td><td>'+x.variance+'</td></tr>');
  return '<div class="print-only"><h1>SPIDER NET — التقرير المالي</h1><h2>'+esc(monthlyPeriodLabel(period))+'</h2></div>'
@@ -2338,7 +2339,7 @@ function monthlyPeriodReportHtml(period){
    '<tr><td>مستحقات الشركاء</td><td>'+money(snap.payables.partnerPayables)+'</td></tr>'
   ])+'</section>'
   +'<section class="panel"><h3>جرد المخزون المعتمد</h3>'+table(['الموقع','الفئة','دفترى','فعلي','فرق'],stock)+'</section>'
-  +'<section class="panel"><h3>توزيعات الشركاء</h3>'+table(['الشريك','الحصة الحالية','المبلغ المدفوع فعليًا'],rows)+'<p>المبلغ المدفوع من حد التوزيع: <b>'+money(paid)+'</b></p><p>المتبقي من حد التوزيع: <b>'+money(Math.max(0,snap.distributionCap-paid))+'</b></p></section>'
+  +'<section class="panel"><h3>توزيعات الشركاء</h3>'+table(['الشريك','الحصة عند الإقفال','المبلغ المدفوع فعليًا','حد حصة الشريك'],rows)+'<p>المبلغ المدفوع من حد التوزيع: <b>'+money(paid)+'</b></p><p>المتبقي من حد التوزيع: <b>'+money(Math.max(0,snap.distributionCap-paid))+'</b></p></section>'
   +(snap.exceptions?.length?'<section class="panel"><h3>استثناءات تحتاج متابعة</h3><ul>'+snap.exceptions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></section>':'')
   +'<p class="small muted">هذا التقرير مبني على القيود والسجلات المحلية المسجلة. التحصيلات القديمة غير المخصصة قد تظهر كتخصيص تقديري، ويجب مراجعتها قبل اعتبارها مطابقة نهائية.</p>';
 }
