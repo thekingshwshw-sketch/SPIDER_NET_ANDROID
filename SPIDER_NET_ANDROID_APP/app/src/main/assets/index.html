@@ -2357,63 +2357,71 @@ function printMonthlyPeriodReport(id){
 }
 function monthlyPrepareWrite(){
  if(!Array.isArray(db.periods)||!db.periods.length)return true;
- let previous={};try{const old=JSON.parse(lastCommittedState||'{}');for(const k of ['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'])previous[k]=Array.isArray(old[k])?old[k]:[]}catch(e){return true}
- const tables=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries'];
- const byId=(rows)=>new Map(rows.filter(x=>x&&x.id!==undefined).map(x=>[String(x.id),x]));
- const isBillSettlementOnly=(oldRow,newRow)=>{
-  const allowed=new Set(['paid','paidDate','paidMethod','paidPartnerId','paymentNote']);
-  const keys=new Set([...Object.keys(oldRow||{}),...Object.keys(newRow||{})]);
-  for(const k of keys)if(JSON.stringify(oldRow?.[k])!==JSON.stringify(newRow?.[k])&&!allowed.has(k))return false;
-  return !!newRow.paid&&validDateValue(newRow.paidDate);
- };
+ const tables=['deliveries','consignmentSettlements','payments','walletLoads','walletSales','expenses','bills','partnerMoves','stockAdjustments','cashMovements','journalEntries','profitDistributions'];
+ let previous={};
+ try{
+  const old=JSON.parse(lastCommittedState||'{}');
+  for(const key of tables)previous[key]=Array.isArray(old[key])?old[key]:[];
+ }catch(e){restoreCommittedState();return false}
+ const byId=rows=>new Map((rows||[]).filter(x=>x&&x.id!==undefined).map(x=>[String(x.id),x]));
  const periodForRow=row=>{
-  if(row?.periodId){const byIdPeriod=db.periods.find(p=>p.id===row.periodId);if(byIdPeriod)return byIdPeriod}
+  if(row?.periodId){const p=db.periods.find(x=>x.id===row.periodId);if(p)return p}
   if(row?.collectionPeriodId){const p=db.periods.find(x=>x.id===row.collectionPeriodId);if(p)return p}
   const date=String(row?.date||row?.createdAt||row?.due||'').slice(0,10);
   return monthlyPeriodForDate(date);
  };
+ const reject=message=>{alert(message);restoreCommittedState();return false};
+ const destinationFor=(table,row)=>{
+  const date=String(row?.date||row?.createdAt||row?.due||'').slice(0,10);
+  if(!validDateValue(date))return {date,period:null};
+  return {date,period:monthlyPeriodForDate(date)};
+ };
+ const isBillSettlementOnly=(oldRow,newRow)=>{
+  const allowed=new Set(['paid','paidDate','paidMethod','paidPartnerId','paymentNote','paidPeriodId']);
+  const keys=new Set([...Object.keys(oldRow||{}),...Object.keys(newRow||{})]);
+  for(const key of keys)if(JSON.stringify(oldRow?.[key])!==JSON.stringify(newRow?.[key])&&!allowed.has(key))return false;
+  return !!newRow.paid&&validDateValue(newRow.paidDate);
+ };
  for(const table of tables){
-  const oldMap=byId(previous[table]),newRows=Array.isArray(db[table])?db[table]:[],newMap=byId(newRows);
+  const oldMap=byId(previous[table]),newMap=byId(Array.isArray(db[table])?db[table]:[]);
   for(const [id,oldRow] of oldMap){
    const current=newMap.get(id),sourcePeriod=periodForRow(oldRow);
    if(!current){
-    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){alert('حُظر حذف سجل من فترة قيد المراجعة أو مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم قيد تصحيح موثق بدل الحذف.');restoreCommittedState();return false;}
+    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status))
+     return reject('حُظر حذف سجل من فترة قيد المراجعة أو مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم تصحيحًا موثقًا بدل الحذف.');
     continue;
    }
-   if(JSON.stringify(oldRow)!==JSON.stringify(current)&&sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){
-    if(sourcePeriod.status!=='REVIEW'&&table==='bills'&&isBillSettlementOnly(oldRow,current)){
-     const paymentPeriod=monthlyPeriodForDate(current.paidDate);
-     if(paymentPeriod&&paymentPeriod.status==='OPEN')current.paidPeriodId=paymentPeriod.id;
-     else{alert('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مفتوحة.');restoreCommittedState();return false;}
-    }else{alert('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. استخدم إجراء تصحيح موثق في فترة مفتوحة.');restoreCommittedState();return false;}
+   if(JSON.stringify(oldRow)!==JSON.stringify(current)){
+    if(sourcePeriod&&['REVIEW','CLOSED','LOCKED'].includes(sourcePeriod.status)){
+     if(sourcePeriod.status!=='REVIEW'&&table==='bills'&&isBillSettlementOnly(oldRow,current)){
+      const paymentPeriod=monthlyPeriodForDate(current.paidDate);
+      if(!paymentPeriod||paymentPeriod.status!=='OPEN')return reject('سداد الالتزام القديم يجب أن يحمل تاريخًا داخل فترة مالية مفتوحة.');
+      current.paidPeriodId=paymentPeriod.id;
+      continue;
+     }
+     return reject('حُظر تعديل سجل أصلي من فترة مغلقة: '+monthlyPeriodLabel(sourcePeriod)+'. لا يمكن نقل العملية إلى تاريخ فترة أخرى بتعديلها؛ استخدم تصحيحًا موثقًا في فترة مفتوحة.');
+    }
+    const target=destinationFor(table,current);
+    if(validDateValue(target.date)){
+     if(!target.period)return reject('تاريخ العملية المعدّلة لا يقع داخل أي فترة مالية معرفة. أنشئ الفترة المناسبة أو صحح التاريخ قبل الحفظ.');
+     if(target.period.status!=='OPEN')return reject('لا يمكن نقل أو تعديل حركة إلى فترة ليست مفتوحة ('+monthlyPeriodLabel(target.period)+').');
+     if(table==='payments')current.collectionPeriodId=target.period.id;
+     else current.periodId=target.period.id;
+    }
    }
   }
   for(const [id,row] of newMap){
    if(oldMap.has(id))continue;
-   const date=String(row.date||row.createdAt||row.due||'').slice(0,10);
-   if(!validDateValue(date))continue;
-   const matched=monthlyPeriodForDate(date);
-   if(matched&&['CLOSED','LOCKED'].includes(matched.status)){
-    alert('لا يمكن إضافة حركة بتاريخ داخل فترة مغلقة ('+monthlyPeriodLabel(matched)+'). سجّلها في تاريخها الفعلي ضمن فترة مفتوحة أو استخدم تصحيحًا موثقًا.');
-    restoreCommittedState();return false;
-   }
-   if(matched&&matched.status==='REVIEW'&&!row.periodCountKey&&!row.periodCashCountKey){
-    alert('الفترة قيد مراجعة الإقفال. أعد فتح المراجعة قبل تسجيل عمليات جديدة.');
-    restoreCommittedState();return false;
-   }
-   
-   if(!matched){const latest=(db.periods||[]).slice().sort((a,b)=>String(b.endDate).localeCompare(String(a.endDate)))[0];if(latest&&date>latest.endDate){alert('لا توجد فترة مالية مفتوحة تغطي هذا التاريخ. أنشئ الفترة التالية قبل تسجيل الحركات الجديدة.');restoreCommittedState();return false;}}
-   if(matched){
-    if(table==='payments')row.collectionPeriodId=matched.id;
-    else if(table==='bills')row.periodId=matched.id;
-    else row.periodId=matched.id;
-   }
+   const target=destinationFor(table,row);
+   if(!validDateValue(target.date))return reject('تاريخ الحركة الجديدة غير صالح. لم يتم حفظها.');
+   if(!target.period)return reject('لا توجد فترة مالية مفتوحة تغطي تاريخ هذه الحركة. أنشئ الفترة التالية أو اختر تاريخًا داخل الفترة المفتوحة.');
+   if(target.period.status!=='OPEN')return reject('لا يمكن إضافة حركة بتاريخ داخل فترة غير مفتوحة ('+monthlyPeriodLabel(target.period)+').');
+   if(table==='payments')row.collectionPeriodId=target.period.id;
+   else row.periodId=target.period.id;
   }
  }
- // Keep legacy allocations unchanged. New payments already store explicit origin and collection period IDs.
  return true;
 }
-
 if(db.settings.pin){/* app starts unlocked; lock is explicit */}
 render();
 })();
