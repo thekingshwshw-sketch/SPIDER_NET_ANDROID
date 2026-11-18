@@ -2279,14 +2279,24 @@ function recordMonthlyDistribution(periodId){
   const currentBuffer=Math.max(0,Number(payPeriod.review?.workingLiquidityBuffer)||0);
   // New obligations reduce spendable liquidity, not the accounting-profit entitlement itself.
   const overallRemaining=Math.max(0,Number(snapshot.distributionCap||0)-totalAlready());
-  // Subtract all later cash outflows already entered in the receiving period before accepting a backdated payout.
-  const laterCashOutflows=
-   sum(db.bills.filter(x=>x.paid&&(x.paidMethod||'cash')==='cash'&&validDateValue(x.paidDate)&&x.paidDate>d.date&&x.paidDate<=payPeriod.endDate),x=>x.amount)
-   +sum(db.expenses.filter(x=>(x.paymentMethod||'cash')==='cash'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
-   +sum(db.partnerMoves.filter(x=>x.kind==='withdrawal'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
-   +sum(db.partnerMoves.filter(x=>(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount)
-   +sum((db.cashMovements||[]).filter(x=>x.kind==='out'&&validDateValue(x.date)&&x.date>d.date&&x.date<=payPeriod.endDate),x=>x.amount);
-  const currentCashAvailable=Math.max(0,cashBalanceAsOf(d.date)-laterCashOutflows-currentBills-currentPartnerDue-currentBuffer);
+  // Evaluate the lowest dated cash balance after the proposed payout, including later receipts and spending.
+  // This allows a later receipt to fund a later expense, but rejects a payout that makes any known balance negative.
+  const cashDates=new Set([d.date]);
+  if(validDateValue(availabilityDate)&&availabilityDate>=d.date&&availabilityDate<=payPeriod.endDate)cashDates.add(availabilityDate);
+  const addCashDate=value=>{const day=String(value||'').slice(0,10);if(validDateValue(day)&&day>=d.date&&day<=payPeriod.endDate)cashDates.add(day)};
+  (db.deliveries||[]).filter(x=>x.mode==='cash').forEach(x=>addCashDate(x.date));
+  (db.payments||[]).filter(x=>x.method==='cash').forEach(x=>addCashDate(x.date));
+  (db.walletSales||[]).filter(x=>x.settlement==='received'&&(x.settlementMethod||'cash')==='cash').forEach(x=>addCashDate(x.date));
+  (db.cashMovements||[]).forEach(x=>addCashDate(x.date));
+  (db.expenses||[]).filter(x=>(x.paymentMethod||'cash')==='cash').forEach(x=>addCashDate(x.date));
+  (db.bills||[]).forEach(x=>{addCashDate(x.date||x.createdAt||x.due);if(x.paid&&(x.paidMethod||'cash')==='cash')addCashDate(x.paidDate||x.date)});
+  (db.partnerMoves||[]).forEach(x=>{
+   if(x.kind==='paid_for_network'||x.kind==='withdrawal'||(x.kind==='partner_repayment'||x.kind==='profit_distribution')&&(x.paymentMethod||'cash')==='cash')addCashDate(x.date);
+  });
+  const liquidityPoints=[...cashDates].sort().map(day=>
+   cashBalanceAsOf(day)-monthlyUnpaidBillsAsOf(day)-Math.max(0,monthlyPartnerPayablesAsOf(day))-currentBuffer
+  );
+  const currentCashAvailable=Math.max(0,Math.min(...liquidityPoints));
   const allowed=Math.min(partnerRemaining,overallRemaining);
   if(amount>allowed+0.009)return alert('المبلغ يتجاوز الحد المتاح لهذا الشريك بعد احتساب حصته والتوزيعات السابقة والالتزامات الحالية. حصة الشريك المتبقية: '+money(partnerRemaining)+'، والمتاح إجمالًا الآن: '+money(overallRemaining)+'.'),false;
   if(d.paymentMethod==='cash'&&amount>currentCashAvailable+0.009)return alert('المبلغ يتجاوز النقد القابل للصرف بعد الالتزامات الحالية والسيولة التشغيلية المحمية، وبعد خصم الحركات النقدية المسجلة بتاريخ لاحق ('+money(currentCashAvailable)+').'),false;
